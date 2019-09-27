@@ -1,0 +1,5 @@
+sphinx
+sphinx_rtd_theme
+nbsphinx
+python-dateutil>=2.5
+jupyter
