@@ -14,7 +14,7 @@ daily) traffic pattern. The data used here is the NYC taxi traffic dataset from
                 >>> s_train = pd.read_csv("./training.csv", index_col="Datetime", parse_dates=True, squeeze=True)
                 >>> from adtk.data import validate_series
                 >>> s_train = validate_series(s_train)
-                >>> print(s)
+                >>> print(s_train)
                 Time
                 2014-07-01 00:00:00    10844
                 2014-07-01 00:30:00     8127
