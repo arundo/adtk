@@ -19,3 +19,17 @@ def _print_all_subclass_from_superclass(superclass):
         print("-" * 80)
         print(key)
         print(value)
+
+
+class PandasBugError(Exception):
+    def __init__(self):
+        msg = (
+            """Pandas before v0.25 has a known bug in method `rolling` when """
+            """parameter `window` is offset and `closed` is 'left'. Your """
+            """current execution is impacted by this bug. If you are using """
+            """Python 3.5.3 or later, please upgrade pandas to v0.25 or """
+            """later. If you are using Python 3.5.2 or earlier, please """
+            """consider using integer instead of offset to define the left """
+            """rolling window."""
+        )
+        super().__init__(msg)
