@@ -39,7 +39,7 @@ matrix:
 
 install: pip install tox
 
-script: tox
+script: pytest
 
 notifications:
   email: false
