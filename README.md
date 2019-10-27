@@ -22,7 +22,7 @@ See https://arundo-adtk.readthedocs-hosted.com for complete documentation.
 
 ## Installation
 
-Prerequisites: Python 3.6 or later.
+Prerequisites: Python 3.5 or later.
 
 It is recommended to use **pip** for installation.
 
