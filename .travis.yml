@@ -1,28 +1,40 @@
 language: python
 
-python:
-  - 3.5
-  - 3.6
-  - 3.7
-
 env:
-  - TOXENV=py35-numpy15-stats9
-  - TOXENV=py35-numpy15-stats10
-  - TOXENV=py35-numpy16-stats9
-  - TOXENV=py35-numpy16-stats10
-  - TOXENV=py35-numpy17-stats9
-  - TOXENV=py35-numpy17-stats10
-  - TOXENV=py36-numpy15-stats9
-  - TOXENV=py36-numpy15-stats10
-  - TOXENV=py36-numpy16-stats9
-  - TOXENV=py36-numpy16-stats10
-  - TOXENV=py36-numpy17-stats9
-  - TOXENV=py36-numpy17-stats10
-  - TOXENV=py37-numpy15-stats9
-  - TOXENV=py37-numpy15-stats10
-  - TOXENV=py37-numpy16-stats9
-  - TOXENV=py37-numpy16-stats10
-  - TOXENV=py37-numpy17-stats9
+  - python: 3.5.2
+    TOXENV=py35-numpy15-stats9
+  - python: 3.5.2
+    TOXENV=py35-numpy15-stats10
+  - python: 3.5.2
+    TOXENV=py35-numpy16-stats9
+  - python: 3.5.2
+    TOXENV=py35-numpy16-stats10
+  - python: 3.5.2
+    TOXENV=py35-numpy17-stats9
+  - python: 3.5.2
+    TOXENV=py35-numpy17-stats10
+  - python: 3.6
+    TOXENV=py36-numpy15-stats9
+  - python: 3.6
+    TOXENV=py36-numpy15-stats10
+  - python: 3.6
+    TOXENV=py36-numpy16-stats9
+  - python: 3.6
+    TOXENV=py36-numpy16-stats10
+  - python: 3.6
+    TOXENV=py36-numpy17-stats9
+  - python: 3.6
+    TOXENV=py36-numpy17-stats10
+  - python: 3.7
+    TOXENV=py37-numpy15-stats9
+  - python: 3.7
+    TOXENV=py37-numpy15-stats10
+  - python: 3.7
+    TOXENV=py37-numpy16-stats9
+  - python: 3.7
+    TOXENV=py37-numpy16-stats10
+  - python: 3.7
+    TOXENV=py37-numpy17-stats9
 
 install: pip install tox
 
