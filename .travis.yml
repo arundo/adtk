@@ -1,17 +1,17 @@
 language: python
 
 env:
-  - python: 3.5.2
+  - python: 3.5
     TOXENV=py35-numpy15-stats9
-  - python: 3.5.2
+  - python: 3.5
     TOXENV=py35-numpy15-stats10
-  - python: 3.5.2
+  - python: 3.5
     TOXENV=py35-numpy16-stats9
-  - python: 3.5.2
+  - python: 3.5
     TOXENV=py35-numpy16-stats10
-  - python: 3.5.2
+  - python: 3.5
     TOXENV=py35-numpy17-stats9
-  - python: 3.5.2
+  - python: 3.5
     TOXENV=py35-numpy17-stats10
   - python: 3.6
     TOXENV=py36-numpy15-stats9
