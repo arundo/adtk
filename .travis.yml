@@ -3,39 +3,39 @@ language: python
 matrix:
   include:
     - python: 3.5
-      TOXENV=py35-numpy15-stats9
+      env: TOEXENV=py35-numpy15-stats9
     - python: 3.5
-      TOXENV=py35-numpy15-stats10
+      env: TOEXENV=py35-numpy15-stats10
     - python: 3.5
-      TOXENV=py35-numpy16-stats9
+      env: TOEXENV=py35-numpy16-stats9
     - python: 3.5
-      TOXENV=py35-numpy16-stats10
+      env: TOEXENV=py35-numpy16-stats10
     - python: 3.5
-      TOXENV=py35-numpy17-stats9
+      env: TOEXENV=py35-numpy17-stats9
     - python: 3.5
-      TOXENV=py35-numpy17-stats10
+      env: TOEXENV=py35-numpy17-stats10
     - python: 3.6
-      TOXENV=py36-numpy15-stats9
+      env: TOEXENV=py36-numpy15-stats9
     - python: 3.6
-      TOXENV=py36-numpy15-stats10
+      env: TOEXENV=py36-numpy15-stats10
     - python: 3.6
-      TOXENV=py36-numpy16-stats9
+      env: TOEXENV=py36-numpy16-stats9
     - python: 3.6
-      TOXENV=py36-numpy16-stats10
+      env: TOEXENV=py36-numpy16-stats10
     - python: 3.6
-      TOXENV=py36-numpy17-stats9
+      env: TOEXENV=py36-numpy17-stats9
     - python: 3.6
-      TOXENV=py36-numpy17-stats10
+      env: TOEXENV=py36-numpy17-stats10
     - python: 3.7
-      TOXENV=py37-numpy15-stats9
+      env: TOEXENV=py37-numpy15-stats9
     - python: 3.7
-      TOXENV=py37-numpy15-stats10
+      env: TOEXENV=py37-numpy15-stats10
     - python: 3.7
-      TOXENV=py37-numpy16-stats9
+      env: TOEXENV=py37-numpy16-stats9
     - python: 3.7
-      TOXENV=py37-numpy16-stats10
+      env: TOEXENV=py37-numpy16-stats10
     - python: 3.7
-      TOXENV=py37-numpy17-stats9
+      env: TOEXENV=py37-numpy17-stats9
 
 install: pip install tox
 
