@@ -348,7 +348,7 @@ class RollingAggregate(_Transformer1D):
             s_rolling = rolling.quantile(0.9) - rolling.quantile(0.1)
         elif agg == "hist":
             if isinstance(agg_params["bins"], int):
-                bins = np.histogram_bin_edges(
+                _, bins = np.histogram(
                     s.dropna().values, bins=agg_params["bins"]
                 )
             else:
