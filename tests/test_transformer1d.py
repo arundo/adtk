@@ -1,4 +1,5 @@
 """Test 1D transformors on some simple cases."""
+import sys
 import pytest
 import pandas as pd
 import adtk.transformer as transformer
@@ -415,7 +416,14 @@ def test_fit_transform(testCase):
         pd.testing.assert_series_equal(t, t_true, check_dtype=False)
     else:
         t_true = pd.DataFrame(testCase["t"], index=s.index)
-        pd.testing.assert_frame_equal(t, t_true, check_dtype=False)
+        if sys.version_info[1] >= 6:
+            pd.testing.assert_frame_equal(t, t_true, check_dtype=False)
+        else:
+            pd.testing.assert_frame_equal(
+                t.sort_index(axis=1),
+                t_true.sort_index(axis=1),
+                check_dtype=False,
+            )
 
 
 @pytest.mark.parametrize("testCase", testCases)
@@ -433,7 +441,14 @@ def test_fit_and_transform(testCase):
         pd.testing.assert_series_equal(t, t_true, check_dtype=False)
     else:
         t_true = pd.DataFrame(testCase["t"], index=s.index)
-        pd.testing.assert_frame_equal(t, t_true, check_dtype=False)
+        if sys.version_info[1] >= 6:
+            pd.testing.assert_frame_equal(t, t_true, check_dtype=False)
+        else:
+            pd.testing.assert_frame_equal(
+                t.sort_index(axis=1),
+                t_true.sort_index(axis=1),
+                check_dtype=False,
+            )
 
 
 @pytest.mark.parametrize("testCase", testCases)
@@ -462,4 +477,10 @@ def test_dataframe(testCase):
             ],
             axis=1,
         )
-    pd.testing.assert_frame_equal(t, t_true, check_dtype=False)
+    if sys.version_info[1] >= 6:
+        pd.testing.assert_frame_equal(t, t_true, check_dtype=False)
+    else:
+        pd.testing.assert_frame_equal(
+            t.sort_index(axis=1), t_true.sort_index(axis=1), check_dtype=False
+        )
+
