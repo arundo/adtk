@@ -7,7 +7,7 @@ python:
 
 install: pip install tox-travis
 
-script: tox -p auto
+script: tox
 
 notifications:
   email: false
