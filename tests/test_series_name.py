@@ -1,5 +1,6 @@
 "Check if the series name or column name is correctly kept."
 
+import sys
 import pandas as pd
 import numpy as np
 import pytest
@@ -98,7 +99,10 @@ def test_one2one_df2list(model):
             columns=["A", "B", "C"],
         )
         result = model.fit_detect(df, return_list=True)
-        assert list(result.keys()) == ["A", "B", "C"]
+        if sys.version_info[1] >= 6:
+            assert list(result.keys()) == ["A", "B", "C"]
+        else:
+            assert set(result.keys()) == {"A", "B", "C"}
 
 
 @pytest.mark.parametrize("model", one2many_models)

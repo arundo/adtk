@@ -388,7 +388,9 @@ def test_list_to_label_freq_as_period():
         freq_as_period=True,
     )
 
-    pd.testing.assert_frame_equal(labels, labels_true)
+    pd.testing.assert_frame_equal(
+        labels.sort_index(axis=1), labels_true.sort_index(axis=1)
+    )
 
 
 def test_list_to_label_freq_not_as_period():
@@ -469,7 +471,9 @@ def test_list_to_label_freq_not_as_period():
         freq_as_period=False,
     )
 
-    pd.testing.assert_frame_equal(labels, labels_true)
+    pd.testing.assert_frame_equal(
+        labels.sort_index(axis=1), labels_true.sort_index(axis=1)
+    )
 
 
 def test_nan():

@@ -6,6 +6,7 @@ original time series.
 
 """
 
+from packaging.version import parse
 import warnings
 
 import numpy as np
@@ -14,6 +15,7 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import acf
 
 from .._transformer_base import _Transformer1D
+from .._utils import PandasBugError
 
 __all__ = [
     "RollingAggregate",
@@ -346,7 +348,7 @@ class RollingAggregate(_Transformer1D):
             s_rolling = rolling.quantile(0.9) - rolling.quantile(0.1)
         elif agg == "hist":
             if isinstance(agg_params["bins"], int):
-                bins = np.histogram_bin_edges(
+                _, bins = np.histogram(
                     s.dropna().values, bins=agg_params["bins"]
                 )
             else:
@@ -561,6 +563,8 @@ class DoubleRollingAggregate(_Transformer1D):
                     min_periods=min_periods[0],
                     center=False,
                 )
+                if parse(pd.__version__) < parse("0.25"):
+                    raise PandasBugError()
                 ra._closed = "left"
                 s_rolling_left = ra.transform(s)
             if isinstance(window[1], int):
