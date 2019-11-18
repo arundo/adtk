@@ -11,6 +11,7 @@ script:
     - tox
 
 after_success:
+    - pip install -e ./
     - pip install pytest-cov
     - py.test --cov adtk
     - coveralls
