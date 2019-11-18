@@ -26,6 +26,7 @@ anomaly events.
    examples
    api/modules
    developer
+   releasehistory
 
 
 Indices and tables

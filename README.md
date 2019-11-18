@@ -2,7 +2,9 @@
 
 [![Build Status](https://travis-ci.com/arundo/adtk.svg?branch=master)](https://travis-ci.com/arundo/adtk)
 [![Docs](https://readthedocs.com/projects/arundo-adtk/badge/?version=latest)](https://arundo-adtk.readthedocs-hosted.com/en/latest/)
+[![Coverage Status](https://coveralls.io/repos/github/arundo/adtk/badge.svg?branch=coverage)](https://coveralls.io/github/arundo/adtk?branch=coverage)
 [![PyPI](https://img.shields.io/pypi/v/adtk)](https://pypi.org/project/adtk/)
+[![Downloads](https://pepy.tech/badge/adtk)](https://pepy.tech/project/adtk)
 
 Anomaly Detection Toolkit (ADTK) is a Python package for unsupervised /
 rule-based time series anomaly detection.
@@ -22,7 +24,7 @@ See https://arundo-adtk.readthedocs-hosted.com for complete documentation.
 
 ## Installation
 
-Prerequisites: Python 3.6 or later.
+Prerequisites: Python 3.5 or later.
 
 It is recommended to use **pip** for installation.
 
