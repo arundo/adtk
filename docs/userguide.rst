@@ -19,12 +19,12 @@ Unsupervised vs. Supervised
 
 The first thing a user needs to decide before building a model is whether to formulate the problem as a supervised learning problem or an unsupervised problem. Supervised learning methods train models based on time series and normal/anomalous labels in the training set, while unsupervised methods build models only based on time series and domain knowledge, and do not require data labeled.
 
-Real-world anomaly detection problems are usually suffered from lack of labeled historical anomalies, which may prevent users from building a robust supervised model. In this case, an unsupervised/rule-based method is a better choice. ADTK is a package for unsupervised/rule-based models of time series anomaly detection. If a user formulates a task as a supervised learning problem, alternative tools will be needed.
+Real-world anomaly detection problems usually suffer from lack of labeled historical anomalies, which may prevent users from building a robust supervised model. In this case, an unsupervised/rule-based method is a better choice. ADTK is a package for unsupervised/rule-based models of time series anomaly detection. If a user formulates a task as a supervised learning problem, alternative tools will be needed.
 
 Anomaly Types
 =====================
 
-Anomaly is a board concept, which may refer to many different types of events in time series. A spike of value, a shift of volatility, a violation of seasonal pattern, etc. could all be anomalous or normal, depending on the specific context. ADTK offers a set of common components that can be combined into various types of anomaly detection models for different scenarios. However, ADTK does not select or build a model for a user automatically. A user should know what type of anomaly to detect, therefore can build a model accordingly.
+Anomaly is a broad concept, which may refer to many different types of events in time series. A spike of value, a shift of volatility, a violation of seasonal pattern, etc. could all be anomalous or normal, depending on the specific context. ADTK offers a set of common components that can be combined into various types of anomaly detection models for different scenarios. However, ADTK does not select or build a model for a user automatically. A user should know what type of anomaly to detect, therefore can build a model accordingly.
 
 Outlier
 ```````
