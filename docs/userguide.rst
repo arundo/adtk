@@ -24,7 +24,7 @@ Real-world anomaly detection problems usually suffer from lack of labeled histor
 Anomaly Types
 =====================
 
-Anomaly is a broad concept, which may refer to many different types of events in time series. A spike of value, a shift of volatility, a violation of seasonal pattern, etc. could all be anomalous or normal depending on the specific context. ADTK offers a set of common components that can be combined into various types of anomaly detection models for different scenarios. However, ADTK does not select or build a model for a user automatically. A user should know what type of anomaly to detect, therefore can build a model accordingly.
+Anomaly is a broad concept, which may refer to many different types of events in time series. A spike of value, a shift of volatility, a violation of seasonal pattern, etc. could all be anomalous or normal, depending on the specific context. ADTK offers a set of common components that can be combined into various types of anomaly detection models for different scenarios. However, ADTK does not select or build a model for a user automatically. A user should know what type of anomaly to detect, therefore can build a model accordingly.
 
 Outlier
 ```````
