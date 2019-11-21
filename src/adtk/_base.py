@@ -151,43 +151,43 @@ class _Model1D(_Model):
 
 
 class _ModelHD(_Model):
-    def _fit(self, ts):
-        if isinstance(ts, pd.DataFrame):
-            df = ts.copy()
-            self._fit_core(df)
+    def _fit(self, df):
+        if isinstance(df, pd.DataFrame):
+            df_copy = df.copy()
+            self._fit_core(df_copy)
         else:
             raise TypeError("Input must be a pandas DataFrame.")
         self._fitted = True
 
-    def _predict(self, ts):
+    def _predict(self, df):
         if self._need_fit and (not self._fitted):
             raise RuntimeError("The model must be trained first.")
-        if isinstance(ts, pd.DataFrame):
-            df = ts.copy()
-            predicted = self._predict_core(df)
+        if isinstance(df, pd.DataFrame):
+            df_copy = df.copy()
+            predicted = self._predict_core(df_copy)
         else:
             raise TypeError("Input must be a pandas DataFrame.")
         # make sure index freq is the same (because pandas has a bug that some
         # operation, e.g. concat, may change freq)
-        predicted.index.freq = ts.index.freq
+        predicted.index.freq = df.index.freq
         return predicted
 
     @abstractmethod
-    def _fit_core(self, ts):
+    def _fit_core(self, df):
         pass
 
     @abstractmethod
-    def _predict_core(self, ts):
+    def _predict_core(self, df):
         pass
 
     @abstractmethod
-    def fit(self, ts):
+    def fit(self, df):
         pass
 
     @abstractmethod
-    def predict(self, ts):
+    def predict(self, df):
         pass
 
     @abstractmethod
-    def fit_predict(self, ts):
+    def fit_predict(self, df):
         pass
