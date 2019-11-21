@@ -2,6 +2,10 @@
 Release History
 ***************
 
+Version 0.4.1 (Nov 21, 2019)
+===================================
+- Fixed an issue of tox environments
+
 Version 0.4.0 (Nov 18, 2019)
 ===================================
 - Added support to Python 3.5
