@@ -34,7 +34,7 @@ class _Aggregator(_Model):
         return self._predict_core(lists)
 
     def aggregate(self, lists):
-        """Aggregate mulitple lists of anomalies into one.
+        """Aggregate multiple lists of anomalies into one.
 
         Parameters
         ----------
