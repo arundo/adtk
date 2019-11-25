@@ -18,7 +18,7 @@ class CustomizedAggregator(_Aggregator):
     Parameters
     ----------
     aggregate_func: function
-        A function aggregating mulitple lists of anomalies. The first input
+        A function aggregating multiple lists of anomalies. The first input
         argument must be a dict, optional input argument allows (through
         parameter `aggregate_func_params`). The output must be a list of pandas
         Timestamps.
