@@ -878,11 +878,11 @@ class STLDecomposition(_Transformer1D):
         super().__init__(freq=freq)
 
     def _fit_core(self, s):
-        # STLDecomposition is a
+        # Should not fit-only, as fit and predict are coupled in STL decompose
         pass
 
     def _predict_core(self, s):
-        # STL
+        # this is where algorithm should be
         return s.isna()
 
 
