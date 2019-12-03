@@ -681,6 +681,13 @@ class ClassicSeasonalDecomposition(_Transformer1D):
     taking average over seasonal periods of the detrended series, and returns
     residual series.
 
+    The `fit` method fits seasonal frequency (if not specified) and seasonal
+    pattern with the training series. The `transform` (or its alias `predict`)
+    method extracts the trend by moving average, but will NOT re-calucate the
+    seasonal pattern. Instead, it uses the trained seasonal pattern and
+    extracts it from the detrended series to obtain the residual series. This
+    implicitly assumes the seasonal property does not change over time.
+
     Parameters
     ----------
     freq: int, optional
