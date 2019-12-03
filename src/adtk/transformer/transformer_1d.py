@@ -21,6 +21,7 @@ __all__ = [
     "RollingAggregate",
     "DoubleRollingAggregate",
     "ClassicSeasonalDecomposition",
+    "STLDecomposition",
     "Retrospect",
     "StandardScale",
     "CustomizedTransformer1D",
@@ -864,6 +865,25 @@ class ClassicSeasonalDecomposition(_Transformer1D):
         else:
             s_residual = s - s_seasonal
         return s_residual
+
+
+class STLDecomposition(_Transformer1D):
+    """
+    """
+
+    _need_fit = False
+    _default_params = {"freq": None}
+
+    def __init__(self, freq=_default_params["freq"]):
+        super().__init__(freq=freq)
+
+    def _fit_core(self, s):
+        # STLDecomposition is a
+        pass
+
+    def _predict_core(self, s):
+        # STL
+        return s.isna()
 
 
 def _identify_seasonal_period(s, low_autocorr=0.1, high_autocorr=0.3):

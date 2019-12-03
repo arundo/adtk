@@ -18,6 +18,7 @@ from ..transformer import (
     CustomizedTransformer1D,
     DoubleRollingAggregate,
     ClassicSeasonalDecomposition,
+    STLDecomposition,
     RegressionResidual,
     Retrospect,
 )
