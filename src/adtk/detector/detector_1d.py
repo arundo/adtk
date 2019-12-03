@@ -1090,7 +1090,7 @@ class SeasonalAD(_Detector1D):
 
     trend: bool, optional
         Whether to extract trend during decomposition. Only used when classic
-        seasonal decomposition is used. Default: True.
+        seasonal decomposition is applied. Default: False.
 
     Attributes
     ----------
@@ -1119,7 +1119,7 @@ class SeasonalAD(_Detector1D):
         "freq": None,
         "side": "both",
         "c": 3.0,
-        "trend": True,
+        "trend": False,
     }
 
     def __init__(

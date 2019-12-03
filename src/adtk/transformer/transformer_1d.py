@@ -676,7 +676,7 @@ class ClassicSeasonalDecomposition(_Transformer1D):
     series, and returns residual series.
 
     Classic seasonal decomposition assumes time series is the sum of trend,
-    seasonal pattern, and noise (residual). This transformer calculates and 
+    seasonal pattern, and noise (residual). This transformer calculates and
     removes trend component with moving average, extracts seasonal pattern by
     taking average over seasonal periods of the detrended series, and returns
     residual series.
@@ -690,7 +690,7 @@ class ClassicSeasonalDecomposition(_Transformer1D):
     trend: bool, optional
         Whether to extract and remove trend of the series with moving average.
         If False, the time series will be assumed the sum of seasonal pattern
-        and residual. Default: True.
+        and residual. Default: False.
 
     Attributes
     ----------
@@ -711,7 +711,7 @@ class ClassicSeasonalDecomposition(_Transformer1D):
 
     """
 
-    _default_params = {"freq": None, "trend": True}
+    _default_params = {"freq": None, "trend": False}
 
     def __init__(
         self, freq=_default_params["freq"], trend=_default_params["trend"]
