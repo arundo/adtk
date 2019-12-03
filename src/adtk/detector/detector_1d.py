@@ -17,10 +17,9 @@ from ..pipe import Pipenet
 from ..transformer import (
     CustomizedTransformer1D,
     DoubleRollingAggregate,
-    NaiveSeasonalDecomposition,
+    ClassicSeasonalDecomposition,
     RegressionResidual,
     Retrospect,
-    STLDecomposition,
 )
 
 __all__ = [
@@ -1068,11 +1067,11 @@ class SeasonalAD(_Detector1D):
     Parameters
     ----------
     method: str, optional
-        If 'naive',  use naive seasonal decomposition;
+        If 'classic', use classic seasonal decomposition;
         If 'stl', use STL method.
-        See `adtk.transformer_1d.NaiveSeasonalDecomposition` and
+        See `adtk.transformer_1d.ClassicSeasonalDecomposition` and
         `adtk.transformer_1d.STLDecomposition` for more details.
-        Default: 'naive'.
+        Default: 'classic'.
 
     freq: int, optional
         Length of a seasonal cycle. If not given, the model will determine
@@ -1088,6 +1087,10 @@ class SeasonalAD(_Detector1D):
         If "positive", to only detect anomalous positive residuals;
         If "negative", to only detect anomalous negative residuals.
         Default: "both".
+
+    trend: bool, optional
+        Whether to extract trend during decomposition. Only used when classic
+        seasonal decomposition is used. Default: True.
 
     Attributes
     ----------
@@ -1112,10 +1115,11 @@ class SeasonalAD(_Detector1D):
     """
 
     _default_params = {
-        "method": "naive",
+        "method": "classic",
         "freq": None,
         "side": "both",
         "c": 3.0,
+        "trend": True,
     }
 
     def __init__(
@@ -1124,14 +1128,15 @@ class SeasonalAD(_Detector1D):
         freq=_default_params["freq"],
         side=_default_params["side"],
         c=_default_params["c"],
+        trend=_default_params["trend"],
     ):
         self.pipe_ = Pipenet(
             [
                 {
                     "name": "deseasonal_residual",
                     "model": (
-                        NaiveSeasonalDecomposition(freq=freq)
-                        if method == "naive"
+                        ClassicSeasonalDecomposition(freq=freq, trend=trend)
+                        if method == "classic"
                         else STLDecomposition(freq=freq)
                     ),
                     "input": "original",
@@ -1177,22 +1182,23 @@ class SeasonalAD(_Detector1D):
                 },
             ]
         )
-        super().__init__(method=method, freq=freq, side=side, c=c)
+        super().__init__(method=method, freq=freq, side=side, c=c, trend=trend)
         self._sync_params()
 
     def _sync_params(self):
-        if self.method not in ["naive", "stl"]:
-            raise ValueError("Parameter `method` must be 'naive' or 'stl'.")
-        if (self.method == "naive") and (
+        if self.method not in ["classic", "stl"]:
+            raise ValueError("Parameter `method` must be 'classic' or 'stl'.")
+        if (self.method == "classic") and (
             self.pipe_.steps[0]["model"].__class__
-            != NaiveSeasonalDecomposition
+            != ClassicSeasonalDecomposition
         ):
-            self.pipe_.steps[0]["model"] = NaiveSeasonalDecomposition()
+            self.pipe_.steps[0]["model"] = ClassicSeasonalDecomposition()
         if (self.method == "stl") and (
             self.pipe_.steps[0]["model"].__class__ != STLDecomposition
         ):
             self.pipe_.steps[0]["model"] = STLDecomposition()
         self.pipe_.steps[0]["model"].freq = self.freq
+        self.pipe_.steps[0]["model"].trend = self.trend
         self.pipe_.steps[2]["model"].c = (None, self.c)
         self.pipe_.steps[3]["model"].high = (
             0.0
