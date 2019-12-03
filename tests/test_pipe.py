@@ -19,7 +19,7 @@ def test_detector_return_intermediate():
         [
             {
                 "name": "deseasonal_residual",
-                "model": (transformer.NaiveSeasonalDecomposition(freq=6)),
+                "model": (transformer.ClassicSeasonalDecomposition(freq=6)),
                 "input": "original",
             },
             {
@@ -63,7 +63,7 @@ def test_skip_fit():
         index=pd.date_range(start="2017-1-1", periods=60, freq="D"),
     )
 
-    deseasonal_residual = transformer.NaiveSeasonalDecomposition(freq=6)
+    deseasonal_residual = transformer.ClassicSeasonalDecomposition(freq=6)
 
     my_pipe = Pipenet(
         [
@@ -107,7 +107,9 @@ def test_nonunique_output():
             [
                 {
                     "name": "deseasonal_residual",
-                    "model": (transformer.NaiveSeasonalDecomposition(freq=6)),
+                    "model": (
+                        transformer.ClassicSeasonalDecomposition(freq=6)
+                    ),
                     "input": "original",
                 },
                 {
@@ -140,7 +142,7 @@ def test_transformer_pipe():
         [
             {
                 "name": "deseasonal_residual",
-                "model": transformer.NaiveSeasonalDecomposition(freq=6),
+                "model": transformer.ClassicSeasonalDecomposition(freq=6),
                 "input": "original",
             },
             {
@@ -166,7 +168,7 @@ def test_pipeline():
         [
             (
                 "deseasonal_residual",
-                transformer.NaiveSeasonalDecomposition(freq=6),
+                transformer.ClassicSeasonalDecomposition(freq=6),
             ),
             (
                 "abs_residual",
