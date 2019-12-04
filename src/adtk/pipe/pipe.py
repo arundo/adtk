@@ -13,6 +13,8 @@ from matplotlib.collections import PatchCollection
 from matplotlib.lines import Line2D
 from matplotlib.patches import Circle
 
+from tabulate import tabulate
+
 from .._base import _Model
 from .._detector_base import _Detector1D, _DetectorHD
 from .._transformer_base import _Transformer1D, _TransformerHD
@@ -1040,6 +1042,30 @@ class Pipenet:
             step_name: step["model"].get_params()
             for step_name, step in self.steps.items()
         }
+
+    def summary(self):
+        """Print a summary of the pipenet."""
+        df = pd.DataFrame(
+            columns=["name", "model", "input", "subset", "order"]
+        )
+        for step_name, exe_order in self.steps_graph_.items():
+            if step_name == "original":
+                continue
+            df = df.append(
+                {
+                    "name": step_name,
+                    "model": self.steps[step_name]["model"].__class__.__name__,
+                    "input": self.steps[step_name]["input"],
+                    "subset": (
+                        self.steps[step_name]["subset"]
+                        if hasattr(self.steps[step_name], "subset")
+                        else "all"
+                    ),
+                    "order": exe_order,
+                },
+                ignore_index=True,
+            )
+        print(tabulate(df, headers="keys", tablefmt="simple", showindex=False))
 
     def plot_flowchart(self, ax=None, figsize=None, radius=1.0):
         """Plot flowchart of this pipenet.
