@@ -54,7 +54,7 @@ class Pipeline:
         pipenet_steps = dict()
         last_name = "original"
         for pipeline_step in self.steps:
-            pipenet_step.update(
+            pipenet_steps.update(
                 {
                     pipeline_step[0]: {
                         "model": pipeline_step[1],
