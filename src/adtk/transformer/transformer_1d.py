@@ -126,7 +126,6 @@ class StandardScale(_Transformer1D):
     """Transformer that scales time series such that mean is equal to 0 and
     standard deviation is equal to 1.
 
-
     This is an univariate transformer. When it is applied to a multivariate
     time series (i.e. pandas DataFrame), it will be applied to every series
     independently.
@@ -154,6 +153,13 @@ class StandardScale(_Transformer1D):
 class RollingAggregate(_Transformer1D):
     """Transformer that roll a sliding window along a time series, and
     aggregates using a user-selected operation.
+
+    This is an univariate transformer. When it is applied to a multivariate
+    time series (i.e. pandas DataFrame), it will be applied to every series
+    independently. All parameters can be defined as a dict object where key-
+    value pairs are series names (i.e. column names of DataFrame) and the
+    model parameter for that series. If not, then the same parameter will be
+    applied to all series.
 
     Parameters
     ----------
@@ -207,14 +213,6 @@ class RollingAggregate(_Transformer1D):
     min_periods: int, optional
         Minimum number of observations in window required to have a value.
         Default: None, i.e. all observations must have values.
-
-
-    This is an univariate transformer. When it is applied to a multivariate
-    time series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     """
 
@@ -395,6 +393,13 @@ class DoubleRollingAggregate(_Transformer1D):
     series, aggregates using a user-given operation, and calcuates the
     difference of aggregated metrics between two sliding windows.
 
+    This is an univariate transformer. When it is applied to a multivariate
+    time series (i.e. pandas DataFrame), it will be applied to every series
+    independently. All parameters can be defined as a dict object where key-
+    value pairs are series names (i.e. column names of DataFrame) and the
+    model parameter for that series. If not, then the same parameter will be
+    applied to all series.
+
     Parameters
     ----------
     agg: str, function, or tuple
@@ -475,14 +480,6 @@ class DoubleRollingAggregate(_Transformer1D):
         number measuring the difference.
 
         Default: 'l1'
-
-
-    This is an univariate transformer. When it is applied to a multivariate
-    time series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     """
 
@@ -862,6 +859,13 @@ class NaiveSeasonalDecomposition(_Deseasonal):
     residual series. It may not applicable for seasonal time series with strong
     trend besides seasonal effects, where STLDecomposition may be helpful.
 
+    This is an univariate transformer. When it is applied to a multivariate
+    time series (i.e. pandas DataFrame), it will be applied to every series
+    independently. All parameters can be defined as a dict object where key-
+    value pairs are series names (i.e. column names of DataFrame) and the
+    model parameter for that series. If not, then the same parameter will be
+    applied to all series.
+
     Parameters
     ----------
     freq: int, optional
@@ -876,14 +880,6 @@ class NaiveSeasonalDecomposition(_Deseasonal):
 
     seasonal_: pandas.Series
         Seasonal pattern extracted from training series.
-
-
-    This is an univariate transformer. When it is applied to a multivariate
-    time series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     """
 
@@ -913,6 +909,13 @@ class STLDecomposition(_Deseasonal):
     noise (residual). This transformer performs STL decomposition to a time
     series and returns residual series.
 
+    This is an univariate transformer. When it is applied to a multivariate
+    time series (i.e. pandas DataFrame), it will be applied to every series
+    independently. All parameters can be defined as a dict object where key-
+    value pairs are series names (i.e. column names of DataFrame) and the
+    model parameter for that series. If not, then the same parameter will be
+    applied to all series.
+
     Parameters
     ----------
     freq: int, optional
@@ -927,14 +930,6 @@ class STLDecomposition(_Deseasonal):
 
     seasonal_: pandas.Series
         Seasonal pattern extracted from training series.
-
-
-    This is an univariate transformer. When it is applied to a multivariate
-    time series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     """
 
@@ -984,6 +979,13 @@ class Retrospect(_Transformer1D):
     u_[t-5], and a series y_t are needed to learn the relationship between
     control and outcome.
 
+    This is an univariate transformer. When it is applied to a multivariate
+    time series (i.e. pandas DataFrame), it will be applied to every series
+    independently. All parameters can be defined as a dict object where key-
+    value pairs are series names (i.e. column names of DataFrame) and the
+    model parameter for that series. If not, then the same parameter will be
+    applied to all series.
+
     Parameters
     ----------
     n_steps: int, optional
@@ -1023,14 +1025,6 @@ class Retrospect(_Transformer1D):
             2017-01-08	6.0	4.0	2.0
             2017-01-09	7.0	5.0	3.0
             2017-01-10	8.0	6.0	4.0
-
-
-    This is an univariate transformer. When it is applied to a multivariate
-    time series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     """
 
