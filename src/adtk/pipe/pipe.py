@@ -51,13 +51,18 @@ class Pipeline:
         self._update_internal_pipenet()
 
     def _update_internal_pipenet(self):
-        pipenet_steps = [
-            {"name": pipeline_step[0], "model": pipeline_step[1]}
-            for pipeline_step in self.steps
-        ]
-        pipenet_steps[0].update({"input": "original"})
-        for this, previous in zip(pipenet_steps[1:], pipenet_steps[:-1]):
-            this.update({"input": previous["name"]})
+        pipenet_steps = dict()
+        last_name = "original"
+        for pipeline_step in self.steps:
+            pipenet_step.update(
+                {
+                    pipeline_step[0]: {
+                        "model": pipeline_step[1],
+                        "input": last_name,
+                    }
+                }
+            )
+            last_name = pipeline_step[0]
         self._pipenet.steps = pipenet_steps
 
     def fit(self, ts, skip_fit=None, return_intermediate=False):
@@ -305,11 +310,11 @@ class Pipenet:
 
     Parameters
     ----------
-    steps: list of dicts
-        Components of the pipenet. Each dict represents a model (transformer,
-        detector, or aggregator), and has four key values:
+    steps: dicts
+        Components of the pipenet. Each key-value item represents a step (
+        transformer, detector, or aggregator), where key is the unique name of
+        the step and the value is a dict with the following key-value pairs:
 
-            - name (str): A unique name of this components.
             - input (str or list of str): Input to the model, which must be
               either 'original' (i.e. the input time series), or the name of
               a upstream component.
@@ -335,13 +340,12 @@ class Pipenet:
     The following example show how to use a Pipenet to build a level shift
     detector with some basic transformers, detectors, and aggregator.
 
-    >>> from adtk.detector_1d import QuantileAD, ThresholdAD
-    >>> from adtk.transformer_1d import DoubleRollingAggregate
+    >>> from adtk.detector import QuantileAD, ThresholdAD
+    >>> from adtk.transformer import DoubleRollingAggregate
     >>> from adtk.aggregator import AndAggregator
     >>> from adtk.pipe import Pipenet
-    >>> steps = [
-            {
-                "name": "diff_abs",
+    >>> steps = {
+            "diff_abs": {
                 "input": "original",
                 "model": DoubleRollingAggregate(
                     agg="median",
@@ -350,13 +354,11 @@ class Pipenet:
                     diff="l1",
                 ),
             },
-            {
-                "name": "quantile_ad",
+            "quantile_ad": {
                 "input": "diff_abs",
-                "model": QuantileAD(upper_thresh=0.99, lower_thresh=0),
+                "model": QuantileAD(high=0.99, low=0),
             },
-            {
-                "name": "diff",
+            "diff": {
                 "input": "original",
                 "model": DoubleRollingAggregate(
                     agg="median",
@@ -364,26 +366,23 @@ class Pipenet:
                     center=True,
                     diff="diff",
                 ),
-                "input": "original",
             },
-            {
-                "name": "sign_check",
+            "sign_check": {
                 "input": "diff",
-                "model": ThresholdAD(upper_thresh=0.0, lower_thresh=-float("inf")),
+                "model": ThresholdAD(high=0.0, low=-float("inf")),
             },
-            {
-                "name": "and",
+            "and": {
                 "model": AndAggregator(),
                 "input": ["quantile_ad", "sign_check"],
             },
-        ]
+        }
     >>> myPipenet = Pipenet(steps)
 
     """
 
     def __init__(self, steps=None):
         if steps is None:
-            self.steps = []
+            self.steps = dict()
         else:
             self.steps = steps
         self._validate()
@@ -414,32 +413,32 @@ class Pipenet:
 
         """
 
-        # check if step is a list of dict
-        if not isinstance(self.steps, list):
-            raise TypeError("`steps` must be a list of dict objects.")
-        if not all([isinstance(step, dict) for step in self.steps]):
-            raise TypeError("`steps` must be a list of dict objects.")
+        # check if step is a dict
+        if not isinstance(self.steps, dict):
+            raise TypeError("`steps` must be a dict objects.")
+        if not all([isinstance(value, dict) for value in self.steps.values()]):
+            raise TypeError("Values of dict `steps` must be dict objects.")
 
         # check if each step has valid keys
         if not all(
             [
-                {"name", "model", "input"}
+                {"model", "input"}
                 <= step.keys()
-                <= {"name", "model", "input", "subset"}
-                for step in self.steps
+                <= {"model", "input", "subset"}
+                for step in self.steps.values()
             ]
         ):
             raise KeyError(
-                "Each step must be a dict object with keys `name`, `model`, "
-                "`input`, and `subset` (optional)."
+                "Each step must be a dict object with keys `model`, `input`, "
+                "and `subset` (optional)."
             )
 
         # check if each step has valid name
-        if not all([isinstance(step["name"], str) for step in self.steps]):
+        if not all(
+            [isinstance(step_name, str) for step_name in self.steps.keys()]
+        ):
             raise TypeError("Model name must be a string.")
-        if len({step["name"] for step in self.steps}) < len(self.steps):
-            raise ValueError("Model names must be unique.")
-        if any([step["name"] == "original" for step in self.steps]):
+        if any([step_name == "original" for step_name in self.steps.keys()]):
             raise ValueError(
                 "'original' is a reserved name for original time series input "
                 "and you may not use it as a model name."
@@ -456,14 +455,14 @@ class Pipenet:
         if not all(
             [
                 isinstance(step["input"], str) or islistofstr(step["input"])
-                for step in self.steps
+                for step in self.steps.values()
             ]
         ):
             raise TypeError(
                 "Field `input` must be a string or a list of strings."
             )
-        name_set = {step["name"] for step in self.steps}.union({"original"})
-        for step in self.steps:
+        name_set = set(self.steps.keys()).union({"original"})
+        for step in self.steps.values():
             if (
                 isinstance(step["input"], str)
                 and (step["input"] not in name_set)
@@ -476,7 +475,7 @@ class Pipenet:
                 )
 
         # check if only one step is not used as input (so it is the output)
-        for step in self.steps:
+        for step in self.steps.values():
             if isinstance(step["input"], str):
                 name_set = name_set - {step["input"]}
             else:
@@ -491,7 +490,7 @@ class Pipenet:
 
         # check if each step has a valid subset, or has no subset (then we
         # will add default one to it)
-        for step in self.steps:
+        for step_name, step in self.steps.items():
             if isinstance(step["input"], str):
                 if "subset" not in step.keys():
                     pass
@@ -503,7 +502,7 @@ class Pipenet:
                 ):
                     raise TypeError(
                         "Field `subset` at step '{}' is invalid.".format(
-                            step["name"]
+                            step_name
                         )
                     )
                 elif isinstance(step["subset"], str) and (
@@ -523,14 +522,14 @@ class Pipenet:
                     else:
                         raise ValueError(
                             "Field `subset` at step '{}' is invalid.".format(
-                                step["name"]
+                                step_name
                             )
                         )
                 elif isinstance(step["subset"], list):
                     if len(step["input"]) != len(step["subset"]):
                         raise ValueError(
                             "Fields `input` and `subset` are inconsistent at "
-                            "step '{}'.".format(step["name"])
+                            "step '{}'.".format(step_name)
                         )
                     for subset in step["subset"]:
                         if not (
@@ -538,7 +537,7 @@ class Pipenet:
                         ):
                             raise TypeError(
                                 "Field `subset` at step '{}' is invalid.".format(
-                                    step["name"]
+                                    step_name
                                 )
                             )
                         if isinstance(subset, str) and (subset != "all"):
@@ -550,12 +549,14 @@ class Pipenet:
                 else:
                     raise TypeError(
                         "Field `subset` at step '{}' is invalid.".format(
-                            step["name"]
+                            step_name
                         )
                     )
 
         # check if each step has valid model
-        if not all([isinstance(step["model"], _Model) for step in self.steps]):
+        if not all(
+            [isinstance(step["model"], _Model) for step in self.steps.values()]
+        ):
             raise ValueError(
                 "Model must be a detector, transformer, or aggregator object."
             )
@@ -563,10 +564,7 @@ class Pipenet:
         # check:
         # 1. upstream of transformer and detector must be transformer, or input
         # 2. upstream of aggregator must be detector or aggregator
-        name2ind = {
-            step["name"]: counter for counter, step in enumerate(self.steps)
-        }
-        for step in self.steps:
+        for step_name, step in self.steps.items():
             if isinstance(
                 step["model"],
                 (_Detector1D, _DetectorHD, _Transformer1D, _TransformerHD),
@@ -575,48 +573,48 @@ class Pipenet:
                     if step["input"] == "original":
                         pass
                     elif not isinstance(
-                        self.steps[name2ind[step["input"]]]["model"],
+                        self.steps[step["input"]]["model"],
                         (_Transformer1D, _TransformerHD),
                     ):
                         raise TypeError(
                             "Model in step '{}' cannot accept output from "
-                            "step '{}'.".format(step["name"], step["input"])
+                            "step '{}'.".format(step_name, step["input"])
                         )
                 else:
                     for input in step["input"]:
                         if input == "original":
                             pass
                         elif not isinstance(
-                            self.steps[name2ind[input]]["model"],
+                            self.steps[input]["model"],
                             (_Transformer1D, _TransformerHD),
                         ):
                             raise TypeError(
                                 "Model in step '{}' cannot accept output from "
-                                "step '{}'.".format(step["name"], input)
+                                "step '{}'.".format(step_name, input)
                             )
             elif isinstance(step["model"], _Aggregator):
                 if isinstance(step["input"], str):
                     if (step["input"] == "original") or (
                         not isinstance(
-                            self.steps[name2ind[step["input"]]]["model"],
+                            self.steps[step["input"]]["model"],
                             (_Detector1D, _DetectorHD, _Aggregator),
                         )
                     ):
                         raise TypeError(
                             "Model in step '{}' cannot accept output from "
-                            "step '{}'.".format(step["name"], step["input"])
+                            "step '{}'.".format(step_name, step["input"])
                         )
                 else:
                     for input in step["input"]:
                         if (input == "original") or (
                             not isinstance(
-                                self.steps[name2ind[input]]["model"],
+                                self.steps[input]["model"],
                                 (_Detector1D, _DetectorHD, _Aggregator),
                             )
                         ):
                             raise TypeError(
                                 "Model in step '{}' cannot accept output from "
-                                "step '{}'.".format(step["name"], input)
+                                "step '{}'.".format(step_name, input)
                             )
 
         # sort out graph
@@ -626,28 +624,23 @@ class Pipenet:
             counter += 1
             sub_counter = 0
             done_step_name_up_to_last_round = set(done_step.keys())
-            for step in self.steps:
-                if step["name"] in done_step_name_up_to_last_round:
+            for step_name, step in self.steps.items():
+                if step_name in done_step_name_up_to_last_round:
                     continue
                 if isinstance(step["input"], str):
                     if step["input"] in done_step_name_up_to_last_round:
-                        done_step.update(
-                            {step["name"]: (counter, sub_counter)}
-                        )
+                        done_step.update({step_name: (counter, sub_counter)})
                         sub_counter += 1
                 else:
                     if set(step["input"]) <= done_step_name_up_to_last_round:
-                        done_step.update(
-                            {step["name"]: (counter, sub_counter)}
-                        )
+                        done_step.update({step_name: (counter, sub_counter)})
                         sub_counter += 1
             if len(done_step) == len(self.steps) + 1:
                 break
             if sub_counter == 0:
                 raise ValueError(
                     "The following step(s) cannot be reached: {}.".format(
-                        {step["name"] for step in self.steps}
-                        - set(done_step.keys())
+                        set(self.steps.keys()) - set(done_step.keys())
                     )
                 )
         self.steps_graph_ = done_step.copy()
@@ -728,35 +721,32 @@ class Pipenet:
             skip_fit = []
         if not isinstance(skip_fit, list):
             raise TypeError("Parameter `skip_fit` must be a list.")
-        if not set(skip_fit) <= {step["name"] for step in self.steps}:
+        if not set(skip_fit) <= set(self.steps.keys()):
             raise ValueError("Name(s) in `skip_fit` is not valid model name.")
 
         # determine the step needing fit and/or predict
         need_fit = {
-            step["name"]: (
-                (step["model"]._need_fit) & (step["name"] not in skip_fit)
+            step_name: (
+                (step["model"]._need_fit) & (step_name not in skip_fit)
             )
-            for step in self.steps
+            for step_name, step in self.steps.items()
         }
-        need_predict = {step["name"]: False for step in self.steps}
-        name2ind = {
-            step["name"]: counter for counter, step in enumerate(self.steps)
-        }
+        need_predict = {step_name: False for step_name in self.steps.keys()}
         for step_name in list(self.steps_graph_.keys())[:0:-1]:
             if need_fit[step_name] or need_predict[step_name]:
-                if isinstance(self.steps[name2ind[step_name]]["input"], str):
-                    input = self.steps[name2ind[step_name]]["input"]
+                if isinstance(self.steps[step_name]["input"], str):
+                    input = self.steps[step_name]["input"]
                     if input != "original":
                         need_predict[input] = True
                 else:
-                    for input in self.steps[name2ind[step_name]]["input"]:
+                    for input in self.steps[step_name]["input"]:
                         if input != "original":
                             need_predict[input] = True
 
         # run fit or fit_predict
         results = {"original": ts.copy()}
         for step_name in list(self.steps_graph_.keys())[1:]:
-            step = self.steps[name2ind[step_name]]
+            step = self.steps[step_name]
             if not (need_fit[step_name] or need_predict[step_name]):
                 results.update({step_name: None})
                 continue
@@ -785,17 +775,14 @@ class Pipenet:
             skip_fit = []
         if not isinstance(skip_fit, list):
             raise TypeError("Parameter `skip_fit` must be a list.")
-        if not set(skip_fit) <= {step["name"] for step in self.steps}:
+        if not set(skip_fit) <= set(self.steps.keys()):
             raise ValueError("Name(s) in `skip_fit` is not valid model name.")
 
-        name2ind = {
-            step["name"]: counter for counter, step in enumerate(self.steps)
-        }
         last_step_name = list(self.steps_graph_.keys())[-1]
 
         if detect:
             if isinstance(
-                self.steps[name2ind[last_step_name]]["model"],
+                self.steps[last_step_name]["model"],
                 (_Transformer1D, _TransformerHD),
             ):
                 raise RuntimeError(
@@ -807,7 +794,7 @@ class Pipenet:
                 )
         else:
             if isinstance(
-                self.steps[name2ind[last_step_name]]["model"],
+                self.steps[last_step_name]["model"],
                 (_Detector1D, _DetectorHD, _Aggregator),
             ):
                 raise RuntimeError(
@@ -821,7 +808,7 @@ class Pipenet:
 
         results = {"original": ts.copy()}
         for step_name in list(self.steps_graph_.keys())[1:]:
-            step = self.steps[name2ind[step_name]]
+            step = self.steps[step_name]
             input = self._get_input(step, results)
             results.update(
                 {
@@ -1050,7 +1037,8 @@ class Pipenet:
 
         """
         return {
-            step["name"]: step["model"].get_params() for step in self.steps
+            step_name: step["model"].get_params()
+            for step_name, step in self.steps.items()
         }
 
     def plot_flowchart(self, ax=None, figsize=None, radius=1.0):
@@ -1107,8 +1095,8 @@ class Pipenet:
         detector_patches = []
         transformer_patches = []
         aggregator_patches = []
-        for step in self.steps:
-            end_coord = coord[step["name"]]
+        for step_name, step in self.steps.items():
+            end_coord = coord[step_name]
             if isinstance(step["model"], (_Detector1D, _DetectorHD)):
                 detector_patches.append(Circle(xy=end_coord, radius=radius))
             elif isinstance(step["model"], (_Transformer1D, _TransformerHD)):
