@@ -467,9 +467,8 @@ class PersistAD(_Detector1D):
         agg=_default_params["agg"],
     ):
         self.pipe_ = Pipenet(
-            [
-                {
-                    "name": "diff_abs",
+            {
+                "diff_abs": {
                     "model": DoubleRollingAggregate(
                         agg=agg,
                         window=(window, 1),
@@ -479,13 +478,11 @@ class PersistAD(_Detector1D):
                     ),
                     "input": "original",
                 },
-                {
-                    "name": "iqr_ad",
+                "iqr_ad": {
                     "model": InterQuartileRangeAD(c=(None, c)),
                     "input": "diff_abs",
                 },
-                {
-                    "name": "diff",
+                "diff": {
                     "model": DoubleRollingAggregate(
                         agg=agg,
                         window=(window, 1),
@@ -495,8 +492,7 @@ class PersistAD(_Detector1D):
                     ),
                     "input": "original",
                 },
-                {
-                    "name": "sign_check",
+                "sign_check": {
                     "model": ThresholdAD(
                         high=(
                             0.0
@@ -519,12 +515,11 @@ class PersistAD(_Detector1D):
                     ),
                     "input": "diff",
                 },
-                {
-                    "name": "and",
+                "and": {
                     "model": AndAggregator(),
                     "input": ["iqr_ad", "sign_check"],
                 },
-            ]
+            }
         )
         super().__init__(
             c=c, side=side, window=window, min_periods=min_periods, agg=agg
@@ -540,19 +535,22 @@ class PersistAD(_Detector1D):
             raise ValueError(
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
             )
-        self.pipe_.steps[0]["model"].agg = self.agg
-        self.pipe_.steps[0]["model"].window = (self.window, 1)
-        self.pipe_.steps[0]["model"].min_periods = (self.min_periods, 1)
-        self.pipe_.steps[1]["model"].c = (None, self.c)
-        self.pipe_.steps[2]["model"].agg = self.agg
-        self.pipe_.steps[2]["model"].window = (self.window, 1)
-        self.pipe_.steps[2]["model"].min_periods = (self.min_periods, 1)
-        self.pipe_.steps[3]["model"].high = (
+        self.pipe_.steps["diff_abs"]["model"].agg = self.agg
+        self.pipe_.steps["diff_abs"]["model"].window = (self.window, 1)
+        self.pipe_.steps["diff_abs"]["model"].min_periods = (
+            self.min_periods,
+            1,
+        )
+        self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
+        self.pipe_.steps["diff"]["model"].agg = self.agg
+        self.pipe_.steps["diff"]["model"].window = (self.window, 1)
+        self.pipe_.steps["diff"]["model"].min_periods = (self.min_periods, 1)
+        self.pipe_.steps["sign_check"]["model"].high = (
             0.0
             if self.side == "positive"
             else (float("inf") if self.side == "negative" else -float("inf"))
         )
-        self.pipe_.steps[3]["model"].low = (
+        self.pipe_.steps["sign_check"]["model"].low = (
             0.0
             if self.side == "negative"
             else (-float("inf") if self.side == "positive" else float("inf"))
@@ -626,9 +624,8 @@ class LevelShiftAD(_Detector1D):
         min_periods=_default_params["min_periods"],
     ):
         self.pipe_ = Pipenet(
-            [
-                {
-                    "name": "diff_abs",
+            {
+                "diff_abs": {
                     "model": DoubleRollingAggregate(
                         agg="median",
                         window=window,
@@ -638,13 +635,11 @@ class LevelShiftAD(_Detector1D):
                     ),
                     "input": "original",
                 },
-                {
-                    "name": "iqr_ad",
+                "iqr_ad": {
                     "model": InterQuartileRangeAD((None, c)),
                     "input": "diff_abs",
                 },
-                {
-                    "name": "diff",
+                "diff": {
                     "model": DoubleRollingAggregate(
                         agg="median",
                         window=window,
@@ -654,8 +649,7 @@ class LevelShiftAD(_Detector1D):
                     ),
                     "input": "original",
                 },
-                {
-                    "name": "sign_check",
+                "sign_check": {
                     "model": ThresholdAD(
                         high=(
                             0.0
@@ -678,12 +672,11 @@ class LevelShiftAD(_Detector1D):
                     ),
                     "input": "diff",
                 },
-                {
-                    "name": "and",
+                "and": {
                     "model": AndAggregator(),
                     "input": ["iqr_ad", "sign_check"],
                 },
-            ]
+            }
         )
         super().__init__(
             c=c, side=side, window=window, min_periods=min_periods
@@ -695,17 +688,17 @@ class LevelShiftAD(_Detector1D):
             raise ValueError(
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
             )
-        self.pipe_.steps[0]["model"].window = self.window
-        self.pipe_.steps[0]["model"].min_periods = self.min_periods
-        self.pipe_.steps[1]["model"].c = (None, self.c)
-        self.pipe_.steps[2]["model"].window = self.window
-        self.pipe_.steps[2]["model"].min_periods = self.min_periods
-        self.pipe_.steps[3]["model"].high = (
+        self.pipe_.steps["diff_abs"]["model"].window = self.window
+        self.pipe_.steps["diff_abs"]["model"].min_periods = self.min_periods
+        self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
+        self.pipe_.steps["diff"]["model"].window = self.window
+        self.pipe_.steps["diff"]["model"].min_periods = self.min_periods
+        self.pipe_.steps["sign_check"]["model"].high = (
             0.0
             if self.side == "positive"
             else (float("inf") if self.side == "negative" else -float("inf"))
         )
-        self.pipe_.steps[3]["model"].low = (
+        self.pipe_.steps["sign_check"]["model"].low = (
             0.0
             if self.side == "negative"
             else (-float("inf") if self.side == "positive" else float("inf"))
@@ -785,9 +778,8 @@ class VolatilityShiftAD(_Detector1D):
         agg=_default_params["agg"],
     ):
         self.pipe_ = Pipenet(
-            [
-                {
-                    "name": "diff_abs",
+            {
+                "diff_abs": {
                     "model": DoubleRollingAggregate(
                         agg=agg,
                         window=window,
@@ -797,13 +789,11 @@ class VolatilityShiftAD(_Detector1D):
                     ),
                     "input": "original",
                 },
-                {
-                    "name": "iqr_ad",
+                "iqr_ad": {
                     "model": InterQuartileRangeAD((None, c)),
                     "input": "diff_abs",
                 },
-                {
-                    "name": "diff",
+                "diff": {
                     "model": DoubleRollingAggregate(
                         agg=agg,
                         window=window,
@@ -813,8 +803,7 @@ class VolatilityShiftAD(_Detector1D):
                     ),
                     "input": "original",
                 },
-                {
-                    "name": "sign_check",
+                "sign_check": {
                     "model": ThresholdAD(
                         high=(
                             0.0
@@ -837,12 +826,11 @@ class VolatilityShiftAD(_Detector1D):
                     ),
                     "input": "diff",
                 },
-                {
-                    "name": "and",
+                "and": {
                     "model": AndAggregator(),
                     "input": ["iqr_ad", "sign_check"],
                 },
-            ]
+            }
         )
         super().__init__(
             agg=agg, c=c, side=side, window=window, min_periods=min_periods
@@ -856,19 +844,19 @@ class VolatilityShiftAD(_Detector1D):
             raise ValueError(
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
             )
-        self.pipe_.steps[0]["model"].agg = self.agg
-        self.pipe_.steps[0]["model"].window = self.window
-        self.pipe_.steps[0]["model"].min_periods = self.min_periods
-        self.pipe_.steps[1]["model"].c = (None, self.c)
-        self.pipe_.steps[2]["model"].agg = self.agg
-        self.pipe_.steps[2]["model"].window = self.window
-        self.pipe_.steps[2]["model"].min_periods = self.min_periods
-        self.pipe_.steps[3]["model"].high = (
+        self.pipe_.steps["diff_abs"]["model"].agg = self.agg
+        self.pipe_.steps["diff_abs"]["model"].window = self.window
+        self.pipe_.steps["diff_abs"]["model"].min_periods = self.min_periods
+        self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
+        self.pipe_.steps["diff"]["model"].agg = self.agg
+        self.pipe_.steps["diff"]["model"].window = self.window
+        self.pipe_.steps["diff"]["model"].min_periods = self.min_periods
+        self.pipe_.steps["sign_check"]["model"].high = (
             0.0
             if self.side == "positive"
             else (float("inf") if self.side == "negative" else -float("inf"))
         )
-        self.pipe_.steps[3]["model"].low = (
+        self.pipe_.steps["sign_check"]["model"].low = (
             0.0
             if self.side == "negative"
             else (-float("inf") if self.side == "positive" else float("inf"))
@@ -956,31 +944,26 @@ class AutoregressionAD(_Detector1D):
         if regressor is None:
             regressor = LinearRegression()
         self.pipe_ = Pipenet(
-            [
-                {
-                    "name": "retrospetive",
+            {
+                "retrospetive": {
                     "model": Retrospect(
                         n_steps=n_steps + 1, step_size=step_size
                     ),
                     "input": "original",
                 },
-                {
-                    "name": "regression_residual",
+                "regression_residual": {
                     "model": RegressionResidual(regressor=regressor),
                     "input": "retrospetive",
                 },
-                {
-                    "name": "abs_residual",
+                "abs_residual": {
                     "model": CustomizedTransformer1D(transform_func=abs),
                     "input": "regression_residual",
                 },
-                {
-                    "name": "iqr_ad",
+                "iqr_ad": {
                     "model": InterQuartileRangeAD((None, c)),
                     "input": "abs_residual",
                 },
-                {
-                    "name": "sign_check",
+                "sign_check": {
                     "model": ThresholdAD(
                         high=(
                             0.0
@@ -1003,12 +986,11 @@ class AutoregressionAD(_Detector1D):
                     ),
                     "input": "regression_residual",
                 },
-                {
-                    "name": "and",
+                "and": {
                     "model": AndAggregator(),
                     "input": ["iqr_ad", "sign_check"],
                 },
-            ]
+            }
         )
         super().__init__(
             n_steps=n_steps,
@@ -1024,16 +1006,18 @@ class AutoregressionAD(_Detector1D):
             raise ValueError(
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
             )
-        self.pipe_.steps[0]["model"].n_steps = self.n_steps + 1
-        self.pipe_.steps[0]["model"].step_size = self.step_size
-        self.pipe_.steps[1]["model"].regressor = self.regressor
-        self.pipe_.steps[3]["model"].c = (None, self.c)
-        self.pipe_.steps[4]["model"].high = (
+        self.pipe_.steps["retrospetive"]["model"].n_steps = self.n_steps + 1
+        self.pipe_.steps["retrospetive"]["model"].step_size = self.step_size
+        self.pipe_.steps["regression_residual"][
+            "model"
+        ].regressor = self.regressor
+        self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
+        self.pipe_.steps["sign_check"]["model"].high = (
             0.0
             if self.side == "positive"
             else (float("inf") if self.side == "negative" else -float("inf"))
         )
-        self.pipe_.steps[4]["model"].low = (
+        self.pipe_.steps["sign_check"]["model"].low = (
             0.0
             if self.side == "negative"
             else (-float("inf") if self.side == "positive" else float("inf"))
@@ -1119,9 +1103,8 @@ class SeasonalAD(_Detector1D):
         c=_default_params["c"],
     ):
         self.pipe_ = Pipenet(
-            [
-                {
-                    "name": "deseasonal_residual",
+            {
+                "deseasonal_residual": {
                     "model": (
                         NaiveSeasonalDecomposition(freq=freq)
                         if method == "naive"
@@ -1129,18 +1112,15 @@ class SeasonalAD(_Detector1D):
                     ),
                     "input": "original",
                 },
-                {
-                    "name": "abs_residual",
+                "abs_residual": {
                     "model": CustomizedTransformer1D(transform_func=abs),
                     "input": "deseasonal_residual",
                 },
-                {
-                    "name": "iqr_ad",
+                "iqr_ad": {
                     "model": InterQuartileRangeAD((None, c)),
                     "input": "abs_residual",
                 },
-                {
-                    "name": "sign_check",
+                "sign_check": {
                     "model": ThresholdAD(
                         high=(
                             0.0
@@ -1163,12 +1143,11 @@ class SeasonalAD(_Detector1D):
                     ),
                     "input": "deseasonal_residual",
                 },
-                {
-                    "name": "and",
+                "and": {
                     "model": AndAggregator(),
                     "input": ["iqr_ad", "sign_check"],
                 },
-            ]
+            }
         )
         super().__init__(method=method, freq=freq, side=side, c=c)
         self._sync_params()
@@ -1177,22 +1156,27 @@ class SeasonalAD(_Detector1D):
         if self.method not in ["naive", "stl"]:
             raise ValueError("Parameter `method` must be 'naive' or 'stl'.")
         if (self.method == "naive") and (
-            self.pipe_.steps[0]["model"].__class__
+            self.pipe_.steps["deseasonal_residual"]["model"].__class__
             != NaiveSeasonalDecomposition
         ):
-            self.pipe_.steps[0]["model"] = NaiveSeasonalDecomposition()
+            self.pipe_.steps["deseasonal_residual"][
+                "model"
+            ] = NaiveSeasonalDecomposition()
         if (self.method == "stl") and (
-            self.pipe_.steps[0]["model"].__class__ != STLDecomposition
+            self.pipe_.steps["deseasonal_residual"]["model"].__class__
+            != STLDecomposition
         ):
-            self.pipe_.steps[0]["model"] = STLDecomposition()
-        self.pipe_.steps[0]["model"].freq = self.freq
-        self.pipe_.steps[2]["model"].c = (None, self.c)
-        self.pipe_.steps[3]["model"].high = (
+            self.pipe_.steps["deseasonal_residual"][
+                "model"
+            ] = STLDecomposition()
+        self.pipe_.steps["deseasonal_residual"]["model"].freq = self.freq
+        self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
+        self.pipe_.steps["sign_check"]["model"].high = (
             0.0
             if self.side == "positive"
             else (float("inf") if self.side == "negative" else -float("inf"))
         )
-        self.pipe_.steps[3]["model"].low = (
+        self.pipe_.steps["sign_check"]["model"].low = (
             0.0
             if self.side == "negative"
             else (-float("inf") if self.side == "positive" else float("inf"))
@@ -1201,8 +1185,10 @@ class SeasonalAD(_Detector1D):
     def _fit_core(self, s):
         self._sync_params()
         self.pipe_.fit(s)
-        self.freq_ = self.pipe_.steps[0]["model"].freq_
-        self.seasonal_ = self.pipe_.steps[0]["model"].seasonal_
+        self.freq_ = self.pipe_.steps["deseasonal_residual"]["model"].freq_
+        self.seasonal_ = self.pipe_.steps["deseasonal_residual"][
+            "model"
+        ].seasonal_
 
     def _predict_core(self, s):
         self._sync_params()
