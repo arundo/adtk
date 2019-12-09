@@ -1045,10 +1045,8 @@ class Pipenet:
 
     def summary(self):
         """Print a summary of the pipenet."""
-        df = pd.DataFrame(
-            columns=["name", "model", "input", "subset", "order"]
-        )
-        for step_name, exe_order in self.steps_graph_.items():
+        df = pd.DataFrame(columns=["name", "model", "input", "subset"])
+        for step_name in self.steps_graph_.keys():
             if step_name == "original":
                 continue
             df = df.append(
@@ -1061,7 +1059,6 @@ class Pipenet:
                         if hasattr(self.steps[step_name], "subset")
                         else "all"
                     ),
-                    "order": exe_order,
                 },
                 ignore_index=True,
             )
