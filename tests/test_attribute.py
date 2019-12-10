@@ -56,27 +56,27 @@ testCases = [
         "a": {"abs_low_": -float("inf"), "abs_high_": float("inf")},
     },
     {
-        "model": detector.SeasonalAD(method="classic", freq=4),
+        "model": detector.SeasonalAD(freq=4),
         "s": [0, 1, 2, 1] * 10,
         "a": {"freq_": 4, "seasonal_": [0, 1, 2, 1]},
     },
     {
-        "model": detector.SeasonalAD(method="classic", freq=8),
+        "model": detector.SeasonalAD(freq=8),
         "s": [0, 1, 2, 1] * 10,
         "a": {"freq_": 8, "seasonal_": [0, 1, 2, 1, 0, 1, 2, 1]},
     },
     {
-        "model": detector.SeasonalAD(method="classic"),
+        "model": detector.SeasonalAD(),
         "s": [0, 1, 2, 1] * 10,
         "a": {"freq_": 4, "seasonal_": [0, 1, 2, 1]},
     },
     {
-        "model": detector.SeasonalAD(method="classic", trend=True),
+        "model": detector.SeasonalAD(trend=True),
         "s": np.array([0, 1, 2, 1] * 10) + np.arange(40) / 10,
         "a": {"freq_": 4, "seasonal_": [-1, 0, 1, 0]},
     },
     {
-        "model": detector.SeasonalAD(method="classic", trend=True, freq=8),
+        "model": detector.SeasonalAD(trend=True, freq=8),
         "s": np.array([0, 1, 2, 1] * 10) + np.arange(40),
         "a": {"freq_": 8, "seasonal_": [-1, 0, 1, 0, -1, 0, 1, 0]},
     },

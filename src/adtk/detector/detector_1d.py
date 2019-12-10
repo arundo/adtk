@@ -18,7 +18,6 @@ from ..transformer import (
     CustomizedTransformer1D,
     DoubleRollingAggregate,
     ClassicSeasonalDecomposition,
-    STLDecomposition,
     RegressionResidual,
     Retrospect,
 )
@@ -1036,9 +1035,9 @@ class SeasonalAD(_Detector1D):
     """Detector that detects anomalous values away from seasonal pattern.
 
     This detector uses a seasonal decomposition transformer to remove seasonal
-    pattern (as well as trend if STL method is selected), and identifiess a
-    time point as anomalous when the residual of seasonal decomposition is
-    beyond a threshold based on historical interquartile range.
+    pattern (as well as trend optional), and identifies a time point as
+    anomalous when the residual of seasonal decomposition is beyond a threshold
+    based on historical interquartile range.
 
     This detector is internally implemented aattribute `pipe_`.nced
     users may learn more details by checking attribute `pipe_`.
@@ -1052,13 +1051,6 @@ class SeasonalAD(_Detector1D):
 
     Parameters
     ----------
-    method: str, optional
-        If 'classic', use classic seasonal decomposition;
-        If 'stl', use STL method.
-        See `adtk.transformer_1d.ClassicSeasonalDecomposition` and
-        `adtk.transformer_1d.STLDecomposition` for more details.
-        Default: 'classic'.
-
     freq: int, optional
         Length of a seasonal cycle. If not given, the model will determine
         automatically based on autocorrelation of the training series. Default:
@@ -1093,7 +1085,6 @@ class SeasonalAD(_Detector1D):
     """
 
     _default_params = {
-        "method": "classic",
         "freq": None,
         "side": "both",
         "c": 3.0,
@@ -1102,7 +1093,6 @@ class SeasonalAD(_Detector1D):
 
     def __init__(
         self,
-        method=_default_params["method"],
         freq=_default_params["freq"],
         side=_default_params["side"],
         c=_default_params["c"],
@@ -1113,8 +1103,6 @@ class SeasonalAD(_Detector1D):
                 "deseasonal_residual": {
                     "model": (
                         ClassicSeasonalDecomposition(freq=freq, trend=trend)
-                        if method == "classic"
-                        else STLDecomposition(freq=freq)
                     ),
                     "input": "original",
                 },
@@ -1155,26 +1143,10 @@ class SeasonalAD(_Detector1D):
                 },
             }
         )
-        super().__init__(method=method, freq=freq, side=side, c=c, trend=trend)
+        super().__init__(freq=freq, side=side, c=c, trend=trend)
         self._sync_params()
 
     def _sync_params(self):
-        if self.method not in ["classic", "stl"]:
-            raise ValueError("Parameter `method` must be 'classic' or 'stl'.")
-        if (self.method == "classic") and (
-            self.pipe_.steps["deseasonal_residual"]["model"].__class__
-            != ClassicSeasonalDecomposition
-        ):
-            self.pipe_.steps["deseasonal_residual"][
-                "model"
-            ] = ClassicSeasonalDecomposition()
-        if (self.method == "stl") and (
-            self.pipe_.steps["deseasonal_residual"]["model"].__class__
-            != STLDecomposition
-        ):
-            self.pipe_.steps["deseasonal_residual"][
-                "model"
-            ] = STLDecomposition()
         self.pipe_.steps["deseasonal_residual"]["model"].freq = self.freq
         self.pipe_.steps["deseasonal_residual"]["model"].trend = self.trend
         self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
