@@ -101,7 +101,7 @@ For detecting temporal changes of pattern, :py:mod:`adtk.transformer.RollingAggr
 
 Seasonality
 ```````````
-A seasonal pattern exists when a time series is influenced by seasonal factors (e.g. the hour of the day, the day of the week, the month of the year). Detector :py:mod:`adtk.detector.SeasonalAD` uses transformer :py:mod:`adtk.transformer.NaiveSeasonalDecomposition` or :py:mod:`adtk.transformer.STLDecomposition` to remove the seasonal pattern from the original time series, and highlight time period when the time series does not follow the seasonal pattern normally by examing the residual series.
+A seasonal pattern exists when a time series is influenced by seasonal factors (e.g. the hour of the day, the day of the week, the month of the year). Detector :py:mod:`adtk.detector.SeasonalAD` uses transformer :py:mod:`adtk.transformer.ClassicSeasonalDecomposition` to remove the seasonal pattern from the original time series, and highlight time period when the time series does not follow the seasonal pattern normally by examing the residual series.
 
 .. figure:: images/seasonal.png
     :width: 600px
@@ -109,7 +109,7 @@ A seasonal pattern exists when a time series is influenced by seasonal factors (
     :height: 400px
     :alt: seasonal
 
-    Remove the seasonal pattern from time series of NYC traffic using `STLDecomposition` with the period as a week (data from `Numenta Anomaly Benchmark <https://github.com/numenta/NAB>`_)
+    Remove the seasonal pattern from time series of NYC traffic using `ClassicSeasonalDecomposition` with the period as a week (data from `Numenta Anomaly Benchmark <https://github.com/numenta/NAB>`_)
 
 A user needs to be careful about distinguishing seasonal series and cyclic series. A seasonal series always has a fixed, usually interpretable and known, period because of its seasonal nature. A cyclic time series does not follow a fixed periodic pattern because of its physics nature, even if it appears repeating similar subseries. For example, the trajectory of a moving part in rotating equipment is a 3-D cyclic time series, whose cycle length depends on rotation speed and is not necessarily fixed. Applying seasonality decomposition to it would be problematic, because every cycle may last a slightly different length, and decomposition residuals will be misleading for anomaly detection purpose.
 
@@ -119,7 +119,7 @@ A user needs to be careful about distinguishing seasonal series and cyclic serie
     :height: 400px
     :alt: cyclic
 
-    Applying `STLDecomposition` to a cyclic series fails to detect anomalous behavior.
+    Applying `ClassicSeasonalDecomposition` to a cyclic series fails to detect anomalous behavior.
 
 Currently, ADTK does not provide a transformer that removes cyclic patterns from cyclic (but not seasonal) time series. However, :py:mod:`adtk.detector.AutoregressionAD` can capture changes of autoregressive relationship (the relationship between a data point and points in its near past) and could be used for cyclic (but not seasonal) series in some situations.
 

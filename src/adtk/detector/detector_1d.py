@@ -17,10 +17,9 @@ from ..pipe import Pipenet
 from ..transformer import (
     CustomizedTransformer1D,
     DoubleRollingAggregate,
-    NaiveSeasonalDecomposition,
+    ClassicSeasonalDecomposition,
     RegressionResidual,
     Retrospect,
-    STLDecomposition,
 )
 
 __all__ = [
@@ -1036,9 +1035,9 @@ class SeasonalAD(_Detector1D):
     """Detector that detects anomalous values away from seasonal pattern.
 
     This detector uses a seasonal decomposition transformer to remove seasonal
-    pattern (as well as trend if STL method is selected), and identifiess a
-    time point as anomalous when the residual of seasonal decomposition is
-    beyond a threshold based on historical interquartile range.
+    pattern (as well as trend optional), and identifies a time point as
+    anomalous when the residual of seasonal decomposition is beyond a threshold
+    based on historical interquartile range.
 
     This detector is internally implemented aattribute `pipe_`.nced
     users may learn more details by checking attribute `pipe_`.
@@ -1052,13 +1051,6 @@ class SeasonalAD(_Detector1D):
 
     Parameters
     ----------
-    method: str, optional
-        If 'naive',  use naive seasonal decomposition;
-        If 'stl', use STL method.
-        See `adtk.transformer_1d.NaiveSeasonalDecomposition` and
-        `adtk.transformer_1d.STLDecomposition` for more details.
-        Default: 'naive'.
-
     freq: int, optional
         Length of a seasonal cycle. If not given, the model will determine
         automatically based on autocorrelation of the training series. Default:
@@ -1073,6 +1065,10 @@ class SeasonalAD(_Detector1D):
         If "positive", to only detect anomalous positive residuals;
         If "negative", to only detect anomalous negative residuals.
         Default: "both".
+
+    trend: bool, optional
+        Whether to extract trend during decomposition. Only used when classic
+        seasonal decomposition is applied. Default: False.
 
     Attributes
     ----------
@@ -1089,26 +1085,24 @@ class SeasonalAD(_Detector1D):
     """
 
     _default_params = {
-        "method": "naive",
         "freq": None,
         "side": "both",
         "c": 3.0,
+        "trend": False,
     }
 
     def __init__(
         self,
-        method=_default_params["method"],
         freq=_default_params["freq"],
         side=_default_params["side"],
         c=_default_params["c"],
+        trend=_default_params["trend"],
     ):
         self.pipe_ = Pipenet(
             {
                 "deseasonal_residual": {
                     "model": (
-                        NaiveSeasonalDecomposition(freq=freq)
-                        if method == "naive"
-                        else STLDecomposition(freq=freq)
+                        ClassicSeasonalDecomposition(freq=freq, trend=trend)
                     ),
                     "input": "original",
                 },
@@ -1149,27 +1143,12 @@ class SeasonalAD(_Detector1D):
                 },
             }
         )
-        super().__init__(method=method, freq=freq, side=side, c=c)
+        super().__init__(freq=freq, side=side, c=c, trend=trend)
         self._sync_params()
 
     def _sync_params(self):
-        if self.method not in ["naive", "stl"]:
-            raise ValueError("Parameter `method` must be 'naive' or 'stl'.")
-        if (self.method == "naive") and (
-            self.pipe_.steps["deseasonal_residual"]["model"].__class__
-            != NaiveSeasonalDecomposition
-        ):
-            self.pipe_.steps["deseasonal_residual"][
-                "model"
-            ] = NaiveSeasonalDecomposition()
-        if (self.method == "stl") and (
-            self.pipe_.steps["deseasonal_residual"]["model"].__class__
-            != STLDecomposition
-        ):
-            self.pipe_.steps["deseasonal_residual"][
-                "model"
-            ] = STLDecomposition()
         self.pipe_.steps["deseasonal_residual"]["model"].freq = self.freq
+        self.pipe_.steps["deseasonal_residual"]["model"].trend = self.trend
         self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
         self.pipe_.steps["sign_check"]["model"].high = (
             0.0

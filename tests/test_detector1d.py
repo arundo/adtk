@@ -240,15 +240,17 @@ testCases = [
     },
     {
         "model": detector.SeasonalAD,
-        "params": {"freq": 8, "method": "stl"},
-        "s": [1, 2, 3, 4] * 10 + [1, 3, 2, 4] + [1, 2, 3, 4] * 10,
+        "params": {"freq": 8, "trend": True},
+        "s": np.array([1, 2, 3, 4] * 10 + [1, 3, 2, 4] + [1, 2, 3, 4] * 10)
+        + np.arange(84),
         "a": [nan] * 4 + [0] * 36 + [0, 1, 1, 0] + [0] * 36 + [nan] * 4,
         "pandas_bug": False,
     },
     {
         "model": detector.SeasonalAD,
-        "params": {"freq": 8, "method": "stl", "side": "positive"},
-        "s": [1, 2, 3, 4] * 10 + [1, 3, 2, 4] + [1, 2, 3, 4] * 10,
+        "params": {"freq": 8, "trend": True, "side": "positive"},
+        "s": np.array([1, 2, 3, 4] * 10 + [1, 3, 2, 4] + [1, 2, 3, 4] * 10)
+        + np.arange(84),
         "a": [nan] * 4 + [0] * 36 + [0, 1, 0, 0] + [0] * 36 + [nan] * 4,
         "pandas_bug": False,
     },

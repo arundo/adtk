@@ -333,13 +333,13 @@ testCases = [
         "t": {"t-2": [nan] * 2 + list(range(8))},
     },
     {
-        "model": transformer.NaiveSeasonalDecomposition,
+        "model": transformer.ClassicSeasonalDecomposition,
         "params": {},
         "s": [0, 1, 2, 3, 2, 1] * 5,
         "t": [0] * 30,
     },
     {
-        "model": transformer.NaiveSeasonalDecomposition,
+        "model": transformer.ClassicSeasonalDecomposition,
         "params": {"freq": 12},
         "s": [0, 1, 2, 3, 2, 1] * 5,
         "t": [0] * 30,

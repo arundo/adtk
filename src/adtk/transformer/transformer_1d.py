@@ -20,8 +20,7 @@ from .._utils import PandasBugError
 __all__ = [
     "RollingAggregate",
     "DoubleRollingAggregate",
-    "NaiveSeasonalDecomposition",
-    "STLDecomposition",
+    "ClassicSeasonalDecomposition",
     "Retrospect",
     "StandardScale",
     "CustomizedTransformer1D",
@@ -669,62 +668,59 @@ class DoubleRollingAggregate(_Transformer1D):
         raise ValueError("Invalid value of diff")
 
 
-class _Deseasonal(_Transformer1D):
-    _default_params = {"freq": None}
+class ClassicSeasonalDecomposition(_Transformer1D):
+    """Transformer that performs classic seasonal decomposition to the time
+    series, and returns residual series.
 
-    def __init__(self, freq=_default_params["freq"]):
-        super().__init__(freq=freq)
+    Classic seasonal decomposition assumes time series is the sum of trend,
+    seasonal pattern, and noise (residual). This transformer calculates and
+    removes trend component with moving average, extracts seasonal pattern by
+    taking average over seasonal periods of the detrended series, and returns
+    residual series.
 
-    @staticmethod
-    def identify_seasonal_period(s, low_autocorr=0.1, high_autocorr=0.3):
-        """Identify seasonal period of a time series based on autocorrelation.
+    The `fit` method fits seasonal frequency (if not specified) and seasonal
+    pattern with the training series. The `transform` (or its alias `predict`)
+    method extracts the trend by moving average, but will NOT re-calucate the
+    seasonal pattern. Instead, it uses the trained seasonal pattern and
+    extracts it from the detrended series to obtain the residual series. This
+    implicitly assumes the seasonal property does not change over time.
 
-        Parameters
-        ----------
-        s: pandas Series or DataFrame
-            Time series where to identify seasonal periods.
+    Parameters
+    ----------
+    freq: int, optional
+        Length of a seasonal cycle. If None, the model will determine based on
+        autocorrelation of the training series. Default: None.
 
-        low_autocorr: float, optional
-            Threshold below which values of autocorreltion are consider low.
-            Default: 0.1
+    trend: bool, optional
+        Whether to extract and remove trend of the series with moving average.
+        If False, the time series will be assumed the sum of seasonal pattern
+        and residual. Default: False.
 
-        high_autocorr: float, optional
-            Threshold below which values of autocorreltion are consider high.
-            Default: 0.3
+    Attributes
+    ----------
+    freq_: int
+        Length of seasonal cycle. Equal to parameter `freq` if it is given.
+        Otherwise, calculated based on autocorrelation of the training series.
 
-        Returns
-        -------
-        int
-            Seasonal period of the time series. If no significant seasonality
-            is found, return None.
+    seasonal_: pandas.Series
+        Seasonal pattern extracted from training series.
 
-        """
 
-        if low_autocorr > high_autocorr:
-            raise ValueError("`low_autocorr` must not exceed `high_autocorr`")
+    This is an univariate transformer. When it is applied to a multivariate
+    time series (i.e. pandas DataFrame), it will be applied to every series
+    independently. All parameters can be defined as a dict object where key-
+    value pairs are series names (i.e. column names of DataFrame) and the
+    model parameter for that series. If not, then the same parameter will be
+    applied to all series.
 
-        # check if the time series has uniform time step
-        if len(np.unique(np.diff(s.index))) > 1:
-            raise ValueError("The time steps are not constant. ")
+    """
 
-        autocorr = acf(s, nlags=len(s), fft=False)
-        cutPos = np.argwhere(autocorr >= low_autocorr)[0][0]
-        diff_autocorr = np.diff(autocorr[cutPos:])
-        high_autocorr_peak_pos = (
-            cutPos
-            + 1
-            + np.argwhere(
-                (diff_autocorr[:-1] > 0)
-                & (diff_autocorr[1:] < 0)
-                & (autocorr[cutPos + 1 : -1] > high_autocorr)
-            ).flatten()
-        )
-        if len(high_autocorr_peak_pos) > 0:
-            return high_autocorr_peak_pos[
-                np.argmax(autocorr[high_autocorr_peak_pos])
-            ]
-        else:
-            return None
+    _default_params = {"freq": None, "trend": False}
+
+    def __init__(
+        self, freq=_default_params["freq"], trend=_default_params["trend"]
+    ):
+        super().__init__(freq=freq, trend=trend)
 
     def _fit_core(self, s):
         if not (
@@ -758,11 +754,23 @@ class _Deseasonal(_Transformer1D):
         # get average dT
         self._dT = pd.Series(s.index).diff().mean()
         # get seasonal freq
-        self._get_seasonal_freq(s)
+        if self.freq is None:
+            self.freq_ = _identify_seasonal_period(s)
+            if self.freq_ is None:
+                raise Exception("Could not find significant seasonality.")
+        else:
+            self.freq_ = self.freq
         # get seasonal pattern
-        if self.freq_ > len(s):
-            raise RuntimeError("Training series is shorter than frequency.")
-        self._get_seasonal_pattern(s)
+        if self.trend:
+            self.seasonal_ = getattr(
+                seasonal_decompose(s, freq=self.freq_), "seasonal"
+            )[: self.freq_]
+        else:
+            self.seasonal_ = s.iloc[: self.freq_].copy()
+            for i in range(len(self.seasonal_)):
+                self.seasonal_.iloc[i] = s.iloc[
+                    i :: len(self.seasonal_)
+                ].mean()
 
     def _predict_core(self, s):
         if not (
@@ -834,6 +842,10 @@ class _Deseasonal(_Transformer1D):
                 )
         else:
             starting_phase = 0
+        # remove trend
+        if self.trend:
+            s_trend = getattr(seasonal_decompose(s, freq=self.freq_), "trend")
+            s_detrended = s - s_trend
         # get seasonal series and remove it from original
         phase_pattern = np.concatenate(
             [np.arange(starting_phase, self.freq_), np.arange(starting_phase)]
@@ -844,20 +856,15 @@ class _Deseasonal(_Transformer1D):
             ],
             index=s.index,
         )
-        s_residual = s - s_seasonal
-        s_residual = self._remove_trend(s_residual)
+        if self.trend:
+            s_residual = s_detrended - s_seasonal
+        else:
+            s_residual = s - s_seasonal
         return s_residual
 
 
-class NaiveSeasonalDecomposition(_Deseasonal):
-    """Transformer that performs naive seasonal decomposition to the time
-    series, and returns residual series.
-
-    Naive seasonal decomposition assumes time series is seasonal series plus
-    noise (residual). This transformer obtains seasonal pattern by taking
-    average over seasonal periods, removes the seasonal part and returns
-    residual series. It may not applicable for seasonal time series with strong
-    trend besides seasonal effects, where STLDecomposition may be helpful.
+def _identify_seasonal_period(s, low_autocorr=0.1, high_autocorr=0.3):
+    """Identify seasonal period of a time series based on autocorrelation.
 
     This is an univariate transformer. When it is applied to a multivariate
     time series (i.e. pandas DataFrame), it will be applied to every series
@@ -868,104 +875,50 @@ class NaiveSeasonalDecomposition(_Deseasonal):
 
     Parameters
     ----------
-    freq: int, optional
-        Length of a seasonal cycle. If None, the model will determine based on
-        autocorrelation of the training series. Default: None.
+    s: pandas Series or DataFrame
+        Time series where to identify seasonal periods.
 
-    Attributes
-    ----------
-    freq_: int
-        Length of seasonal cycle. Equal to parameter `freq` if it is given.
-        Otherwise, calculated based on autocorrelation of the training series.
+    low_autocorr: float, optional
+        Threshold below which values of autocorreltion are consider low.
+        Default: 0.1
 
-    seasonal_: pandas.Series
-        Seasonal pattern extracted from training series.
+    high_autocorr: float, optional
+        Threshold below which values of autocorreltion are consider high.
+        Default: 0.3
 
-    """
-
-    def _get_seasonal_freq(self, s):
-        if self.freq is None:
-            self.freq_ = self.identify_seasonal_period(s)
-            if self.freq_ is None:
-                raise Exception("Could not find significant seasonality.")
-        else:
-            self.freq_ = self.freq
-
-    def _get_seasonal_pattern(self, s):
-        self.seasonal_ = s.iloc[: self.freq_].copy()
-        for i in range(len(self.seasonal_)):
-            self.seasonal_.iloc[i] = s.iloc[i :: len(self.seasonal_)].mean()
-
-    def _remove_trend(self, s):
-        return s
-
-
-class STLDecomposition(_Deseasonal):
-    """Transformer that performs STL decomposition ("Seasonal and Trend
-    decomposition using Loess") to the time series, and returns residual
-    series.
-
-    STL decomposition assumes time series is sum of trend, seasonal pattern and
-    noise (residual). This transformer performs STL decomposition to a time
-    series and returns residual series.
-
-    This is an univariate transformer. When it is applied to a multivariate
-    time series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
-
-    Parameters
-    ----------
-    freq: int, optional
-        Length of a seasonal cycle. If None, the model will determine based on
-        autocorrelation of the time series. Default: None.
-
-    Attributes
-    ----------
-    freq_: int
-        Length of seasonal cycle. Equal to parameter `freq` if it is given.
-        Otherwise, calculated based on autocorrelation of the training series.
-
-    seasonal_: pandas.Series
-        Seasonal pattern extracted from training series.
+    Returns
+    -------
+    int
+        Seasonal period of the time series. If no significant seasonality
+        is found, return None.
 
     """
 
-    def _get_seasonal_freq(self, s):
-        if self.freq is None:
-            self.freq_ = self.identify_seasonal_period(s)
-            if self.freq_ is None:
-                self.freq_ = 2
-            MAX_ITER = 20
-            for _ in range(MAX_ITER):
-                s_trend = s.rolling(
-                    window=self.freq_, center=True, min_periods=1
-                ).mean()
-                s_detrended = s - s_trend
-                freq_d = self.identify_seasonal_period(s_detrended)
-                if freq_d is None:
-                    freq_d = int(self.freq_ * 2)
-                if freq_d == self.freq_:
-                    break
-                else:
-                    self.freq_ = freq_d
-            else:
-                raise Exception("Could not find significant seasonality.")
-        else:
-            self.freq_ = self.freq
+    if low_autocorr > high_autocorr:
+        raise ValueError("`low_autocorr` must not exceed `high_autocorr`")
 
-    def _get_seasonal_pattern(self, s):
-        result = seasonal_decompose(s, freq=self.freq_)
-        self.seasonal_ = getattr(result, "seasonal")[: self.freq_]
+    # check if the time series has uniform time step
+    if len(np.unique(np.diff(s.index))) > 1:
+        raise ValueError("The time steps are not constant. ")
 
-    def _remove_trend(self, s):
-        s_trend = s.rolling(
-            window=(self.freq_ if self.freq_ % 2 else self.freq_ + 1),
-            center=True,
-        ).mean()
-        return s - s_trend
+    autocorr = acf(s, nlags=len(s), fft=False)
+    cutPos = np.argwhere(autocorr >= low_autocorr)[0][0]
+    diff_autocorr = np.diff(autocorr[cutPos:])
+    high_autocorr_peak_pos = (
+        cutPos
+        + 1
+        + np.argwhere(
+            (diff_autocorr[:-1] > 0)
+            & (diff_autocorr[1:] < 0)
+            & (autocorr[cutPos + 1 : -1] > high_autocorr)
+        ).flatten()
+    )
+    if len(high_autocorr_peak_pos) > 0:
+        return high_autocorr_peak_pos[
+            np.argmax(autocorr[high_autocorr_peak_pos])
+        ]
+    else:
+        return None
 
 
 class Retrospect(_Transformer1D):

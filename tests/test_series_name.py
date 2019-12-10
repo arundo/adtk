@@ -31,8 +31,7 @@ one2one_models = [
         agg="hist", agg_params={"bins": [30, 50, 70]}
     ),
     transformer.StandardScale(),
-    transformer.NaiveSeasonalDecomposition(freq=2),
-    transformer.STLDecomposition(freq=2),
+    transformer.ClassicSeasonalDecomposition(freq=2),
 ]
 
 one2many_models = [
