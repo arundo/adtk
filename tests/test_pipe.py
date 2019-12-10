@@ -16,35 +16,30 @@ def test_detector_return_intermediate():
         index=pd.date_range(start="2017-1-1", periods=60, freq="D"),
     )
     my_pipe = Pipenet(
-        [
-            {
-                "name": "deseasonal_residual",
+        {
+            "deseasonal_residual": {
                 "model": (transformer.ClassicSeasonalDecomposition(freq=6)),
                 "input": "original",
             },
-            {
-                "name": "abs_residual",
+            "abs_residual": {
                 "model": transformer.CustomizedTransformer1D(
                     transform_func=abs
                 ),
                 "input": "deseasonal_residual",
             },
-            {
-                "name": "iqr_ad",
+            "iqr_ad": {
                 "model": detector.InterQuartileRangeAD(c=(None, 3)),
                 "input": "abs_residual",
             },
-            {
-                "name": "sign_check",
+            "sign_check": {
                 "model": detector.ThresholdAD(high=0.0, low=-float("inf")),
                 "input": "deseasonal_residual",
             },
-            {
-                "name": "and",
+            "and": {
                 "model": aggregator.AndAggregator(),
                 "input": ["iqr_ad", "sign_check"],
             },
-        ]
+        }
     )
     result = my_pipe.fit_detect(s, return_intermediate=True)
     assert set(result.keys()) == {
@@ -66,35 +61,30 @@ def test_skip_fit():
     deseasonal_residual = transformer.ClassicSeasonalDecomposition(freq=6)
 
     my_pipe = Pipenet(
-        [
-            {
-                "name": "deseasonal_residual",
+        {
+            "deseasonal_residual": {
                 "model": deseasonal_residual,
                 "input": "original",
             },
-            {
-                "name": "abs_residual",
+            "abs_residual": {
                 "model": transformer.CustomizedTransformer1D(
                     transform_func=abs
                 ),
                 "input": "deseasonal_residual",
             },
-            {
-                "name": "iqr_ad",
+            "iqr_ad": {
                 "model": detector.InterQuartileRangeAD(c=(None, 3)),
                 "input": "abs_residual",
             },
-            {
-                "name": "sign_check",
+            "sign_check": {
                 "model": detector.ThresholdAD(high=0.0, low=-float("inf")),
                 "input": "deseasonal_residual",
             },
-            {
-                "name": "and",
+            "and": {
                 "model": aggregator.AndAggregator(),
                 "input": ["iqr_ad", "sign_check"],
             },
-        ]
+        }
     )
     with pytest.raises(RuntimeError):
         my_pipe.fit_detect(s, skip_fit=["deseasonal_residual"])
@@ -104,32 +94,28 @@ def test_skip_fit():
 def test_nonunique_output():
     with pytest.raises(ValueError, match="ambiguous"):
         Pipenet(
-            [
-                {
-                    "name": "deseasonal_residual",
+            {
+                "deseasonal_residual": {
                     "model": (
                         transformer.ClassicSeasonalDecomposition(freq=6)
                     ),
                     "input": "original",
                 },
-                {
-                    "name": "abs_residual",
+                "abs_residual": {
                     "model": transformer.CustomizedTransformer1D(
                         transform_func=abs
                     ),
                     "input": "deseasonal_residual",
                 },
-                {
-                    "name": "iqr_ad",
+                "iqr_ad": {
                     "model": detector.InterQuartileRangeAD(c=(None, 3)),
                     "input": "abs_residual",
                 },
-                {
-                    "name": "sign_check",
+                "sign_check": {
                     "model": detector.ThresholdAD(high=0.0, low=-float("inf")),
                     "input": "deseasonal_residual",
                 },
-            ]
+            }
         )
 
 
@@ -139,20 +125,18 @@ def test_transformer_pipe():
         index=pd.date_range(start="2017-1-1", periods=60, freq="D"),
     )
     my_pipe = Pipenet(
-        [
-            {
-                "name": "deseasonal_residual",
+        {
+            "deseasonal_residual": {
                 "model": transformer.ClassicSeasonalDecomposition(freq=6),
                 "input": "original",
             },
-            {
-                "name": "abs_residual",
+            "abs_residual": {
                 "model": transformer.CustomizedTransformer1D(
                     transform_func=abs
                 ),
                 "input": "deseasonal_residual",
             },
-        ]
+        }
     )
     with pytest.raises(RuntimeError, match="`fit_transform`"):
         my_pipe.fit_detect(s)
