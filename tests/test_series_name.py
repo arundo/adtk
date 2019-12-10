@@ -32,7 +32,6 @@ one2one_models = [
     ),
     transformer.StandardScale(),
     transformer.ClassicSeasonalDecomposition(freq=2),
-    transformer.STLDecomposition(freq=2),
 ]
 
 one2many_models = [

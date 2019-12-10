@@ -1,5 +1,6 @@
 """Test read-only attributes"""
 import pytest
+import numpy as np
 import pandas as pd
 import adtk.detector as detector
 
@@ -70,13 +71,13 @@ testCases = [
         "a": {"freq_": 4, "seasonal_": [0, 1, 2, 1]},
     },
     {
-        "model": detector.SeasonalAD(method="stl"),
-        "s": [0, 1, 2, 1] * 10,
+        "model": detector.SeasonalAD(method="classic", trend=True),
+        "s": np.array([0, 1, 2, 1] * 10) + np.arange(40) / 10,
         "a": {"freq_": 4, "seasonal_": [-1, 0, 1, 0]},
     },
     {
-        "model": detector.SeasonalAD(method="stl", freq=8),
-        "s": [0, 1, 2, 1] * 10,
+        "model": detector.SeasonalAD(method="classic", trend=True, freq=8),
+        "s": np.array([0, 1, 2, 1] * 10) + np.arange(40),
         "a": {"freq_": 8, "seasonal_": [-1, 0, 1, 0, -1, 0, 1, 0]},
     },
 ]
