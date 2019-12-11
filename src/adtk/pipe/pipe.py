@@ -36,10 +36,8 @@ class Pipeline:
 
     Examples
     --------
-    >>> steps = [('moving average',
-                  RollingAggregate(agg='mean', window=10)),
-                 ('filter quantile 0.99',
-                  QuantileAD(upper_thresh=0.99))]
+    >>> steps = [('moving average', RollingAggregate(agg='mean', window=10)),
+                 ('filter quantile 0.99', QuantileAD(high=0.99))]
     >>> myPipeline = Pipeline(steps)
 
     """
