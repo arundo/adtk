@@ -221,6 +221,7 @@ def plot(
     ap_markersize=3,
     freq_as_period=True,
     curve_group="each",
+    legend=True,
 ):
     """Plot time series and anomalies.
 
@@ -335,6 +336,9 @@ def plot(
         'all' means all dimensions are drawn in the same plot.
 
         Default: 'each'.
+
+    legend: bool, optional
+        Whether to show legend in the plot. Default: True.
 
     Returns
     --------
@@ -464,6 +468,7 @@ def plot(
             ax.set_title(title)
 
         ax.set_xlabel("")
-        ax.legend()
+        if legend:
+            ax.legend()
 
     return axes if len(axes) > 1 else axes[0]
