@@ -40,20 +40,23 @@ class _Aggregator(_Model):
         ----------
         lists: pandas.DataFrame, a dict of Series/DataFrame, or a dict of lists
             Anomaly lists to be aggregated.
-            If a pandas DataFrame, every column is a binary Series representing
-            a list of anomalies;
-            If a dict of Series/DataFrame, every value of the dict is a binary
-            Series/DataFrame representing a list / a set of lists of anomalies;
-            If a dict of list, every value of the dict is a list of pandas
-            Timestamps representing anomalous time points.
+
+            - If a pandas DataFrame, every column is a binary Series
+              representing a list of anomalies;
+            - If a dict of Series/DataFrame, every value of the dict is a
+              binary Series/DataFrame representing a list / a set of lists of
+              anomalies;
+            - If a dict of list, every value of the dict is a list of pandas
+              Timestamps representing anomalous time points.
 
         Returns
         -------
         list of pandas TimeStamps, or a binary pandas Series
             Aggregated list of anomalies.
-            If input is a pandas DataFrame or a dict of Series/DataFrame,
-            return a binary Series;
-            If input is a dict of list, return a list.
+
+            - If input is a pandas DataFrame or a dict of Series/DataFrame,
+              return a binary Series;
+            - If input is a dict of list, return a list.
 
         """
         return self._predict(lists)

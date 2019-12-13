@@ -30,17 +30,19 @@ def recall(y_true, y_pred, thresh=0.5):
     ----------
     y_true: pandas Series or DataFrame, list, or dict
         Labels or lists of true anomalies.
-        If pandas Series, it is treated as binary labels along time index.
-        If pandas DataFrame, each column is treated as a type of anomaly.
-        If list, it is treated as a list of anomalous time windows.
-        If dict of lists, each item is treated as a type of anomaly.
+
+        - If pandas Series, it is treated as binary labels along time index.
+        - If pandas DataFrame, each column is treated as a type of anomaly.
+        - If list, it is treated as a list of anomalous time windows.
+        - If dict of lists, each item is treated as a type of anomaly.
 
     y_pred: pandas Series or DataFrame, list, or dict
         Labels or lists of predicted anomalies.
-        If pandas Series, it is treated as binary labels along time index.
-        If pandas DataFrame, each column is treated as a type of anomaly.
-        If list, it is treated as a list of anomalous time windows.
-        If dict of lists, each item is treated as a type of anomaly.
+
+        - If pandas Series, it is treated as binary labels along time index.
+        - If pandas DataFrame, each column is treated as a type of anomaly.
+        - If list, it is treated as a list of anomalous time windows.
+        - If dict of lists, each item is treated as a type of anomaly.
 
     thresh: float, optional
         Threshold of a hit. Only used if input is list or dict. Default: 0.5.
@@ -149,17 +151,19 @@ def precision(y_true, y_pred, thresh=0.5):
     ----------
     y_true: pandas Series or DataFrame, list, or dict
         Labels or lists of true anomalies.
-        If pandas Series, it is treated as binary labels along time index.
-        If pandas DataFrame, each column is treated as a type of anomaly.
-        If list, it is treated as a list of anomalous time windows.
-        If dict of lists, each item is treated as a type of anomaly.
+
+        - If pandas Series, it is treated as binary labels along time index.
+        - If pandas DataFrame, each column is treated as a type of anomaly.
+        - If list, it is treated as a list of anomalous time windows.
+        - If dict of lists, each item is treated as a type of anomaly.
 
     y_pred: pandas Series or DataFrame, list, or dict
         Labels or lists of predicted anomalies.
-        If pandas Series, it is treated as binary labels along time index.
-        If pandas DataFrame, each column is treated as a type of anomaly.
-        If list, it is treated as a list of anomalous time windows.
-        If dict of lists, each item is treated as a type of anomaly.
+
+        - If pandas Series, it is treated as binary labels along time index.
+        - If pandas DataFrame, each column is treated as a type of anomaly.
+        - If list, it is treated as a list of anomalous time windows.
+        - If dict of lists, each item is treated as a type of anomaly.
 
     thresh: float, optional
         Threshold of a hit. Only used if input is list or dict. Default: 0.5.
@@ -184,17 +188,19 @@ def f1_score(y_true, y_pred, recall_thresh=0.5, precision_thresh=0.5):
     ----------
     y_true: pandas Series or DataFrame, list, or dict
         Labels or lists of true anomalies.
-        If pandas Series, it is treated as binary labels along time index.
-        If pandas DataFrame, each column is treated as a type of anomaly.
-        If list, it is treated as a list of anomalous time windows.
-        If dict of lists, each item is treated as a type of anomaly.
+
+        - If pandas Series, it is treated as binary labels along time index.
+        - If pandas DataFrame, each column is treated as a type of anomaly.
+        - If list, it is treated as a list of anomalous time windows.
+        - If dict of lists, each item is treated as a type of anomaly.
 
     y_pred: pandas Series or DataFrame, list, or dict
         Labels or lists of predicted anomalies.
-        If pandas Series, it is treated as binary labels along time index.
-        If pandas DataFrame, each column is treated as a type of anomaly.
-        If list, it is treated as a list of anomalous time windows.
-        If dict of lists, each item is treated as a type of anomaly.
+
+        - If pandas Series, it is treated as binary labels along time index.
+        - If pandas DataFrame, each column is treated as a type of anomaly.
+        - If list, it is treated as a list of anomalous time windows.
+        - If dict of lists, each item is treated as a type of anomaly.
 
     recall_thresh: float, optional
         Threshold of recall calculation. Only used if input is list or dict.
@@ -240,17 +246,19 @@ def iou(y_true, y_pred):
     ----------
     y_true: pandas Series or DataFrame, list, or dict
         Labels or lists of true anomalies.
-        If pandas Series, it is treated as binary labels along time index.
-        If pandas DataFrame, each column is treated as a type of anomaly.
-        If list, it is treated as a list of anomalous time windows.
-        If dict of lists, each item is treated as a type of anomaly.
+
+        - If pandas Series, it is treated as binary labels along time index.
+        - If pandas DataFrame, each column is treated as a type of anomaly.
+        - If list, it is treated as a list of anomalous time windows.
+        - If dict of lists, each item is treated as a type of anomaly.
 
     y_pred: pandas Series or DataFrame, list, or dict
         Labels or lists of predicted anomalies.
-        If pandas Series, it is treated as binary labels along time index.
-        If pandas DataFrame, each column is treated as a type of anomaly.
-        If list, it is treated as a list of anomalous time windows.
-        If dict of lists, each item is treated as a type of anomaly.
+
+        - If pandas Series, it is treated as binary labels along time index.
+        - If pandas DataFrame, each column is treated as a type of anomaly.
+        - If list, it is treated as a list of anomalous time windows.
+        - If dict of lists, each item is treated as a type of anomaly.
 
     Returns
     -------

@@ -301,8 +301,10 @@ def to_labels(lists, time_index, freq_as_period=True):
     ----------
     lists: list or dict
         A list of events, or a dict of lists of events.
-        If list, it represents a single type of event;
-        If dict, each key-value pair represents a type of event.
+
+        - If list, it represents a single type of event;
+        - If dict, each key-value pair represents a type of event.
+
         Each event in a list can be a pandas Timestamp, or a tuple of two
         Timestamps that is regarded as a closed interval.
 
@@ -385,9 +387,10 @@ def expand_events(lists, left_expand, right_expand):
     ----------
     lists: list or dict
         A list of events, or a dict of lists of events.
-        If dict, each key-value pair represents an independent type of event.
-        Each event in a list can be a pandas Timestamp, or a tuple of two
-        Timestamps that is regarded as a closed interval.
+
+        - If list, each event can be a pandas Timestamp, or a tuple of two
+          Timestamps that is regarded as a closed interval.
+        - If dict, each key-value pair represents an independent type of event.
 
     left_expand: pandas Timedelta
         Time range to expand backward.
