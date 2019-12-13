@@ -15,5 +15,9 @@ after_success:
     - py.test --cov adtk
     - coveralls
 
+branches:
+    only:
+    - master
+
 notifications:
   email: false
