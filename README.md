@@ -1,10 +1,12 @@
 # Anomaly Detection Toolkit (ADTK)
 
 [![Build Status](https://travis-ci.com/arundo/adtk.svg?branch=master)](https://travis-ci.com/arundo/adtk)
-[![Docs](https://readthedocs.com/projects/arundo-adtk/badge/?version=latest)](https://arundo-adtk.readthedocs-hosted.com/en/latest/)
+[![Docs](https://readthedocs.com/projects/arundo-adtk/badge/?version=stable)](https://arundo-adtk.readthedocs-hosted.com)
 [![Coverage Status](https://coveralls.io/repos/github/arundo/adtk/badge.svg?branch=coverage)](https://coveralls.io/github/arundo/adtk?branch=coverage)
 [![PyPI](https://img.shields.io/pypi/v/adtk)](https://pypi.org/project/adtk/)
 [![Downloads](https://pepy.tech/badge/adtk)](https://pepy.tech/project/adtk)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 
 Anomaly Detection Toolkit (ADTK) is a Python package for unsupervised /
 rule-based time series anomaly detection.
@@ -26,13 +28,13 @@ See https://arundo-adtk.readthedocs-hosted.com for complete documentation.
 
 Prerequisites: Python 3.5 or later.
 
-It is recommended to use **pip** for installation.
+It is recommended to install the most recent **stable** release of ADTK from PyPI.
 
 ```shell
 pip install adtk
 ```
 
-Alternatively, you could install from source code:
+Alternatively, you could install from source code. This will give you the **latest**, but unstable, version of ADTK.
 
 ```shell
 git clone https://github.com/arundo/adtk.git
@@ -42,10 +44,10 @@ pip install ./
 
 ## Examples
 
-Please see [Quick Start](https://arundo-adtk.readthedocs-hosted.com/en/latest/quickstart.html) for a simple example.
+Please see [Quick Start](https://arundo-adtk.readthedocs-hosted.com/en/stable/quickstart.html) for a simple example.
 
 For more detailed examples of each module of ADTK, please refer to
-[Examples](https://arundo-adtk.readthedocs-hosted.com/en/latest/examples.html)
+[Examples](https://arundo-adtk.readthedocs-hosted.com/en/stable/examples.html)
 section in the documentation.
 
 ## Contributing

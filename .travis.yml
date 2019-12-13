@@ -7,13 +7,11 @@ python:
 
 install: pip install tox-travis
 
-script: 
+script:
     - tox
 
 after_success:
-    - pip install -e ./
-    - pip install pytest-cov
-    - pip install coveralls
+    - pip install -e .[test]
     - py.test --cov adtk
     - coveralls
 
