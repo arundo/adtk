@@ -37,13 +37,14 @@ class _Detector1D(_Model1D):
         -------
         pandas.Series, pandas.DataFrame, list, or dict
             Detected anomalies.
-            If input is a Series and return_list=False, return a Series;
-            If input is a DataFrame and return_list=False, return a DataFrame,
-            where each column corresponds a column in input;
-            If input is a Series and return_list=True, return a list of time
-            stamps or time stamp tuples;
-            If input is a DataFrame and return_list=True, return a dict of
-            lists, where each key-value pair corresponds a column in input.
+
+            - If input is a Series and return_list=False, return a Series;
+            - If input is a DataFrame and return_list=False, return a
+              DataFrame, where each column corresponds a column in input;
+            - If input is a Series and return_list=True, return a list of time
+              stamps or time stamp tuples;
+            - If input is a DataFrame and return_list=True, return a dict of
+              lists, where each key-value pair corresponds a column in input.
 
         """
         detected = self._predict(ts)
@@ -76,13 +77,14 @@ class _Detector1D(_Model1D):
         -------
         pandas.Series, pandas.DataFrame, list, or dict
             Detected anomalies.
-            If input is a Series and return_list=False, return a Series;
-            If input is a DataFrame and return_list=False, return a DataFrame,
-            where each column corresponds a column in input;
-            If input is a Series and return_list=True, return a list of time
-            stamps or time stamp tuples;
-            If input is a DataFrame and return_list=True, return a dict of
-            lists, where each key-value pair corresponds a column in input.
+
+            - If input is a Series and return_list=False, return a Series;
+            - If input is a DataFrame and return_list=False, return a
+              DataFrame, where each column corresponds a column in input;
+            - If input is a Series and return_list=True, return a list of time
+              stamps or time stamp tuples;
+            - If input is a DataFrame and return_list=True, return a dict of
+              lists, where each key-value pair corresponds a column in input.
 
         """
         self.fit(ts)
@@ -112,13 +114,14 @@ class _Detector1D(_Model1D):
 
         anomaly_true: pandas.Series, pandas.DataFrame, list, or dict
             True anomalies.
-            If Series, it is a series binary labels indicating anomalous;
-            If DataFrame, each column is considered as an independent type of
-            anomaly;
-            If list, it is a list of anomalous events in form of time points
-            (pandas.Timestamp) or time windows (2-tuple of time stamps);
-            If a dict of lists, each value is considered as an independent type
-            of anomaly.
+
+            - If Series, it is a series binary labels indicating anomalous;
+            - If DataFrame, each column is considered as an independent type of
+              anomaly;
+            - If list, it is a list of anomalous events in form of time points
+              (pandas.Timestamp) or time windows (2-tuple of time stamps);
+            - If a dict of lists, each value is considered as an independent
+              type of anomaly.
 
         scoring: str, optional
             Scoring function to use. Must be one of "recall", "precision",
@@ -190,9 +193,10 @@ class _DetectorHD(_ModelHD):
         -------
         pandas.Series or list
             Detected anomalies.
-            If return_list=False, return a binary series;
-            If return_list=True, return a list of time stamps or time stamp
-            tuples.
+
+            - If return_list=False, return a binary series;
+            - If return_list=True, return a list of time stamps or time stamp
+              tuples.
 
         """
         detected = self._predict(df)
@@ -218,9 +222,10 @@ class _DetectorHD(_ModelHD):
         -------
         pandas.Series or list
             Detected anomalies.
-            If return_list=False, return a binary series;
-            If return_list=True, return a list of time stamps or time stamp
-            tuples.
+
+            - If return_list=False, return a binary series;
+            - If return_list=True, return a list of time stamps or time stamp
+              tuples.
 
         """
         self.fit(df)
@@ -250,8 +255,9 @@ class _DetectorHD(_ModelHD):
 
         anomaly_true: Series, or a list of Timestamps or Timestamp tuple
             True anomalies.
-            If Series, it is a series binary labels indicating anomalous;
-            If list, it is a list of anomalous events in form of time windows.
+
+            - If Series, it is a series binary labels indicating anomalous;
+            - If list, it is a list of anomalous events in form of time windows.
 
         scoring: str, optional
             Scoring function to use. Must be one of "recall", "precision",
