@@ -89,10 +89,20 @@ class _Model1D(_Model):
     def _fit(self, ts):
         if isinstance(ts, pd.Series):
             s = ts.copy()
+            if not isinstance(s.index, pd.DatetimeIndex):
+                raise TypeError(
+                    "Index of the input time series must be a pandas "
+                    "DatetimeIndex object."
+                )
             self._fit_core(s)
             self._models = None
         elif isinstance(ts, pd.DataFrame):
             df = ts.copy()
+            if not isinstance(df.index, pd.DatetimeIndex):
+                raise TypeError(
+                    "Index of the input time series must be a pandas "
+                    "DatetimeIndex object."
+                )
             if self._need_fit:
                 self._update_models(df.columns)
                 # fit model for each column
@@ -107,12 +117,22 @@ class _Model1D(_Model):
             raise RuntimeError("The model must be trained first.")
         if isinstance(ts, pd.Series):
             s = ts.copy()
+            if not isinstance(s.index, pd.DatetimeIndex):
+                raise TypeError(
+                    "Index of the input time series must be a pandas "
+                    "DatetimeIndex object."
+                )
             predicted = self._predict_core(s)
             # if a Series-to-Series operation, make sure Series name keeps
             if isinstance(predicted, pd.Series):
                 predicted.name = ts.name
         elif isinstance(ts, pd.DataFrame):
             df = ts.copy()
+            if not isinstance(df.index, pd.DatetimeIndex):
+                raise TypeError(
+                    "Index of the input time series must be a pandas "
+                    "DatetimeIndex object."
+                )
             # if the model doesn't neef fit, initialize or reset a model for
             # each column
             if not self._need_fit:
