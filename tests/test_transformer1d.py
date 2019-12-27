@@ -8,6 +8,18 @@ nan = float("nan")
 
 testCases = [
     {
+        "model": transformer.StandardScale,
+        "params": {},
+        "s": [nan, 0, 1, nan, 2, nan],
+        "t": [nan, -1, 0, nan, 1, nan],
+    },
+    {
+        "model": transformer.StandardScale,
+        "params": {},
+        "s": [nan, 1, 1, nan, 1, nan],
+        "t": [nan, 0, 0, nan, 0, nan],
+    },
+    {
         "model": transformer.RollingAggregate,
         "params": {"agg": "mean", "window": 3, "center": True},
         "s": [0, 1, 2, 3, nan, 5, 6, 7, 8, 9],
