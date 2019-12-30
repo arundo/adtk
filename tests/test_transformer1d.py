@@ -570,3 +570,45 @@ def test_dataframe(testCase):
             t.sort_index(axis=1), t_true.sort_index(axis=1), check_dtype=False
         )
 
+
+def test_seasonal_transformer_shift():
+    s_train = pd.Series(
+        [0, 1, 2, 3, 4] * 8,
+        index=pd.date_range(start="2017-1-1 00:05:00", periods=40, freq="min"),
+    )
+
+    model = transformer.ClassicSeasonalDecomposition(freq=5, trend=False)
+    model.fit(s_train)
+
+    s_test = pd.Series(
+        [2, 3, 4.1, 0, 1, 2, 2.9, 4, 0, 1],
+        index=pd.date_range(start="2017-1-1 00:02:00", periods=10, freq="min"),
+    )
+
+    pd.testing.assert_series_equal(
+        model.transform(s_test),
+        pd.Series(
+            [0, 0, 0.1, 0, 0, 0, -0.1, 0, 0, 0],
+            index=pd.date_range(
+                start="2017-1-1 00:02:00", periods=10, freq="min"
+            ),
+        ),
+        check_dtype=False,
+    )
+
+    s_test = pd.Series(
+        [2, 3, 4.1, 0, 1, 2, 2.9, 4, 0, 1],
+        index=pd.date_range(start="2017-1-1 00:52:00", periods=10, freq="min"),
+    )
+
+    pd.testing.assert_series_equal(
+        model.transform(s_test),
+        pd.Series(
+            [0, 0, 0.1, 0, 0, 0, -0.1, 0, 0, 0],
+            index=pd.date_range(
+                start="2017-1-1 00:52:00", periods=10, freq="min"
+            ),
+        ),
+        check_dtype=False,
+    )
+
