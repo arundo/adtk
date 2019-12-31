@@ -1,8 +1,10 @@
 """Test 1D transformors on some simple cases."""
 import sys
+from packaging.version import parse
 import pytest
 import pandas as pd
 import adtk.transformer as transformer
+from adtk._utils import PandasBugError
 
 nan = float("nan")
 
@@ -12,24 +14,28 @@ testCases = [
         "params": {},
         "s": [nan, 0, 1, nan, 2, nan],
         "t": [nan, -1, 0, nan, 1, nan],
+        "pandas_bug": False,
     },
     {
         "model": transformer.StandardScale,
         "params": {},
         "s": [nan, 1, 1, nan, 1, nan],
         "t": [nan, 0, 0, nan, 0, nan],
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
         "params": {"agg": "mean", "window": 3, "center": True},
         "s": [0, 1, 2, 3, nan, 5, 6, 7, 8, 9],
         "t": [nan, 1, 2, nan, nan, nan, 6, 7, 8, nan],
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
         "params": {"agg": "mean", "window": 3, "center": False},
         "s": [0, 1, 2, 3, nan, 5, 6, 7, 8, 9],
         "t": [nan, nan, 1, 2, nan, nan, nan, 6, 7, 8],
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -41,6 +47,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, nan, 5, 6, 7, 8, 9],
         "t": [0.5, 1, 2, 2.5, 4, 5.5, 6, 7, 8, 8.5],
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -52,6 +59,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, nan, 5, 6, 7, 8, 9],
         "t": [nan, nan, 1, 2, nan, nan, nan, 6, 7, 8],
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -63,6 +71,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, nan, 5, 6, 7, 8, 9],
         "t": [0.5, 1, 1, 0.5, 1, 0.5, 1, 1, 1, 0.5],
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -74,6 +83,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, nan, 5, 6, 7, 8, 9],
         "t": [0, 0.5, 1, 1, 0.5, 1, 0.5, 1, 1, 1],
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -85,6 +95,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, nan, 5, 6, 7, 8, 9],
         "t": [0.8, 1.6, 1.6, 0.8, 1.6, 0.8, 1.6, 1.6, 1.6, 0.8],
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -96,6 +107,7 @@ testCases = [
         },
         "s": [1, 2, 2, nan, 3, 3, 4, 4, 4, 4],
         "t": [nan, 2, 2, 1, 2, 1, 2, 2, 1, 1],
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -107,6 +119,7 @@ testCases = [
         },
         "s": [1, 0, 2, nan, 3, 0, 0, 4, 0, 4],
         "t": [nan, 2, nan, nan, nan, 1, 1, 1, 2, nan],
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -119,6 +132,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, nan, 5, 6, 7, 8, 9],
         "t": [0.5, 1, 2, 2.5, 4, 5.5, 6, 7, 8, 8.5],
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -131,6 +145,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, nan, 5, 6, 7, 8, 9],
         "t": {"q0.5": [0.5, 1, 2, 2.5, 4, 5.5, 6, 7, 8, 8.5]},
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -146,6 +161,7 @@ testCases = [
             "q0.25": [0.25, 0.5, 1.5, 2.25, 3.5, 5.25, 5.5, 6.5, 7.5, 8.25],
             "q0.5": [0.5, 1, 2, 2.5, 4, 5.5, 6, 7, 8, 8.5],
         },
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -162,6 +178,7 @@ testCases = [
             "[3, 7)": [nan, 0, 0, 1, 1, 2, 2, 2, 1, 0],
             "[7, 9]": [nan, 0, 0, 0, 0, 0, 0, 1, 2, 3],
         },
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -178,6 +195,7 @@ testCases = [
             "[3.0, 6.0)": [0, 0, 0, 1, 2, 2, 2, 1, 1, 0, 0],
             "[6.0, 9.0]": [0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 3],
         },
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -189,6 +207,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan, 2, 2, 2, 2, 2, 2, 2, 2],
+        "pandas_bug": False,
     },
     {
         "model": transformer.RollingAggregate,
@@ -204,6 +223,7 @@ testCases = [
             "min": [nan, nan, 0, 1, 2, 3, 4, 5, 6, 7],
             "max": [nan, nan, 2, 3, 4, 5, 6, 7, 8, 9],
         },
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -216,6 +236,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, 1.5, 2, 2, 2, 2, 2, 2, 2, 1.5],
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -228,6 +249,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan, 2, 2, 2, 2, 2, 2, 2, nan],
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -240,6 +262,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan, nan, 2, 2, 2, 2, 2, 2, 2],
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -252,6 +275,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7],
         "t": [nan, nan, nan, 2 / 0.5, 2 / 1.5, 2 / 2.5, 2 / 3.5, 2 / 4.5],
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -264,6 +288,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan, nan, 2, 2, 2, 2, 2, 2, 2],
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -276,6 +301,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -288,6 +314,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+        "pandas_bug": True,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -300,6 +327,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -313,6 +341,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -326,6 +355,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -339,6 +369,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -352,6 +383,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan, 4, 4, 4, 4, 4, 4, 4, nan],
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -365,6 +397,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan] + [8 ** 0.5] * 7 + [nan],
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -378,6 +411,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan, nan] + [8 ** 0.5] * 7,
+        "pandas_bug": False,
     },
     {
         "model": transformer.DoubleRollingAggregate,
@@ -391,6 +425,7 @@ testCases = [
         },
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": [nan, nan] + [8 ** 0.5] * 7 + [nan],
+        "pandas_bug": False,
     },
     {
         "model": transformer.Retrospect,
@@ -401,6 +436,7 @@ testCases = [
             "t-5": [nan] * 5 + list(range(5)),
             "t-7": [nan] * 7 + list(range(3)),
         },
+        "pandas_bug": False,
     },
     {
         "model": transformer.Retrospect,
@@ -411,30 +447,35 @@ testCases = [
             "t-2": [nan] * 2 + list(range(8)),
             "t-4": [nan] * 4 + list(range(6)),
         },
+        "pandas_bug": False,
     },
     {
         "model": transformer.Retrospect,
         "params": {"n_steps": 1, "step_size": 2, "till": 2},
         "s": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         "t": {"t-2": [nan] * 2 + list(range(8))},
+        "pandas_bug": False,
     },
     {
         "model": transformer.ClassicSeasonalDecomposition,
         "params": {},
         "s": [0, 1, 2, 3, 2, 1] * 5,
         "t": [0] * 30,
+        "pandas_bug": False,
     },
     {
         "model": transformer.ClassicSeasonalDecomposition,
         "params": {"freq": 12},
         "s": [0, 1, 2, 3, 2, 1] * 5,
         "t": [0] * 30,
+        "pandas_bug": False,
     },
     {
         "model": transformer.CustomizedTransformer1D,
         "params": {"transform_func": lambda x: x > 0},
         "s": [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
         "t": [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+        "pandas_bug": False,
     },
     {
         "model": transformer.CustomizedTransformer1D,
@@ -444,6 +485,7 @@ testCases = [
         },
         "s": [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
         "t": [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+        "pandas_bug": False,
     },
     {
         "model": transformer.CustomizedTransformer1D,
@@ -453,6 +495,7 @@ testCases = [
         },
         "s": [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
         "t": [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+        "pandas_bug": False,
     },
     {
         "model": transformer.CustomizedTransformer1D,
@@ -463,6 +506,7 @@ testCases = [
         },
         "s": [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
         "t": [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+        "pandas_bug": False,
     },
     {
         "model": transformer.CustomizedTransformer1D,
@@ -473,6 +517,7 @@ testCases = [
         },
         "s": [0, 0, 0, 0, 0, 1, 0, 0, 0, -1, 0],
         "t": [0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+        "pandas_bug": False,
     },
     {
         "model": transformer.CustomizedTransformer1D,
@@ -484,6 +529,7 @@ testCases = [
         },
         "s": [0, 0, 0, 0, 0, 1, 0, 0, 0, -1, 0],
         "t": [0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+        "pandas_bug": False,
     },
 ]
 
@@ -496,20 +542,24 @@ def test_fit_transform(testCase):
         pd.date_range(start="2017-1-1", periods=len(testCase["s"]), freq="D"),
     )
     model = testCase["model"](**testCase["params"])
-    t = model.fit_transform(s)
-    if not isinstance(testCase["t"], dict):
-        t_true = pd.Series(testCase["t"], index=s.index)
-        pd.testing.assert_series_equal(t, t_true, check_dtype=False)
+    if testCase["pandas_bug"] and (parse(pd.__version__) < parse("0.25")):
+        with pytest.raises(PandasBugError):
+            t = model.fit_transform(s)
     else:
-        t_true = pd.DataFrame(testCase["t"], index=s.index)
-        if sys.version_info[1] >= 6:
-            pd.testing.assert_frame_equal(t, t_true, check_dtype=False)
+        t = model.fit_transform(s)
+        if not isinstance(testCase["t"], dict):
+            t_true = pd.Series(testCase["t"], index=s.index)
+            pd.testing.assert_series_equal(t, t_true, check_dtype=False)
         else:
-            pd.testing.assert_frame_equal(
-                t.sort_index(axis=1),
-                t_true.sort_index(axis=1),
-                check_dtype=False,
-            )
+            t_true = pd.DataFrame(testCase["t"], index=s.index)
+            if sys.version_info[1] >= 6:
+                pd.testing.assert_frame_equal(t, t_true, check_dtype=False)
+            else:
+                pd.testing.assert_frame_equal(
+                    t.sort_index(axis=1),
+                    t_true.sort_index(axis=1),
+                    check_dtype=False,
+                )
 
 
 @pytest.mark.parametrize("testCase", testCases)
@@ -520,21 +570,26 @@ def test_fit_and_transform(testCase):
         pd.date_range(start="2017-1-1", periods=len(testCase["s"]), freq="D"),
     )
     model = testCase["model"](**testCase["params"])
-    model.fit(s)
-    t = model.transform(s)
-    if not isinstance(testCase["t"], dict):
-        t_true = pd.Series(testCase["t"], index=s.index)
-        pd.testing.assert_series_equal(t, t_true, check_dtype=False)
+    if testCase["pandas_bug"] and (parse(pd.__version__) < parse("0.25")):
+        with pytest.raises(PandasBugError):
+            model.fit(s)
+            t = model.transform(s)
     else:
-        t_true = pd.DataFrame(testCase["t"], index=s.index)
-        if sys.version_info[1] >= 6:
-            pd.testing.assert_frame_equal(t, t_true, check_dtype=False)
+        model.fit(s)
+        t = model.transform(s)
+        if not isinstance(testCase["t"], dict):
+            t_true = pd.Series(testCase["t"], index=s.index)
+            pd.testing.assert_series_equal(t, t_true, check_dtype=False)
         else:
-            pd.testing.assert_frame_equal(
-                t.sort_index(axis=1),
-                t_true.sort_index(axis=1),
-                check_dtype=False,
-            )
+            t_true = pd.DataFrame(testCase["t"], index=s.index)
+            if sys.version_info[1] >= 6:
+                pd.testing.assert_frame_equal(t, t_true, check_dtype=False)
+            else:
+                pd.testing.assert_frame_equal(
+                    t.sort_index(axis=1),
+                    t_true.sort_index(axis=1),
+                    check_dtype=False,
+                )
 
 
 @pytest.mark.parametrize("testCase", testCases)
@@ -546,29 +601,41 @@ def test_dataframe(testCase):
     )
     df = pd.concat([s.rename("A"), s.rename("B")], axis=1)
     model = testCase["model"](**testCase["params"])
-    t = model.fit_transform(df)
-    if not isinstance(testCase["t"], dict):
-        t_true = pd.Series(testCase["t"], index=s.index)
-        t_true = pd.concat([t_true.rename("A"), t_true.rename("B")], axis=1)
+    if testCase["pandas_bug"] and (parse(pd.__version__) < parse("0.25")):
+        with pytest.raises(PandasBugError):
+            t = model.fit_transform(df)
     else:
-        t_true = pd.DataFrame(testCase["t"], index=s.index)
-        t_true = pd.concat(
-            [
-                t_true.rename(
-                    columns={col: "A_{}".format(col) for col in t_true.columns}
-                ),
-                t_true.rename(
-                    columns={col: "B_{}".format(col) for col in t_true.columns}
-                ),
-            ],
-            axis=1,
-        )
-    if sys.version_info[1] >= 6:
-        pd.testing.assert_frame_equal(t, t_true, check_dtype=False)
-    else:
-        pd.testing.assert_frame_equal(
-            t.sort_index(axis=1), t_true.sort_index(axis=1), check_dtype=False
-        )
+        t = model.fit_transform(df)
+        if not isinstance(testCase["t"], dict):
+            t_true = pd.Series(testCase["t"], index=s.index)
+            t_true = pd.concat(
+                [t_true.rename("A"), t_true.rename("B")], axis=1
+            )
+        else:
+            t_true = pd.DataFrame(testCase["t"], index=s.index)
+            t_true = pd.concat(
+                [
+                    t_true.rename(
+                        columns={
+                            col: "A_{}".format(col) for col in t_true.columns
+                        }
+                    ),
+                    t_true.rename(
+                        columns={
+                            col: "B_{}".format(col) for col in t_true.columns
+                        }
+                    ),
+                ],
+                axis=1,
+            )
+        if sys.version_info[1] >= 6:
+            pd.testing.assert_frame_equal(t, t_true, check_dtype=False)
+        else:
+            pd.testing.assert_frame_equal(
+                t.sort_index(axis=1),
+                t_true.sort_index(axis=1),
+                check_dtype=False,
+            )
 
 
 def test_seasonal_transformer_shift():
