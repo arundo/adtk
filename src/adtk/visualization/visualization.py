@@ -5,7 +5,6 @@ import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 
 from ..data import to_events, to_labels
 
@@ -356,7 +355,7 @@ def plot(
     elif curve_group == "all":
         curve_group = [list(range(num_col))]
 
-    sns.set_style("whitegrid")
+    plt.style.use("seaborn-whitegrid")
 
     if figsize is None:
         figsize = (16, 4 * len(curve_group))
