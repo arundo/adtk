@@ -5,6 +5,7 @@ import pandas as pd
 import adtk.detector as detector
 from sklearn.cluster import KMeans
 from sklearn.neighbors import LocalOutlierFactor
+from sklearn.ensemble import IsolationForest
 from sklearn.linear_model import LinearRegression
 
 nan = float("nan")
@@ -117,6 +118,14 @@ testCases = [
             [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 1, 0, 0, 0, nan, 0, 0],
         ],
+        "a": [0, 0, 0, 0, 0, 1, 0, 0, 0, nan, 0, 0],
+    },
+    {
+        "model": detector.OutlierDetector,
+        "params": {
+            "model": IsolationForest(n_estimators=100, contamination=0.1)
+        },
+        "df": [[0, 0, 0, 0, 0, 1, 0, 0, 0, nan, 0, 0]],
         "a": [0, 0, 0, 0, 0, 1, 0, 0, 0, nan, 0, 0],
     },
     {
