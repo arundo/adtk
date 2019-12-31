@@ -83,8 +83,6 @@ def validate_series(ts, check_freq=True, check_categorical=False):
         if ts.index.freq is None:
             if ts.index.inferred_freq is not None:
                 ts = ts.asfreq(ts.index.inferred_freq)
-            elif len(np.unique(np.diff(ts.index))) == 1:
-                ts = ts.asfreq(pd.Timedelta(ts.index[1] - ts.index[0]))
 
     # convert categorical labels into binary indicators
     if check_categorical:
