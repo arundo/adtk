@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 from math import isnan
 from pandas import Timestamp
-from adtk.metrics import recall, precision, iou
+from adtk.metrics import recall, precision, f1_score, iou
 
 n = float("nan")
 
@@ -52,8 +52,12 @@ def test_metric_series():
     assert recall(s_true, s_pred) == 9 / 12
     assert isnan(recall(s0, s_pred))
     assert precision(s_true, s_pred) == 9 / 15
+    assert f1_score(s_true, s_pred) == pytest.approx(2 / 3)
+    assert isnan(f1_score(s0, s_pred))
+    assert isnan(f1_score(1 - s_pred, s_pred))
     assert iou(s_true, s_pred) == 9 / 17
     assert iou(s_pred, s_true) == 9 / 17
+    assert isnan(iou(s0, s0))
 
 
 def test_metric_list():
@@ -63,6 +67,7 @@ def test_metric_list():
     assert recall(l_true, l_pred, thresh=1) == 3 / 6
     assert precision(l_true, l_pred, thresh=1) == 3 / 7
     assert iou(l_true, l_pred) == 3 / 13
+    assert isnan(iou(l0, l0))
 
 
 def test_metric_dataframe():
@@ -71,7 +76,17 @@ def test_metric_dataframe():
         recall(df0, df_pred).keys() == {"A": n, "B": n}.keys()
     )
     assert precision(df_true, df_pred) == {"A": 9 / 15, "B": 9 / 12}
+    assert f1_score(df_true, df_pred) == {
+        "A": pytest.approx(2 / 3),
+        "B": pytest.approx(2 / 3),
+    }
+    assert all([isnan(x) for x in f1_score(df0, df_pred).values()]) and (
+        f1_score(df0, df_pred).keys() == {"A": n, "B": n}.keys()
+    )
     assert iou(df_true, df_pred) == {"A": 9 / 17, "B": 9 / 17}
+    assert all([isnan(x) for x in iou(df0, df0).values()]) and (
+        iou(df0, df0).keys() == {"A": n, "B": n}.keys()
+    )
 
 
 def test_metric_dict():
@@ -80,5 +95,10 @@ def test_metric_dict():
         recall(d0, d_pred).keys() == {"A": n, "B": n}.keys()
     )
     assert precision(d_true, d_pred) == {"A": 4 / 7, "B": 4 / 6}
+    assert f1_score(d_true, d_pred) == {
+        "A": pytest.approx(2 * 4 / 7 * 4 / 6 / (4 / 7 + 4 / 6)),
+        "B": pytest.approx(2 * 4 / 7 * 4 / 6 / (4 / 7 + 4 / 6)),
+    }
     assert recall(d_true, d_pred, thresh=1) == {"A": 3 / 6, "B": 3 / 7}
     assert precision(d_true, d_pred, thresh=1) == {"A": 3 / 7, "B": 3 / 6}
+    assert iou(d_true, d_pred) == {"A": 3 / 13, "B": 3 / 13}
