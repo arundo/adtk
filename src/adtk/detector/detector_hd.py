@@ -181,7 +181,6 @@ class OutlierDetector(_DetectorHD):
 
     def _predict_core(self, df):
         is_outliers = pd.Series(float("nan"), index=df.index)
-        print(is_outliers)
         if not df.dropna().empty:
             if hasattr(self.model, "predict"):
                 is_outliers.loc[df.dropna().index] = (
