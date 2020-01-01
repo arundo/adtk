@@ -1,5 +1,6 @@
 """Test HD detectors on some simple cases."""
 import pytest
+from math import isnan
 import numpy as np
 import pandas as pd
 import adtk.detector as detector
@@ -192,6 +193,10 @@ def test_fit_detect(testCase):
     a_true = pd.Series(testCase["a"], index=df.index)
     a = model.fit_detect(df)
     pd.testing.assert_series_equal(a, a_true, check_dtype=False)
+    if a_true.sum() == 0:
+        assert isnan(model.score(df, a_true, scoring="recall"))
+    else:
+        assert model.score(df, a_true, scoring="precision") == 1
 
 
 @pytest.mark.parametrize("testCase", testCases)
@@ -208,6 +213,10 @@ def test_fit_and_detect(testCase):
     model.fit(df)
     a = model.detect(df)
     pd.testing.assert_series_equal(a, a_true, check_dtype=False)
+    if a_true.sum() == 0:
+        assert isnan(model.score(df, a_true, scoring="f1"))
+    else:
+        assert model.score(df, a_true, scoring="iou") == 1
 
 
 @pytest.mark.parametrize("testCase", testCases)
