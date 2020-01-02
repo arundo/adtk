@@ -154,7 +154,7 @@ class Pipeline:
 
         """
         self._update_internal_pipenet()
-        return self._pipenet.detect(
+        return self._pipenet.transform(
             ts=ts, return_intermediate=return_intermediate
         )
 
