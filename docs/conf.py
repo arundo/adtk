@@ -56,7 +56,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "ADTK"
-copyright = "2019, Arundo Analytics, Inc."
+copyright = "2019-2020, Arundo Analytics, Inc."
 author = "Arundo Analytics, Inc"
 
 # The version info for the project you're documenting, acts as replacement for
