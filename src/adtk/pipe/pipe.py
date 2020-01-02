@@ -660,7 +660,10 @@ class Pipenet:
                 if ("subset" not in step.keys()) or (step["subset"] == "all"):
                     input = results[step["input"]]
                 else:
-                    input = results[step["input"]][step["subset"]]
+                    if len(step["subset"]) == 1:
+                        input = results[step["input"]][step["subset"][0]]
+                    else:
+                        input = results[step["input"]][step["subset"]]
             else:
                 if ("subset" not in step.keys()) or (step["subset"] == "all"):
                     input = pd.concat(
@@ -672,7 +675,11 @@ class Pipenet:
                         [
                             results[input_name]
                             if subset == "all"
-                            else results[input_name][subset]
+                            else (
+                                results[input_name][subset[0]]
+                                if len(subset) == 1
+                                else results[input_name][subset]
+                            )
                             for input_name, subset in zip(
                                 step["input"], step["subset"]
                             )
