@@ -2,6 +2,17 @@
 Release History
 ***************
 
+Version 0.5.1 (Jan 2, 2020)
+===================================
+- Added many new unit tests, and modified some old unit test
+- Removed seaborn from dependencies (use matplotlib built-in style now)
+- Fixed a bug in the metric module of dict objects as input
+- Fixed a bug in the detector OutlierDetector that output series has dtype object if NaN is present
+- Fixed a bug in transformer pipeline that detect and transform methods are confused
+- Fixed a bug in pipenet that an aggregator node may crash if its input is from a node where subset contains a single item
+- Fixed a bug in pipenet summary that subset column are always "all" even if not
+- Some minor optimization of code
+
 Version 0.5.0 (Dec 18, 2019)
 ===================================
 - Changed the parameter `steps` of pipenet from list to dict

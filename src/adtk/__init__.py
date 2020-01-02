@@ -36,4 +36,4 @@ See https://arundo-adtk.readthedocs-hosted.com for complete documentation.
 # Dev branch marker is: 'X.Y.dev' or 'X.Y.devN' where N is an integer.
 # 'X.Y.dev0' is the canonical version of 'X.Y.dev'
 #
-__version__ = "0.5"
+__version__ = "0.5.1"
