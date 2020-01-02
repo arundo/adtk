@@ -441,13 +441,14 @@ def resample(ts, dT=None):
     ts: pandas Series or DataFrame
         Time series to resample. Index of the object must be DatetimeIndex.
 
-    dT: pandas Timedelta, optional
-        The new constant time step. If not given, the greatest common divider
-        of original time steps will be used, which makes the refinement a
-        minimal refinement subject to keeping all original time points still
-        included in the resampled time series. Please note that this may
-        dramatically increase the size of time series and memory usage.
-        Default: None.
+    dT: pandas Timedelta, str, or int, optional
+        The new constant time step. If str, it must be able to be converted
+        into a pandas Timedelta object. If int, it must be in nanosecond. If
+        not given, the greatest common divider of original time steps will be
+        used, which makes the refinement a minimal refinement subject to
+        keeping all original time points still included in the resampled time
+        series. Please note that this may dramatically increase the size of
+        time series and memory usage. Default: None.
 
     Returns
     -------
@@ -472,6 +473,8 @@ def resample(ts, dT=None):
         dT = pd.Timedelta(
             np.timedelta64(gcd_of_array([int(dt) for dt in np.diff(ts.index)]))
         )
+    elif not isinstance(dT, pd.Timedelta):
+        dT = pd.Timedelta(dT)
 
     rdf = pd.DataFrame(index=pd.date_range(ts.index[0], ts.index[-1], freq=dT))
 
