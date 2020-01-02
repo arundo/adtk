@@ -1,0 +1,8 @@
+[report]
+omit = src/adtk/visualization/*
+show_missing = True
+exclude_lines =
+    raise
+    warnings.warn
+    pass
+    def plot_flowchart

@@ -4,6 +4,7 @@ We only test detectors with return_list=False, because return_list=True is
 effectively tested by test_list_label_convert.py
 """
 from packaging.version import parse
+from math import isnan
 import pytest
 import numpy as np
 import pandas as pd
@@ -333,6 +334,10 @@ def test_fit_detect(testCase):
     else:
         a = model.fit_detect(s)
         pd.testing.assert_series_equal(a, a_true, check_dtype=False)
+        if a_true.sum() == 0:
+            assert isnan(model.score(s, a_true, scoring="recall"))
+        else:
+            assert model.score(s, a_true, scoring="precision") == 1
 
 
 @pytest.mark.parametrize("testCase", testCases)
@@ -352,6 +357,10 @@ def test_fit_and_detect(testCase):
         model.fit(s)
         a = model.detect(s)
         pd.testing.assert_series_equal(a, a_true, check_dtype=False)
+        if a_true.sum() == 0:
+            assert isnan(model.score(s, a_true, scoring="f1"))
+        else:
+            assert model.score(s, a_true, scoring="iou") == 1
 
 
 @pytest.mark.parametrize("testCase", testCases)

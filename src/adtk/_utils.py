@@ -13,14 +13,6 @@ def _get_all_subclasses_from_superclass(superclass):
     return result
 
 
-def _print_all_subclass_from_superclass(superclass):
-    subclasses = _get_all_subclasses_from_superclass(superclass)
-    for key, value in subclasses.items():
-        print("-" * 80)
-        print(key)
-        print(value)
-
-
 class PandasBugError(Exception):
     def __init__(self):
         msg = (

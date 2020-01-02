@@ -258,9 +258,7 @@ def test_binary_label_to_list_freq_not_as_period_not_merge_consecutive():
         columns=["type1", "type2", "type3", "type4"],
     )
 
-    anomaly_list = to_events(
-        binary_series, freq_as_period=False, merge_consecutive=False
-    )
+    anomaly_list = to_events(binary_series, freq_as_period=False)
 
     anomaly_list_true = {
         "type1": [

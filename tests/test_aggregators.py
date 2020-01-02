@@ -130,3 +130,35 @@ def test_and_dict_of_dfs():
             index=pd.date_range(start="2017-1-1", periods=6, freq="D"),
         ),
     )
+
+
+def test_customized_aggregator():
+    """
+    Test customized aggregate
+    """
+
+    def myAggFunc(df, agg="and"):
+        if agg == "and":
+            return df.all(axis=1)
+        elif agg == "or":
+            return df.any(axis=1)
+        else:
+            raise ValueError("`agg` must be either 'and' or 'or'.")
+
+    model = aggt.CustomizedAggregator(myAggFunc)
+
+    df = pd.DataFrame(
+        [[1, 1], [1, 0], [0, 1], [0, 0]],
+        index=pd.date_range(start="2017-1-1", periods=4, freq="D"),
+    )
+
+    pd.testing.assert_series_equal(
+        model.aggregate(df),
+        pd.Series([True, False, False, False], index=df.index),
+    )
+
+    model.aggregate_func_params = {"agg": "or"}
+    pd.testing.assert_series_equal(
+        model.aggregate(df),
+        pd.Series([True, True, True, False], index=df.index),
+    )

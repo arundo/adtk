@@ -215,6 +215,24 @@ testCases = [
         "t": [0] * 8 + [nan] + [0] * 2,
     },
     {
+        "model": transformer.PcaProjection,
+        "params": {"k": 1},
+        "df": [[0, 1, 2, 3, 4, 4, nan, 5, 6], [0, 1, 2, 3, nan, 4, 5, 5, 6]],
+        "t": {
+            "pc0": [
+                3 * 2 ** 0.5,
+                2 * 2 ** 0.5,
+                1 * 2 ** 0.5,
+                0 * 2 ** 0.5,
+                nan,
+                -1 * 2 ** 0.5,
+                nan,
+                -2 * 2 ** 0.5,
+                -3 * 2 ** 0.5,
+            ]
+        },
+    },
+    {
         "model": transformer.PcaReconstruction,
         "params": {"k": 1},
         "df": [

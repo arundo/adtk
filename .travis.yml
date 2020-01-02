@@ -12,7 +12,7 @@ script:
 
 after_success:
     - pip install -e .[test]
-    - py.test --cov adtk
+    - pytest --cov=adtk --cov-config=.coveragerc
     - coveralls
 
 branches:
