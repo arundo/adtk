@@ -1054,7 +1054,7 @@ class Pipenet:
                     "input": self.steps[step_name]["input"],
                     "subset": (
                         self.steps[step_name]["subset"]
-                        if hasattr(self.steps[step_name], "subset")
+                        if "subset" in self.steps[step_name].keys()
                         else "all"
                     ),
                 },
