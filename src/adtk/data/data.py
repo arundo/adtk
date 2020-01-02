@@ -373,7 +373,7 @@ def to_labels(lists, time_index, freq_as_period=True):
     return labels
 
 
-def expand_events(lists, left_expand, right_expand):
+def expand_events(lists, left_expand=0, right_expand=0):
     """Expand time windows in an event list.
 
     Given a list of events, expand the duration of events by a given factor.
@@ -390,11 +390,15 @@ def expand_events(lists, left_expand, right_expand):
           Timestamps that is regarded as a closed interval.
         - If dict, each key-value pair represents an independent type of event.
 
-    left_expand: pandas Timedelta
-        Time range to expand backward.
+    left_expand: pandas Timedelta, str, or int, optional
+        Time range to expand backward. If str, it must be able to be converted
+        into a pandas Timedelta object. If int, it must be in nanosecond.
+        Default: 0.
 
-    right_expand: pandas Timedelta
-        Time range to expand forward.
+    right_expand: pandas Timedelta, str, or int, optional
+        Time range to expand forward. f str, it must be able to be converted
+        into a pandas Timedelta object. If int, it must be in nanosecond.
+        Default: 0.
 
     Returns
     -------
@@ -402,6 +406,11 @@ def expand_events(lists, left_expand, right_expand):
         Expanded events.
 
     """
+
+    if not isinstance(left_expand, pd.Timedelta):
+        left_expand = pd.Timedelta(left_expand)
+    if not isinstance(right_expand, pd.Timedelta):
+        right_expand = pd.Timedelta(right_expand)
 
     if isinstance(lists, list):
         expanded = []
