@@ -2,10 +2,14 @@
 Release History
 ***************
 
+Version 0.6.0-dev
+===================================
+- Support str and int as time delta for the input arguments in functions `expand_events` and `resample` in the data module (0.6.0-dev.39)
+
 Version 0.5.2-dev
 ===================================
-- Added more contributing rules to the documentation (0.5.2-dev.44)
-- Fixed a bug that Travis does not run in develop branch (0.5.2-dev.47)
+- Added more contributing rules to the documentation (0.5.2-dev.44 --> 0.6.0-dev.46)
+- Fixed a bug that Travis does not run in develop branch (0.5.2-dev.47 --> 0.6.0-dev.48)
 
 Version 0.5.1 (Jan 2, 2020)
 ===================================
