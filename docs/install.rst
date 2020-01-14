@@ -16,4 +16,5 @@ Alternatively, you could install from source code. This will give you the **late
 
     $ git clone https://github.com/arundo/adtk.git
     $ cd adtk/
+    $ git checkout develop
     $ pip install ./

@@ -39,6 +39,7 @@ Alternatively, you could install from source code. This will give you the **late
 ```shell
 git clone https://github.com/arundo/adtk.git
 cd adtk/
+git checkout develop
 pip install ./
 ```
 
@@ -55,7 +56,10 @@ section in the documentation.
 Pull requests are welcome. For major changes, please open an issue first to
 discuss what you would like to change.
 
-Please make sure to update tests as appropriate.
+Please make sure to update unit tests as appropriate.
+
+Please see [Contributing](https://arundo-adtk.readthedocs-hosted.com/en/stable/developer.html) for more details.
+
 
 ## License
 
