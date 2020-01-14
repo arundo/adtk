@@ -4,8 +4,8 @@ Release History
 
 Version 0.5.2-dev
 ===================================
-- Added more contributing rules to the documentation (0.5.2-dev.44)
-- Fixed a bug that Travis does not run in develop branch (0.5.2-dev.47)
+- Added more contributing rules to the documentation (0.5.2-dev.1+pr.44, 0.5.2-dev.3+pr.49)
+- Fixed a bug that Travis does not run in develop branch (0.5.2-dev.2+pr.47)
 
 Version 0.5.1 (Jan 2, 2020)
 ===================================
