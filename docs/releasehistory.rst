@@ -7,10 +7,10 @@ Version 0.6.0-dev
 - Support str and int as time delta for the input arguments in functions `expand_events` and `resample` in the data module (0.6.0-dev.1+pr.39)
 - Added an example of DoubleRollingAggregate with different window sizes to the documentation (0.6.0-dev.5+pr.43)
 
-Version 0.5.2-dev
+Version 0.5.2 (Jan 14, 2020)
 ===================================
-- Added more contributing rules to the documentation (0.5.2-dev.1+pr.44 --> 0.6.0-dev.2+pr.46, 0.5.2-dev.3+pr.49 --> 0.6.0-dev.4+pr.50)
-- Fixed a bug that Travis does not run in develop branch (0.5.2-dev.2+pr.47 --> 0.6.0-dev.3+pr.48)
+- Formalized the management of releases and pre-releases, including rules of branches and versioning
+- Added more rules for developers to the documentation
 
 Version 0.5.1 (Jan 2, 2020)
 ===================================
