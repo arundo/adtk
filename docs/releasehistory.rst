@@ -1,6 +1,9 @@
 ***************
 Release History
 ***************
+Version 0.5.2-dev
+===================================
+- Added more contributing rules to the documentation (0.5.2-dev.44)
 
 Version 0.5.1 (Jan 2, 2020)
 ===================================
