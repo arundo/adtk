@@ -97,6 +97,24 @@ This is a guideline of managing branches and releases of ADTK.
     - The `stable documentation <https://arundo-adtk.readthedocs-hosted.com/en/stable/>`_ corresponds to the most recent release.
 - Pre-release versions
     - Every time a pull request is merged into branch **master** or **develop**, a new pre-release version is defined.
-    - A pull request that changes the public API is versioned as (0.[Y+1].0-dev.N), where N is the index of the pull request. For example, if the latest release is version **0.1.2**, merging pull request #37 that changes the API of an existing function into branch **develop** is versioned as **0.2.0-dev.37**. The modifications will eventually be included in release version 0.2.0.
-    - A pull request that does not change the API is versioned as (0.Y.[Z+1]-dev.N), where N is the index of the pull request. For example, if the latest release is **0.1.2**, merging pull request #39 that fixes a bug into branch **master** is versioned as **0.1.3-dev.39**. The modifications will eventually be included in release version 0.1.3. Note that a separate pull request to merge the modifications into branch **develop** should be opened if applicable.
+    - A pull request that changes the public API is versioned as (0.[Y+1].0-dev.N+pr.M), where N is a monotonic increasing index and M is the index of the pull request.
+
+      .. admonition:: Example
+
+         Assume the latest release is version **0.1.2**. A new parameter is added to an existing function in pull request **#37**. The new functionality will eventually be included in release version 0.2.0. Merging this pull request to the branch **develop** is versioned as **0.2.0-dev.1+pr.37**.
+
+         Assume a new function is then created in pull request **#39**. The function is also expected to be released in version 0.2.0. Merging this pull request to the branch **develop** is versioned as **0.2.0-dev.2+pr.39**.
+
+    - A pull request that does not change the API is versioned as (0.Y.[Z+1]-dev.N+pr.M), where N is a monotonic increasing index and M is the index of the pull request.
+
+      .. admonition:: Example
+
+         Assume the latest release is version **0.1.2**. A bug is fixed in pull request **#38**. The new functionality will eventually be included in release version 0.1.3. Merging this pull request to the branch **master** is versioned as **0.1.3-dev.1+pr.38**.
+
+         Assume a typo in documentation is then fixed in pull request **#41**. The function is also expected to be released in version 0.1.3. Merging this pull request to the branch **master** is versioned as **0.1.3-dev.2+pr.41**.
+
+      .. attention::
+        If the modification should also be included in the next "major" release (0.[Y+1].0), a separate pull request to merge the modifications into branch **develop** should be opened.
+
     - The `latest documentation <https://arundo-adtk.readthedocs-hosted.com/en/latest/>`_ corresponds to the most recent pre-release in branch **develop**.
+
