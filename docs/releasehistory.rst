@@ -1,13 +1,14 @@
 ***************
 Release History
 ***************
+
+Version 0.6-dev
+===================================
+- Support str and int as time delta for the input arguments in functions `expand_events` and `resample` in the data module (0.6.0-dev.39)
+
 Version 0.5.2-dev
 ===================================
 - Added more contributing rules to the documentation (0.5.2-dev.44)
-
-Version 0.6-devX
-===================================
-- Support str and int as time delta for the input arguments in functions `expand_events` and `resample` in the data module (0.6-dev39)
 
 Version 0.5.1 (Jan 2, 2020)
 ===================================
