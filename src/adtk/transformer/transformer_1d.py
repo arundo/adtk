@@ -278,19 +278,10 @@ class RollingAggregate(_Transformer1D):
 
             s_rolling = rolling.agg(agg_wrapped)
             s_rolling_raw = np.array(s_rolling_raw)
-            if s_rolling_raw.ndim == 1:
-                s_rolling[s_rolling.notna()] = np.array(s_rolling_raw)
-            elif s_rolling_raw.shape[1] <= 1:
-                s_rolling[s_rolling.notna()] = np.array(s_rolling_raw)
-            else:
-                df = pd.concat([s_rolling] * s_rolling_raw.shape[1], axis=1)
-                df[s_rolling.notna()] = s_rolling_raw
-                s_rolling = df
-            if output_names is not None:
-                if isinstance(s_rolling, pd.Series):
-                    s_rolling.name = output_names
-                if isinstance(s_rolling, pd.DataFrame):
-                    s_rolling.columns = output_names
+            df = pd.concat([s_rolling] * s_rolling_raw.shape[1], axis=1)
+            df[s_rolling.notna()] = s_rolling_raw
+            s_rolling = df
+            s_rolling.columns = output_names
             return s_rolling
 
         aggList = [
@@ -373,7 +364,9 @@ class RollingAggregate(_Transformer1D):
                         rolling, agg, agg_params["names"]
                     )
                 else:
-                    s_rolling = getRollingVector(rolling, agg, None)
+                    raise RuntimeError(
+                        "Names of vector output are not specified."
+                    )
         else:
             raise ValueError("Attribute agg must be one of {}".format(aggList))
 

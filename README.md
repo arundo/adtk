@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/arundo/adtk.svg?branch=master)](https://travis-ci.com/arundo/adtk)
 [![Docs](https://readthedocs.com/projects/arundo-adtk/badge/?version=stable)](https://arundo-adtk.readthedocs-hosted.com)
-[![Coverage Status](https://coveralls.io/repos/github/arundo/adtk/badge.svg?branch=master)](https://coveralls.io/github/arundo/adtk?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/arundo/adtk/badge.svg?branch=master&service=github)](https://coveralls.io/github/arundo/adtk?branch=master)
 [![PyPI](https://img.shields.io/pypi/v/adtk)](https://pypi.org/project/adtk/)
 [![Downloads](https://pepy.tech/badge/adtk)](https://pepy.tech/project/adtk)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -39,6 +39,7 @@ Alternatively, you could install from source code. This will give you the **late
 ```shell
 git clone https://github.com/arundo/adtk.git
 cd adtk/
+git checkout develop
 pip install ./
 ```
 
@@ -55,7 +56,10 @@ section in the documentation.
 Pull requests are welcome. For major changes, please open an issue first to
 discuss what you would like to change.
 
-Please make sure to update tests as appropriate.
+Please make sure to update unit tests as appropriate.
+
+Please see [Contributing](https://arundo-adtk.readthedocs-hosted.com/en/stable/developer.html) for more details.
+
 
 ## License
 

@@ -83,8 +83,6 @@ def validate_series(ts, check_freq=True, check_categorical=False):
         if ts.index.freq is None:
             if ts.index.inferred_freq is not None:
                 ts = ts.asfreq(ts.index.inferred_freq)
-            elif len(np.unique(np.diff(ts.index))) == 1:
-                ts = ts.asfreq(pd.Timedelta(ts.index[1] - ts.index[0]))
 
     # convert categorical labels into binary indicators
     if check_categorical:
@@ -375,7 +373,7 @@ def to_labels(lists, time_index, freq_as_period=True):
     return labels
 
 
-def expand_events(lists, left_expand, right_expand):
+def expand_events(lists, left_expand=0, right_expand=0):
     """Expand time windows in an event list.
 
     Given a list of events, expand the duration of events by a given factor.
@@ -392,11 +390,15 @@ def expand_events(lists, left_expand, right_expand):
           Timestamps that is regarded as a closed interval.
         - If dict, each key-value pair represents an independent type of event.
 
-    left_expand: pandas Timedelta
-        Time range to expand backward.
+    left_expand: pandas Timedelta, str, or int, optional
+        Time range to expand backward. If str, it must be able to be converted
+        into a pandas Timedelta object. If int, it must be in nanosecond.
+        Default: 0.
 
-    right_expand: pandas Timedelta
-        Time range to expand forward.
+    right_expand: pandas Timedelta, str, or int, optional
+        Time range to expand forward. f str, it must be able to be converted
+        into a pandas Timedelta object. If int, it must be in nanosecond.
+        Default: 0.
 
     Returns
     -------
@@ -404,6 +406,11 @@ def expand_events(lists, left_expand, right_expand):
         Expanded events.
 
     """
+
+    if not isinstance(left_expand, pd.Timedelta):
+        left_expand = pd.Timedelta(left_expand)
+    if not isinstance(right_expand, pd.Timedelta):
+        right_expand = pd.Timedelta(right_expand)
 
     if isinstance(lists, list):
         expanded = []
@@ -434,13 +441,14 @@ def resample(ts, dT=None):
     ts: pandas Series or DataFrame
         Time series to resample. Index of the object must be DatetimeIndex.
 
-    dT: pandas Timedelta, optional
-        The new constant time step. If not given, the greatest common divider
-        of original time steps will be used, which makes the refinement a
-        minimal refinement subject to keeping all original time points still
-        included in the resampled time series. Please note that this may
-        dramatically increase the size of time series and memory usage.
-        Default: None.
+    dT: pandas Timedelta, str, or int, optional
+        The new constant time step. If str, it must be able to be converted
+        into a pandas Timedelta object. If int, it must be in nanosecond. If
+        not given, the greatest common divider of original time steps will be
+        used, which makes the refinement a minimal refinement subject to
+        keeping all original time points still included in the resampled time
+        series. Please note that this may dramatically increase the size of
+        time series and memory usage. Default: None.
 
     Returns
     -------
@@ -465,6 +473,8 @@ def resample(ts, dT=None):
         dT = pd.Timedelta(
             np.timedelta64(gcd_of_array([int(dt) for dt in np.diff(ts.index)]))
         )
+    elif not isinstance(dT, pd.Timedelta):
+        dT = pd.Timedelta(dT)
 
     rdf = pd.DataFrame(index=pd.date_range(ts.index[0], ts.index[-1], freq=dT))
 

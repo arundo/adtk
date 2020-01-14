@@ -218,15 +218,30 @@ def f1_score(y_true, y_pred, recall_thresh=0.5, precision_thresh=0.5):
     """
     recall_score = recall(y_true, y_pred, recall_thresh)
     precision_score = precision(y_true, y_pred, precision_thresh)
-    if recall_score + precision_score != 0:
-        return (
-            2
-            * recall_score
-            * precision_score
-            / (recall_score + precision_score)
-        )
+    if not isinstance(recall_score, dict):
+        if recall_score + precision_score != 0:
+            return (
+                2
+                * recall_score
+                * precision_score
+                / (recall_score + precision_score)
+            )
+        else:
+            return float("nan")
     else:
-        return float("nan")
+        return {
+            key: (
+                (
+                    2
+                    * recall_score[key]
+                    * precision_score[key]
+                    / (recall_score[key] + precision_score[key])
+                )
+                if (recall_score[key] + precision_score[key] != 0)
+                else float("nan")
+            )
+            for key in recall_score.keys()
+        }
 
 
 def iou(y_true, y_pred):

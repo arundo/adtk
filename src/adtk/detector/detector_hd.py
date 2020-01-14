@@ -138,7 +138,7 @@ class MinClusterDetector(_DetectorHD):
         self._anomalous_cluster_id = cluster_count.most_common()[-1][0]
 
     def _predict_core(self, df):
-        cluster_id = pd.Series(index=df.index)
+        cluster_id = pd.Series(float("nan"), index=df.index)
         if not df.dropna().empty:
             cluster_id.loc[df.dropna().index] = self.model.predict(df.dropna())
         predicted = pd.Series(
@@ -180,7 +180,7 @@ class OutlierDetector(_DetectorHD):
             self.model.fit(df.dropna())
 
     def _predict_core(self, df):
-        is_outliers = pd.Series(index=df.index)
+        is_outliers = pd.Series(float("nan"), index=df.index)
         if not df.dropna().empty:
             if hasattr(self.model, "predict"):
                 is_outliers.loc[df.dropna().index] = (
@@ -190,7 +190,9 @@ class OutlierDetector(_DetectorHD):
                 is_outliers.loc[df.dropna().index] = (
                     self.model.fit_predict(df.dropna()) == -1
                 )
-        return is_outliers
+        predicted = pd.Series(is_outliers == 1, index=df.index)
+        predicted[is_outliers.isna()] = float("nan")
+        return predicted
 
 
 # =============================================================================

@@ -2,6 +2,8 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
+import pandas as pd
 
 
 def plot(
@@ -75,6 +77,7 @@ def plot(
             raise ValueError("True and predicted anomaly are not consistent.")
 
 
+    plt.style.use("seaborn-whitegrid")
 
 
 
