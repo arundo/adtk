@@ -2,6 +2,11 @@
 Release History
 ***************
 
+Version 0.6.0-dev
+===================================
+- Support str and int as time delta for the input arguments in functions `expand_events` and `resample` in the data module (0.6.0-dev.1+pr.39)
+- Added an example of DoubleRollingAggregate with different window sizes to the documentation (0.6.0-dev.5+pr.43)
+
 Version 0.5.2 (Jan 14, 2020)
 ===================================
 - Formalized the management of releases and pre-releases, including rules of branches and versioning
