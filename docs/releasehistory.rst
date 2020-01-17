@@ -2,6 +2,10 @@
 Release History
 ***************
 
+Version 0.5.3-dev
+===================================
+- Optimized package publishing process by using GitHub Actions (0.5.3-dev.1+pr.53)
+
 Version 0.5.2 (Jan 14, 2020)
 ===================================
 - Formalized the management of releases and pre-releases, including rules of branches and versioning
