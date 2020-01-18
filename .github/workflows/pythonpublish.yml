@@ -20,7 +20,7 @@ jobs:
     - name: Build and publish
       env:
         TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.TAILAIW_TESTPYPI_TOKEN }}
+        TWINE_PASSWORD: ${{ secrets.ARUNDO_PYPI_TOKEN }}
       run: |
         python setup.py sdist bdist_wheel
-        twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+        twine upload dist/*
