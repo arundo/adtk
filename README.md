@@ -6,6 +6,7 @@
 [![PyPI](https://img.shields.io/pypi/v/adtk)](https://pypi.org/project/adtk/)
 [![Downloads](https://pepy.tech/badge/adtk)](https://pepy.tech/project/adtk)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/arundo/adtk/tags/v0.5.2?filepath=docs%2Fnotebooks%2Fdemo.ipynb)
 
 
 Anomaly Detection Toolkit (ADTK) is a Python package for unsupervised /
