@@ -50,7 +50,7 @@ Please see [Quick Start](https://arundo-adtk.readthedocs-hosted.com/en/stable/qu
 
 For more detailed examples of each module of ADTK, please refer to
 [Examples](https://arundo-adtk.readthedocs-hosted.com/en/stable/examples.html)
-section in the documentation.
+section in the documentation or a [demo notebook](https://mybinder.org/v2/gh/arundo/adtk/tags/v0.5.2?filepath=docs%2Fnotebooks%2Fdemo.ipynb).
 
 ## Contributing
 
