@@ -6,8 +6,7 @@
 [![PyPI](https://img.shields.io/pypi/v/adtk)](https://pypi.org/project/adtk/)
 [![Downloads](https://pepy.tech/badge/adtk)](https://pepy.tech/project/adtk)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/arundo/adtk/tags/v0.5.2?filepath=docs%2Fnotebooks%2Fdemo.ipynb)
-
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/arundo/adtk/master?filepath=docs%2Fnotebooks%2Fdemo.ipynb)
 
 Anomaly Detection Toolkit (ADTK) is a Python package for unsupervised /
 rule-based time series anomaly detection.
@@ -50,7 +49,7 @@ Please see [Quick Start](https://arundo-adtk.readthedocs-hosted.com/en/stable/qu
 
 For more detailed examples of each module of ADTK, please refer to
 [Examples](https://arundo-adtk.readthedocs-hosted.com/en/stable/examples.html)
-section in the documentation or a [demo notebook](https://mybinder.org/v2/gh/arundo/adtk/tags/v0.5.2?filepath=docs%2Fnotebooks%2Fdemo.ipynb).
+section in the documentation or [an interactive demo notebook](https://mybinder.org/v2/gh/arundo/adtk/master?filepath=docs%2Fnotebooks%2Fdemo.ipynb).
 
 ## Contributing
 
