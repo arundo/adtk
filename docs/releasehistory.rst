@@ -2,6 +2,10 @@
 Release History
 ***************
 
+Version 0.5.3 (Feb 12, 2020)
+===================================
+- Quick hotfix to avoid errors caused by statsmodels v0.11 by requiring statsmodels dependency <0.11
+
 Version 0.5.2 (Jan 14, 2020)
 ===================================
 - Formalized the management of releases and pre-releases, including rules of branches and versioning
