@@ -382,6 +382,27 @@ def test_dataframe(testCase):
         pd.testing.assert_frame_equal(a, a_true, check_dtype=False)
 
 
+@pytest.mark.parametrize("testCase", testCases)
+def test_fit_series_predict_dataframe(testCase):
+    """Test fit the detector with a series and predict with dataframe."""
+    s = pd.Series(
+        testCase["s"],
+        pd.date_range(start="2017-1-1", periods=len(testCase["s"]), freq="D"),
+    )
+    df = pd.concat([s.rename("A"), s.rename("B")], axis=1)
+    model = testCase["model"](**testCase["params"])
+    a_true = pd.Series(testCase["a"], index=s.index)
+    a_true = pd.concat([a_true.rename("A"), a_true.rename("B")], axis=1)
+    if testCase["pandas_bug"] and (parse(pd.__version__) < parse("0.25")):
+        with pytest.raises(PandasBugError):
+            model.fit(s)
+            a = model.detect(df)
+    else:
+        model.fit(s)
+        a = model.detect(df)
+        pd.testing.assert_frame_equal(a, a_true, check_dtype=False)
+
+
 def test_autoregressive_ad_dataframe():
     """Make sure deepcopy works
     """
