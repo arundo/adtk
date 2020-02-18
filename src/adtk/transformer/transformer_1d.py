@@ -49,14 +49,6 @@ class CustomizedTransformer1D(_Transformer1D):
     fit_func_params: dict, optional
         Parameters of fit_func. Default: None.
 
-
-    This is an univariate transformer. When it is applied to a multivariate
-    time series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
-
     """
 
     _need_fit = False
@@ -125,10 +117,6 @@ class StandardScale(_Transformer1D):
     """Transformer that scales time series such that mean is equal to 0 and
     standard deviation is equal to 1.
 
-    This is an univariate transformer. When it is applied to a multivariate
-    time series (i.e. pandas DataFrame), it will be applied to every series
-    independently.
-
     """
 
     _need_fit = False
@@ -152,13 +140,6 @@ class StandardScale(_Transformer1D):
 class RollingAggregate(_Transformer1D):
     """Transformer that roll a sliding window along a time series, and
     aggregates using a user-selected operation.
-
-    This is an univariate transformer. When it is applied to a multivariate
-    time series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     Parameters
     ----------
@@ -380,13 +361,6 @@ class DoubleRollingAggregate(_Transformer1D):
     """Transformer that rolls two sliding windows side-by-side along a time
     series, aggregates using a user-given operation, and calcuates the
     difference of aggregated metrics between two sliding windows.
-
-    This is an univariate transformer. When it is applied to a multivariate
-    time series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     Parameters
     ----------
@@ -694,14 +668,6 @@ class ClassicSeasonalDecomposition(_Transformer1D):
     seasonal_: pandas.Series
         Seasonal pattern extracted from training series.
 
-
-    This is an univariate transformer. When it is applied to a multivariate
-    time series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
-
     """
 
     _default_params = {"freq": None, "trend": False}
@@ -855,13 +821,6 @@ class ClassicSeasonalDecomposition(_Transformer1D):
 def _identify_seasonal_period(s, low_autocorr=0.1, high_autocorr=0.3):
     """Identify seasonal period of a time series based on autocorrelation.
 
-    This is an univariate transformer. When it is applied to a multivariate
-    time series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
-
     Parameters
     ----------
     s: pandas Series or DataFrame
@@ -920,13 +879,6 @@ class Retrospect(_Transformer1D):
     minutes. In this case, a dataframe where each row include u_[t-3], u_[t-4],
     u_[t-5], and a series y_t are needed to learn the relationship between
     control and outcome.
-
-    This is an univariate transformer. When it is applied to a multivariate
-    time series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     Parameters
     ----------
