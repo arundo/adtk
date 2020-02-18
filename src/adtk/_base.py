@@ -11,9 +11,9 @@ class _Model(ABC):
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-            self._fitted = (
-                0
-            )  # 0 for not fitted, 1 for fitted, 2 for univariate model fitted by DF
+        self._fitted = (
+            0
+        )  # 0 for not fitted, 1 for fitted, 2 for univariate model fitted by DF
 
     @abstractmethod
     def _fit(self, ts):
