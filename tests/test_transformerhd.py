@@ -5,6 +5,8 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 import adtk.transformer as transformer
 
+from typing import List, Dict, Any, Union, Tuple
+
 nan = float("nan")
 
 testCases = [
@@ -202,7 +204,7 @@ testCases = [
             [9, 8, 7, 6, 5, 4, 3, 2, nan, 1, 0],
             [9] * 11,
         ],
-        "t": [0] * 8 + [nan] + [0] * 2,
+        "t": [float(0)] * 8 + [nan] + [float(0)] * 2,
     },
     {
         "model": transformer.RegressionResidual,
@@ -212,7 +214,7 @@ testCases = [
             [9, 8, 7, 6, 5, 4, 3, 2, nan, 1, 0],
             [9] * 11,
         ],
-        "t": [0] * 8 + [nan] + [0] * 2,
+        "t": [float(0)] * 8 + [nan] + [float(0)] * 2,
     },
     {
         "model": transformer.PcaProjection,
@@ -253,11 +255,11 @@ testCases = [
         ],
         "t": [0, 0, 0, 0, 0.02, 0.02, 0, 0, 0, nan, 0, 0],
     },
-]
+]  # type: List[Dict[str, Any]]
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_fit_transform(testCase):
+def test_fit_transform(testCase: Dict[str, Any]) -> None:
     """Test fit_transform the transformer."""
     df = pd.DataFrame(
         np.array(testCase["df"]).T,
@@ -276,7 +278,7 @@ def test_fit_transform(testCase):
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_fit_and_transform(testCase):
+def test_fit_and_transform(testCase: Dict[str, Any]) -> None:
     """Test fit the transformer and then transform."""
     df = pd.DataFrame(
         np.array(testCase["df"]).T,

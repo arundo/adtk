@@ -7,6 +7,8 @@ from math import gcd
 import numpy as np
 import pandas as pd
 
+from typing import List, Union, Tuple, Any, Dict, Optional, Sequence
+
 __all__ = [
     "validate_series",
     "to_events",
@@ -15,10 +17,14 @@ __all__ = [
     "validate_events",
     "resample",
     "split_train_test",
-]
+]  # type: List[str]
 
 
-def validate_series(ts, check_freq=True, check_categorical=False):
+def validate_series(
+    ts: Union[pd.Series, pd.DataFrame],
+    check_freq: bool = True,
+    check_categorical: bool = False,
+) -> Union[pd.Series, pd.DataFrame]:
     """Validate time series.
 
     This process will check some common critical issues that may cause problems
@@ -102,7 +108,10 @@ def validate_series(ts, check_freq=True, check_categorical=False):
     return ts
 
 
-def validate_events(event_list, point_as_interval=False):
+def validate_events(
+    event_list: Sequence[Union[Tuple[pd.Timestamp, pd.Timestamp], int, None]],
+    point_as_interval: bool = False,
+) -> List[Tuple[pd.Timestamp, pd.Timestamp]]:
     """Validate event list.
 
     This process will check some common issues in an event list (a list of time
@@ -161,7 +170,7 @@ def validate_events(event_list, point_as_interval=False):
     time_window_end_series.sort_index(kind="mergesort", inplace=True)
     time_window_end_series = time_window_end_series.cumsum()
     status = 0
-    merged_event_list = []
+    merged_event_list = []  # type: List[Any]
     for t, v in time_window_end_series.iteritems():
         if (status == 0) and (v > 0):
             start = t
@@ -186,7 +195,11 @@ def validate_events(event_list, point_as_interval=False):
     return merged_event_list
 
 
-def to_events(labels, freq_as_period=True, merge_consecutive=None):
+def to_events(
+    labels: Union[pd.Series, pd.DataFrame],
+    freq_as_period: bool = True,
+    merge_consecutive: Any = None,
+) -> Union[List[pd.Timestamp], Dict[str, Any]]:
     """Convert binary label series to event list(s).
 
     Parameters
@@ -292,7 +305,11 @@ def to_events(labels, freq_as_period=True, merge_consecutive=None):
         }
 
 
-def to_labels(lists, time_index, freq_as_period=True):
+def to_labels(
+    lists: List[Tuple[pd.Timestamp, pd.Timestamp]],
+    time_index: pd.DatetimeIndex,
+    freq_as_period: bool = True,
+) -> Union[pd.Series, pd.DataFrame]:
     """Convert event list(s) to binary series along a time line.
 
     Parameters
@@ -373,7 +390,11 @@ def to_labels(lists, time_index, freq_as_period=True):
     return labels
 
 
-def expand_events(lists, left_expand, right_expand):
+def expand_events(
+    lists: Union[List[Any], Dict[Any, Any]],
+    left_expand: pd.Timedelta,
+    right_expand: pd.Timedelta,
+) -> Union[List[Any], Dict[Any, Any]]:
     """Expand time windows in an event list.
 
     Given a list of events, expand the duration of events by a given factor.
@@ -404,7 +425,7 @@ def expand_events(lists, left_expand, right_expand):
     """
 
     if isinstance(lists, list):
-        expanded = []
+        expanded = []  # type: Any
         for ano in lists:
             if isinstance(ano, tuple):
                 expanded.append((ano[0] - left_expand, ano[1] + right_expand))
@@ -422,7 +443,9 @@ def expand_events(lists, left_expand, right_expand):
     return expanded
 
 
-def resample(ts, dT=None):
+def resample(
+    ts: Union[pd.Series, pd.DataFrame], dT: pd.Timedelta = None
+) -> Union[pd.Series, pd.DataFrame]:
     """Resample the time points of a time series with given constant spacing.
     The values at new time points are calcuated by time-weighted linear
     interpolation.
@@ -447,7 +470,7 @@ def resample(ts, dT=None):
 
     """
 
-    def gcd_of_array(arr):
+    def gcd_of_array(arr: Any) -> int:
         """Get the GCD of an array of integer"""
         return reduce(gcd, arr)
 
@@ -478,7 +501,14 @@ def resample(ts, dT=None):
     return rdf
 
 
-def split_train_test(ts, mode=1, n_splits=1, train_ratio=0.7):
+def split_train_test(
+    ts: Union[pd.Series, pd.DataFrame],
+    mode: int = 1,
+    n_splits: int = 1,
+    train_ratio: float = 0.7,
+) -> Tuple[
+    List[Union[pd.Series, pd.DataFrame]], List[Union[pd.Series, pd.DataFrame]]
+]:
     """Split time series into training and testing set for cross validation.
 
     Parameters

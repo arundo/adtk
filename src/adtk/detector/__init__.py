@@ -13,7 +13,7 @@ from .detector_hd import __all__ as __all_hd__
 from .._utils import _get_all_subclasses_from_superclass
 
 
-def print_all_models():
+def print_all_models() -> None:
     """
     Print description of every model in this module.
     """

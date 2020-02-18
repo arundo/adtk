@@ -3,7 +3,7 @@ import pandas as pd
 import adtk.aggregator as aggt
 
 
-def test_or_dict_of_lists():
+def test_or_dict_of_lists() -> None:
     """
     Test OrAggregator with input as a dict of lists of time stamps or time
     stamp 2-tuples
@@ -30,7 +30,7 @@ def test_or_dict_of_lists():
     ]
 
 
-def test_or_df():
+def test_or_df() -> None:
     """
     Test OrAggregator with input as a DataFrame
     """
@@ -47,7 +47,7 @@ def test_or_df():
     )
 
 
-def test_or_dict_of_dfs():
+def test_or_dict_of_dfs() -> None:
     """
     Test OrAggregator with input as a dict of DataFrame
     """
@@ -68,7 +68,7 @@ def test_or_dict_of_dfs():
     )
 
 
-def test_and_dict_of_lists():
+def test_and_dict_of_lists() -> None:
     """
     Test AndAggregator with input as a dict of lists of time stamps or time
     stamp 2-tuples
@@ -94,7 +94,7 @@ def test_and_dict_of_lists():
     ]
 
 
-def test_and_df():
+def test_and_df() -> None:
     """
     Test AndAggregator with input as a DataFrame
     """
@@ -111,7 +111,7 @@ def test_and_df():
     )
 
 
-def test_and_dict_of_dfs():
+def test_and_dict_of_dfs() -> None:
     """
     Test AndAggregator with input as a dict of DataFrame
     """
@@ -132,12 +132,12 @@ def test_and_dict_of_dfs():
     )
 
 
-def test_customized_aggregator():
+def test_customized_aggregator() -> None:
     """
     Test customized aggregate
     """
 
-    def myAggFunc(df, agg="and"):
+    def myAggFunc(df: pd.DataFrame, agg: str = "and") -> pd.DataFrame:
         if agg == "and":
             return df.all(axis=1)
         elif agg == "or":

@@ -3,25 +3,27 @@ from copy import deepcopy
 
 import pandas as pd
 
+from typing import Dict, List, Any, Union, Optional
+
 
 class _Model(ABC):
     _need_fit = True
-    _default_params = {}
+    _default_params = {}  # type: Dict[Any, Any]
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
             setattr(self, key, value)
             self._fitted = False
 
     @abstractmethod
-    def _fit(self, ts):
+    def _fit(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
         pass
 
     @abstractmethod
-    def _predict(self, ts):
+    def _predict(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
         pass
 
-    def get_params(self):
+    def get_params(self) -> Dict[Any, Any]:
         """Get parameters of this model.
 
         Returns
@@ -32,7 +34,7 @@ class _Model(ABC):
         """
         return {key: getattr(self, key) for key in self._default_params.keys()}
 
-    def set_params(self, **kwargs):
+    def set_params(self, **kwargs: Any) -> None:
         """Set parameters of this model.
 
         Parameters
@@ -56,11 +58,11 @@ class _Model(ABC):
 class _Model1D(_Model):
     """Base class of _Detector1D and _Transformer1D."""
 
-    def __init__(self, **kwargs):
-        self._models = None
+    def __init__(self, **kwargs: Any) -> None:
+        self._models = None  # type: Any
         super().__init__(**kwargs)
 
-    def _update_models(self, cols):
+    def _update_models(self, cols: List[str]) -> None:
         """Update attribute _models with given columns and model parameters.
 
         When a 1D model applied to a DataFrame, it is applied independently to
@@ -86,7 +88,7 @@ class _Model1D(_Model):
         for col in cols:
             self._models[col].set_params(**deepcopy(self.get_params()))
 
-    def _fit(self, ts):
+    def _fit(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
         if isinstance(ts, pd.Series):
             s = ts.copy()
             self._fit_core(s)
@@ -102,7 +104,9 @@ class _Model1D(_Model):
             raise TypeError("Input must be a pandas Series or DataFrame.")
         self._fitted = True
 
-    def _predict(self, ts):
+    def _predict(
+        self, ts: Union[pd.DataFrame, pd.Series]
+    ) -> Union[pd.DataFrame, pd.Series]:
         if self._need_fit and (not self._fitted):
             raise RuntimeError("The model must be trained first.")
         if isinstance(ts, pd.Series):
@@ -130,28 +134,28 @@ class _Model1D(_Model):
         return predicted
 
     @abstractmethod
-    def _fit_core(self, ts):
+    def _fit_core(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
         pass
 
     @abstractmethod
-    def _predict_core(self, ts):
+    def _predict_core(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
         pass
 
     @abstractmethod
-    def fit(self, ts):
+    def fit(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
         pass
 
     @abstractmethod
-    def predict(self, ts):
+    def predict(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
         pass
 
     @abstractmethod
-    def fit_predict(self, ts):
+    def fit_predict(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
         pass
 
 
 class _ModelHD(_Model):
-    def _fit(self, df):
+    def _fit(self, df: pd.DataFrame) -> None:
         if isinstance(df, pd.DataFrame):
             df_copy = df.copy()
             self._fit_core(df_copy)
@@ -159,7 +163,7 @@ class _ModelHD(_Model):
             raise TypeError("Input must be a pandas DataFrame.")
         self._fitted = True
 
-    def _predict(self, df):
+    def _predict(self, df: pd.DataFrame) -> pd.DataFrame:
         if self._need_fit and (not self._fitted):
             raise RuntimeError("The model must be trained first.")
         if isinstance(df, pd.DataFrame):
@@ -173,21 +177,21 @@ class _ModelHD(_Model):
         return predicted
 
     @abstractmethod
-    def _fit_core(self, df):
+    def _fit_core(self, df: pd.DataFrame) -> None:
         pass
 
     @abstractmethod
-    def _predict_core(self, df):
+    def _predict_core(self, df: pd.DataFrame) -> None:
         pass
 
     @abstractmethod
-    def fit(self, df):
+    def fit(self, df: pd.DataFrame) -> None:
         pass
 
     @abstractmethod
-    def predict(self, df):
+    def predict(self, df: pd.DataFrame) -> None:
         pass
 
     @abstractmethod
-    def fit_predict(self, df):
+    def fit_predict(self, df: pd.DataFrame) -> None:
         pass

@@ -4,7 +4,7 @@ import numpy as np
 from adtk.data import resample
 
 
-def test_resample_given_new_dt():
+def test_resample_given_new_dt() -> None:
     s = pd.Series(
         [0, 1, 2, 3.5, 6, 9],
         index=[
@@ -42,7 +42,7 @@ def test_resample_given_new_dt():
     )
 
 
-def test_resample_not_given_new_dt():
+def test_resample_not_given_new_dt() -> None:
     s = pd.Series(
         [0, 1, 2, 3.5, 6, 9],
         index=[

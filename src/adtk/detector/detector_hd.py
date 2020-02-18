@@ -18,13 +18,15 @@ from ..transformer import (
     PcaReconstructionError,
 )
 
+from typing import List, Dict, Any, Tuple, Union
+
 __all__ = [
     "MinClusterDetector",
     "OutlierDetector",
     "RegressionAD",
     "PcaAD",
     "CustomizedDetectorHD",
-]
+]  # type: List[str]
 
 
 class CustomizedDetectorHD(_DetectorHD):
@@ -49,13 +51,13 @@ class CustomizedDetectorHD(_DetectorHD):
 
     """
 
-    _need_fit = False
+    _need_fit = False  # type: bool
     _default_params = {
         "detect_func": None,
         "detect_func_params": None,
         "fit_func": None,
         "fit_func_params": None,
-    }
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
@@ -63,7 +65,7 @@ class CustomizedDetectorHD(_DetectorHD):
         detect_func_params=_default_params["detect_func_params"],
         fit_func=_default_params["fit_func"],
         fit_func_params=_default_params["fit_func_params"],
-    ):
+    ) -> None:
         self._fitted_detect_func_params = {}
         super().__init__(
             detect_func=detect_func,
@@ -72,7 +74,7 @@ class CustomizedDetectorHD(_DetectorHD):
             fit_func_params=fit_func_params,
         )
 
-    def _fit_core(self, df):
+    def _fit_core(self, df: pd.DataFrame) -> None:
         if self.fit_func is not None:
             if self.fit_func_params is not None:
                 fit_func_params = self.fit_func_params
@@ -82,7 +84,7 @@ class CustomizedDetectorHD(_DetectorHD):
                 df, **fit_func_params
             )
 
-    def _predict_core(self, df):
+    def _predict_core(self, df: pd.DataFrame):
         if self.detect_func_params is not None:
             detect_func_params = self.detect_func_params
         else:

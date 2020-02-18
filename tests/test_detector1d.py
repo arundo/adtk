@@ -12,7 +12,9 @@ from sklearn.svm import SVR
 import adtk.detector as detector
 from adtk._utils import PandasBugError
 
-nan = float("nan")
+from typing import Dict, List, Any, Union, Tuple
+
+nan = float("nan")  # type: float
 
 testCases = [
     {
@@ -316,11 +318,11 @@ testCases = [
         "a": [0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
         "pandas_bug": False,
     },
-]
+]  # type: List[Dict[str, Any]]
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_fit_detect(testCase):
+def test_fit_detect(testCase: Dict[str, Any]) -> None:
     """Test fit_detect the detector."""
     s = pd.Series(
         testCase["s"],
@@ -341,7 +343,7 @@ def test_fit_detect(testCase):
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_fit_and_detect(testCase):
+def test_fit_and_detect(testCase: Dict[str, Any]) -> None:
     """Test fit the detector and then detect."""
     s = pd.Series(
         testCase["s"],
@@ -364,7 +366,7 @@ def test_fit_and_detect(testCase):
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_dataframe(testCase):
+def test_dataframe(testCase: Dict[str, Any]) -> None:
     """Test apply the detector to dataframe."""
     s = pd.Series(
         testCase["s"],
@@ -382,7 +384,7 @@ def test_dataframe(testCase):
         pd.testing.assert_frame_equal(a, a_true, check_dtype=False)
 
 
-def test_autoregressive_ad_dataframe():
+def test_autoregressive_ad_dataframe() -> None:
     """Make sure deepcopy works
     """
     df = pd.DataFrame(

@@ -22,6 +22,8 @@ from ..transformer import (
     Retrospect,
 )
 
+from typing import List, Dict, Union, Any, Tuple
+
 __all__ = [
     "ThresholdAD",
     "QuantileAD",
@@ -33,7 +35,7 @@ __all__ = [
     "AutoregressionAD",
     "SeasonalAD",
     "CustomizedDetector1D",
-]
+]  # type: List[str]
 
 
 class CustomizedDetector1D(_Detector1D):
@@ -75,12 +77,12 @@ class CustomizedDetector1D(_Detector1D):
 
     def __init__(
         self,
-        detect_func=_default_params["detect_func"],
-        detect_func_params=_default_params["detect_func_params"],
-        fit_func=_default_params["fit_func"],
-        fit_func_params=_default_params["fit_func_params"],
-    ):
-        self._fitted_detect_func_params = {}
+        detect_func: Any = _default_params["detect_func"],
+        detect_func_params: Any = _default_params["detect_func_params"],
+        fit_func: Any = _default_params["fit_func"],
+        fit_func_params: Any = _default_params["fit_func_params"],
+    ) -> None:
+        self._fitted_detect_func_params = {}  # type: Dict[str, Any]
         if fit_func is not None:
             self._need_fit = True
         else:
@@ -92,7 +94,7 @@ class CustomizedDetector1D(_Detector1D):
             fit_func_params=fit_func_params,
         )
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: float) -> None:
         if self.fit_func is not None:
             if self.fit_func_params is not None:
                 fit_func_params = self.fit_func_params
@@ -1084,12 +1086,7 @@ class SeasonalAD(_Detector1D):
 
     """
 
-    _default_params = {
-        "freq": None,
-        "side": "both",
-        "c": 3.0,
-        "trend": False,
-    }
+    _default_params = {"freq": None, "side": "both", "c": 3.0, "trend": False}
 
     def __init__(
         self,

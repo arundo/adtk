@@ -1,6 +1,8 @@
 import pandas as pd
 from adtk.data import expand_events
 
+from typing import Dict, Tuple, List, Any, Union
+
 events = [
     pd.Timestamp("2017-1-1 20:04:00"),
     (pd.Timestamp("2017-1-1 20:00:00"), pd.Timestamp("2017-1-1 20:05:59")),
@@ -9,10 +11,10 @@ events = [
     pd.Timestamp("2017-1-1 21:00:00"),
     (pd.Timestamp("2017-1-1 21:05:00"), pd.Timestamp("2017-1-1 21:06:59")),
     pd.Timestamp("2017-1-1 21:03:00"),
-]
+]  # type: List[Union[pd.Timestamp, Tuple[pd.Timestamp, pd.Timestamp]]]
 
 
-def test_expand_event_list():
+def test_expand_event_list() -> None:
     expanded_events = expand_events(
         events,
         left_expand=pd.Timedelta("1min"),
@@ -25,7 +27,7 @@ def test_expand_event_list():
     ]
 
 
-def test_expand_event_dict():
+def test_expand_event_dict() -> None:
     expanded_events = expand_events(
         {"A": events, "B": events},
         left_expand=pd.Timedelta("1min"),

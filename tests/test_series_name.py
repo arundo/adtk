@@ -11,6 +11,8 @@ from sklearn.neighbors import LocalOutlierFactor
 from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression
 
+from typing import List, Dict, Any
+
 one2one_models = [
     detector.ThresholdAD(),
     detector.QuantileAD(),
@@ -32,7 +34,7 @@ one2one_models = [
     ),
     transformer.StandardScale(),
     transformer.ClassicSeasonalDecomposition(freq=2),
-]
+]  # type: List[Any]
 
 one2many_models = [
     transformer.RollingAggregate(
@@ -42,7 +44,7 @@ one2many_models = [
         agg="hist", agg_params={"bins": [20, 50, 80]}
     ),
     transformer.Retrospect(n_steps=3),
-]
+]  # type: List[Any]
 
 many2one_models = [
     detector.MinClusterDetector(KMeans(n_clusters=2)),
@@ -54,11 +56,11 @@ many2one_models = [
     transformer.SumAll(),
     transformer.RegressionResidual(LinearRegression()),
     transformer.PcaReconstructionError(),
-]
+]  # type: List[Any]
 
 
 @pytest.mark.parametrize("model", one2one_models)
-def test_one2one_s2s_wo_name(model):
+def test_one2one_s2s_wo_name(model: Any) -> None:
     s_name = pd.Series(
         np.arange(100),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
@@ -69,7 +71,7 @@ def test_one2one_s2s_wo_name(model):
 
 
 @pytest.mark.parametrize("model", one2one_models)
-def test_one2one_s2s_w_name(model):
+def test_one2one_s2s_w_name(model: Any) -> None:
     s_no_name = pd.Series(
         np.arange(100),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
@@ -79,7 +81,7 @@ def test_one2one_s2s_w_name(model):
 
 
 @pytest.mark.parametrize("model", one2one_models)
-def test_one2one_df2df(model):
+def test_one2one_df2df(model: Any) -> None:
     df = pd.DataFrame(
         np.arange(300).reshape(100, 3),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
@@ -90,7 +92,7 @@ def test_one2one_df2df(model):
 
 
 @pytest.mark.parametrize("model", one2one_models)
-def test_one2one_df2list(model):
+def test_one2one_df2list(model: Any) -> None:
     if hasattr(model, "fit_detect"):
         df = pd.DataFrame(
             np.arange(300).reshape(100, 3),
@@ -105,7 +107,7 @@ def test_one2one_df2list(model):
 
 
 @pytest.mark.parametrize("model", one2many_models)
-def test_one2many_s2df_w_name(model):
+def test_one2many_s2df_w_name(model: Any) -> None:
     s_name = pd.Series(
         np.arange(100),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
@@ -117,7 +119,7 @@ def test_one2many_s2df_w_name(model):
 
 
 @pytest.mark.parametrize("model", one2many_models)
-def test_one2many_s2df_wo_name(model):
+def test_one2many_s2df_wo_name(model: Any) -> None:
     s_no_name = pd.Series(
         np.arange(100),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
@@ -127,7 +129,7 @@ def test_one2many_s2df_wo_name(model):
 
 
 @pytest.mark.parametrize("model", one2many_models)
-def test_one2many_df2df(model):
+def test_one2many_df2df(model: Any) -> None:
     df = pd.DataFrame(
         np.arange(300).reshape(100, 3),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
@@ -148,7 +150,7 @@ def test_one2many_df2df(model):
 
 
 @pytest.mark.parametrize("model", many2one_models)
-def test_many2one(model):
+def test_many2one(model: Any) -> None:
     df = pd.DataFrame(
         np.arange(300).reshape(100, 3),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
@@ -158,7 +160,7 @@ def test_many2one(model):
     assert result.name is None
 
 
-def test_pca_reconstruction():
+def test_pca_reconstruction() -> None:
     df = pd.DataFrame(
         np.arange(300).reshape(100, 3),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),

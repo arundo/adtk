@@ -2,14 +2,18 @@ import pandas as pd
 
 from ._base import _Model
 
+from typing import Any, Union, List, Dict
+
 
 class _Aggregator(_Model):
-    _need_fit = False
+    _need_fit = False  # type: bool
 
-    def _fit(self, lists):
+    def _fit(self, lists: Union[pd.DataFrame, Dict[Any, Any]]) -> None:
         pass
 
-    def _predict(self, lists):
+    def _predict(
+        self, lists: Union[pd.DataFrame, Dict[Any, Any]]
+    ) -> Union[pd.DataFrame, pd.Series]:
         if isinstance(lists, dict):
             if not (
                 all([isinstance(lst, list) for lst in lists.values()])
@@ -33,7 +37,9 @@ class _Aggregator(_Model):
             )
         return self._predict_core(lists)
 
-    def aggregate(self, lists):
+    def aggregate(
+        self, lists: Union[pd.DataFrame, Dict[Any, Any]]
+    ) -> Union[List[pd.Timestamp], pd.Series]:
         """Aggregate multiple lists of anomalies into one.
 
         Parameters
@@ -61,13 +67,23 @@ class _Aggregator(_Model):
         """
         return self._predict(lists)
 
-    def predict(self, lists, *args, **kwargs):
+    def predict(
+        self,
+        lists: Union[pd.DataFrame, Dict[Any, Any]],
+        *args: Any,
+        **kwargs: Any
+    ) -> Union[List[pd.Timestamp], pd.Series]:
         """
         Alias of `aggregate`.
         """
         return self.aggregate(lists)
 
-    def fit_predict(self, lists, *args, **kwargs):
+    def fit_predict(
+        self,
+        lists: Union[pd.DataFrame, Dict[Any, Any]],
+        *args: Any,
+        **kwargs: Any
+    ) -> Union[List[pd.Timestamp], pd.Series]:
         """
         Alias of `aggregate`.
         """

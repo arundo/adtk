@@ -14,10 +14,10 @@ from adtk.detector import (
 s = pd.Series(
     np.sin(np.arange(100)),
     index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
-)
+)  # type: pd.Series
 
 
-def test_persist_ad():
+def test_persist_ad() -> None:
     model = PersistAD(window=1)
     s_train = s.copy().iloc[:-10]
     model.fit(s_train)
@@ -52,7 +52,7 @@ def test_persist_ad():
     )
 
 
-def test_level_shift_ad():
+def test_level_shift_ad() -> None:
     model = LevelShiftAD(window=3)
     s_train = s.copy().iloc[:-10]
     model.fit(s_train)
@@ -71,7 +71,7 @@ def test_level_shift_ad():
     )
 
 
-def test_volatility_shift_ad():
+def test_volatility_shift_ad() -> None:
     model = VolatilityShiftAD(window=3)
     s_train = s.copy().iloc[:-10]
     model.fit(s_train)
@@ -90,7 +90,7 @@ def test_volatility_shift_ad():
     )
 
 
-def test_autoregression_ad():
+def test_autoregression_ad() -> None:
     model = AutoregressionAD(n_steps=3, step_size=7)
     s_train = s.copy().iloc[:-10]
     model.fit(s_train)

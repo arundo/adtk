@@ -12,7 +12,7 @@ from adtk.pipe import Pipeline, Pipenet
 from sklearn.linear_model import LinearRegression
 
 
-def test_pipenet_default():
+def test_pipenet_default() -> None:
     """
     Test default setting of pipenet
     """
@@ -107,7 +107,7 @@ def test_pipenet_default():
     )
 
 
-def test_pipenet_return_list():
+def test_pipenet_return_list() -> None:
     """
     Test pipenet with return_list=True
     """
@@ -242,7 +242,7 @@ def test_pipenet_return_list():
     )
 
 
-def test_pipenet_return_intermediate():
+def test_pipenet_return_intermediate() -> None:
     """
     Test pipenet with return_intermediate=True
     """
@@ -339,7 +339,7 @@ def test_pipenet_return_intermediate():
     )
 
 
-def test_pipenet_return_list_return_intermediate():
+def test_pipenet_return_list_return_intermediate() -> None:
     """
     Test pipenet with return_list=True and return_intermediate=True
     """
@@ -437,7 +437,7 @@ def test_pipenet_return_list_return_intermediate():
     ]
 
 
-def test_skip_fit():
+def test_skip_fit() -> None:
     reg_ab = LinearRegression()
     reg_ac = LinearRegression()
     my_pipe = Pipenet(
@@ -514,7 +514,7 @@ def test_skip_fit():
     assert my_pipe.steps["A-C-regression-ad"]["model"].abs_low_ != 0
 
 
-def test_nonunique_output():
+def test_nonunique_output() -> None:
     with pytest.raises(ValueError, match="ambiguous"):
         Pipenet(
             {
@@ -542,7 +542,7 @@ def test_nonunique_output():
         )
 
 
-def test_transformer_pipe():
+def test_transformer_pipe() -> None:
     s = pd.Series(
         [0, 1, 2, 3, 2, 1] * 10,
         index=pd.date_range(start="2017-1-1", periods=60, freq="D"),
@@ -586,7 +586,7 @@ def test_transformer_pipe():
     my_pipe.fit_transform(s)
 
 
-def test_pipeline():
+def test_pipeline() -> None:
     s = pd.Series(
         [0, 1, 2, 3, 2, 1] * 5 + [0, 1, 2, 4, 2, 1] + [0, 1, 2, 3, 2, 1] * 4,
         index=pd.date_range(start="2017-1-1", periods=60, freq="D"),
@@ -651,7 +651,7 @@ def test_pipeline():
     }
 
 
-def test_pipe_summary():
+def test_pipe_summary() -> None:
     """
     Test summary
     """

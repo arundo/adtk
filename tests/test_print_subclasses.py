@@ -4,7 +4,7 @@ import adtk.detector as detector
 import adtk.transformer as transformer
 
 
-def test_print_subclasses():
+def test_print_subclasses() -> None:
     """
     get `print_all_models` method for every module
     """

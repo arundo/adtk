@@ -9,7 +9,13 @@ import pandas as pd
 from .._aggregator_base import _Aggregator
 from ..data import validate_events
 
-__all__ = ["OrAggregator", "AndAggregator", "CustomizedAggregator"]
+from typing import List, Any, Dict, Union
+
+__all__ = [
+    "OrAggregator",
+    "AndAggregator",
+    "CustomizedAggregator",
+]  # type: List[str]
 
 
 class CustomizedAggregator(_Aggregator):
@@ -31,19 +37,21 @@ class CustomizedAggregator(_Aggregator):
     _default_params = {
         "aggregate_func": (lambda lists: []),
         "aggregate_func_params": None,
-    }
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
-        aggregate_func=_default_params["aggregate_func"],
-        aggregate_func_params=_default_params["aggregate_func_params"],
-    ):
+        aggregate_func: List[Any] = _default_params["aggregate_func"],
+        aggregate_func_params: Any = _default_params["aggregate_func_params"],
+    ) -> None:
         super().__init__(
             aggregate_func=aggregate_func,
             aggregate_func_params=aggregate_func_params,
         )
 
-    def _predict_core(self, lists):
+    def _predict_core(
+        self, lists: Union[pd.DataFrame, Dict[Any, Any]]
+    ) -> List[pd.Timestamp]:
         if self.aggregate_func_params is None:
             aggregate_func_params = {}
         else:
@@ -56,12 +64,14 @@ class OrAggregator(_Aggregator):
     included in one of the input anomaly lists.
     """
 
-    _need_fit = False
+    _need_fit = False  # type: bool
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def _predict_core(self, lists):
+    def _predict_core(
+        self, lists: Union[pd.DataFrame, Dict[Any, Any]]
+    ) -> Union[pd.DataFrame, Dict[Any, Any]]:
         if isinstance(lists, dict):
             if isinstance(next(iter(lists.values())), list):
                 clean_lists = {
@@ -91,10 +101,10 @@ class AndAggregator(_Aggregator):
 
     _need_fit = False
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def _predict_core(self, lists):
+    def _predict_core(self, lists: Any) -> pd.DataFrame:
         if isinstance(lists, dict):
             if isinstance(next(iter(lists.values())), list):
                 clean_lists = {
@@ -120,7 +130,7 @@ class AndAggregator(_Aggregator):
                         ),
                     ).sort_index()
                     for key, clean_predict in clean_lists.items()
-                }
+                }  # type: Any
                 time_window_stats = {
                     key: value[~value.index.duplicated()]
                     for key, value in time_window_stats.items()

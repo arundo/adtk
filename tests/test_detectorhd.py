@@ -11,6 +11,8 @@ from sklearn.linear_model import LinearRegression
 
 nan = float("nan")
 
+from typing import List, Dict, Union, Any
+
 testCases = [
     {
         "model": detector.CustomizedDetectorHD,
@@ -177,11 +179,11 @@ testCases = [
         ],
         "a": [0, 0, 0, 0, 1, 1, 0, 0, 0, nan, 0, 0],
     },
-]
+]  # type: List[Dict[str, Any]]
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_fit_detect(testCase):
+def test_fit_detect(testCase: Dict[str, Any]) -> None:
     """Test fit_detect the detector."""
     df = pd.DataFrame(
         np.array(testCase["df"]).T,
@@ -200,7 +202,7 @@ def test_fit_detect(testCase):
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_fit_and_detect(testCase):
+def test_fit_and_detect(testCase: Dict[str, Any]) -> None:
     """Test fit the detector and then detect."""
     df = pd.DataFrame(
         np.array(testCase["df"]).T,
@@ -220,7 +222,7 @@ def test_fit_and_detect(testCase):
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_series(testCase):
+def test_series(testCase: Dict[str, Any]) -> None:
     """Test the detector on series."""
     if len(testCase["df"]) == 1:
         s = pd.DataFrame(
