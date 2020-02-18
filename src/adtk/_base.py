@@ -135,9 +135,18 @@ class _Model1D(_Model):
                 )
             if (not self._need_fit) or (self._fitted == 1):
                 # apply the model to each column
-                predicted = pd.concat(
-                    [self._predict(df[col]) for col in df.columns], axis=1
-                )
+                predicted = []
+                for col in df.columns:
+                    predicted_this_col = self._predict(df[col])
+                    if isinstance(predicted_this_col, pd.DataFrame):
+                        predicted_this_col = predicted_this_col.rename(
+                            columns={
+                                col1: "{}_{}".format(col, col1)
+                                for col1 in predicted_this_col.columns
+                            }
+                        )
+                    predicted.append(predicted_this_col)
+                predicted = pd.concat(predicted, axis=1)
             else:
                 # predict for each column
                 if not (set(self._models.keys()) >= set(df.columns)):

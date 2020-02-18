@@ -372,11 +372,7 @@ class RollingAggregate(_Transformer1D):
 
         if isinstance(s_rolling, pd.Series):
             s_rolling.name = s.name
-        else:
-            if s.name is not None:
-                s_rolling.columns = [
-                    "{}_{}".format(s.name, col) for col in s_rolling.columns
-                ]
+
         return s_rolling
 
 
@@ -1003,11 +999,7 @@ class Retrospect(_Transformer1D):
         df = pd.DataFrame(index=s.index)
         df = df.assign(
             **{
-                (
-                    "t-{}".format(i)
-                    if s.name is None
-                    else "{}_t-{}".format(s.name, i)
-                ): s.shift(i)
+                ("t-{}".format(i)): s.shift(i)
                 for i in range(till, till + n_steps * step_size, step_size)
             }
         )
