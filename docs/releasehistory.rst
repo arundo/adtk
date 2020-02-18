@@ -2,6 +2,13 @@
 Release History
 ***************
 
+Version 0.5.4 (Feb 18, 2020)
+===================================
+- Optimized the workflow of how a univariate model is applied to pandas DataFrame
+    - Added more informative error messages
+    - Fixed some bugs resulting in model-column matching error due to inconsistency between output Series names and DataFrame columns
+    - Clarified the workflow in the documentation
+
 Version 0.5.3 (Feb 12, 2020)
 ===================================
 - Quick hotfix to avoid errors caused by statsmodels v0.11 by requiring statsmodels dependency <0.11

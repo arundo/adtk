@@ -25,9 +25,14 @@ class _Detector1D(_Model1D):
         Parameters
         ----------
         ts: pandas.Series or pandas.DataFrame
-            Time series to detect anomalies from.
-            If a DataFrame with k columns, k univariate detectors will be
-            applied to them independently.
+            Time series to detect anomalies from. If a DataFrame with k
+            columns, it is treated as k independent univariate time series.
+
+            - If the detector was trained with a Series, the detector will be
+              applied to each univariate series independently;
+            - If the detector was trained with a DataFrame, i.e. the detector
+              is essentially k detectors, those detectors will be applied to
+              each univariate series respectivley.
 
         return_list: bool, optional
             Whether to return a list of anomalous time stamps, or a binary
@@ -66,8 +71,9 @@ class _Detector1D(_Model1D):
         ----------
         ts: pandas.Series or pandas.DataFrame
             Time series to be used for training and be detected for anomalies.
-            If a DataFrame with k columns, k univariate detectors will be
-            trained and applied to them independently.
+            If a DataFrame with k columns, it is treated as k independent
+            univariate time series, and k univariate detectors will be trained
+            and applied to each series independently.
 
         return_list: bool, optional
             Whether to return a list of anomalous time stamps, or a binary
@@ -109,8 +115,9 @@ class _Detector1D(_Model1D):
         ----------
         ts: pandas Series or pandas.DataFrame
             Time series to detect anomalies from.
-            If a DataFrame with k columns, k univariate detectors will be
-            applied to them independently.
+            If a DataFrame with k columns, it is treated as k independent
+            univariate time series, and k univariate detectors will be trained
+            and applied to each series independently.
 
         anomaly_true: pandas.Series, pandas.DataFrame, list, or dict
             True anomalies.

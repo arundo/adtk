@@ -11,7 +11,9 @@ class _Model(ABC):
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-            self._fitted = False
+        self._fitted = (
+            0
+        )  # 0 for not fitted, 1 for fitted, 2 for univariate model fitted by DF
 
     @abstractmethod
     def _fit(self, ts):
@@ -91,21 +93,35 @@ class _Model1D(_Model):
             s = ts.copy()
             self._fit_core(s)
             self._models = None
+            self._fitted = 1
         elif isinstance(ts, pd.DataFrame):
             df = ts.copy()
+            if df.columns.duplicated().any():
+                raise ValueError(
+                    "Input DataFrame must have unique column names."
+                )
             if self._need_fit:
                 self._update_models(df.columns)
                 # fit model for each column
                 for col in df.columns:
                     self._models[col].fit(df[col])
+                self._fitted = 2
+            else:
+                pass
         else:
             raise TypeError("Input must be a pandas Series or DataFrame.")
-        self._fitted = True
 
     def _predict(self, ts):
-        if self._need_fit and (not self._fitted):
+        if self._need_fit and (self._fitted == 0):
             raise RuntimeError("The model must be trained first.")
         if isinstance(ts, pd.Series):
+            if self._need_fit and (
+                self._fitted == 2
+            ):  # fitted by DF, to be applied to Series
+                raise RuntimeError(
+                    "The model was trained by a pandas DataFrame object, "
+                    "it can only be applied to a pandas DataFrame object."
+                )
             s = ts.copy()
             predicted = self._predict_core(s)
             # if a Series-to-Series operation, make sure Series name keeps
@@ -113,15 +129,42 @@ class _Model1D(_Model):
                 predicted.name = ts.name
         elif isinstance(ts, pd.DataFrame):
             df = ts.copy()
-            # if the model doesn't neef fit, initialize or reset a model for
-            # each column
-            if not self._need_fit:
-                self._update_models(df.columns)
-            # predict for each column
-            predicted = pd.concat(
-                [self._models[col]._predict(df[col]) for col in df.columns],
-                axis=1,
-            )
+            if df.columns.duplicated().any():
+                raise ValueError(
+                    "Input DataFrame must have unique column names."
+                )
+            if (not self._need_fit) or (self._fitted == 1):
+                # apply the model to each column
+                predicted = []
+                for col in df.columns:
+                    predicted_this_col = self._predict(df[col])
+                    if isinstance(predicted_this_col, pd.DataFrame):
+                        predicted_this_col = predicted_this_col.rename(
+                            columns={
+                                col1: "{}_{}".format(col, col1)
+                                for col1 in predicted_this_col.columns
+                            }
+                        )
+                    predicted.append(predicted_this_col)
+                predicted = pd.concat(predicted, axis=1)
+            else:
+                # predict for each column
+                if not (set(self._models.keys()) >= set(df.columns)):
+                    raise ValueError(
+                        "The model was trained by a pandas DataFrame with "
+                        "columns {}, but the input DataFrame contains columns "
+                        "{} which are unknown to the model.".format(
+                            list(set(self._models.keys())),
+                            list(set(df.columns) - set(self._models.keys())),
+                        )
+                    )
+                predicted = pd.concat(
+                    [
+                        self._models[col]._predict(df[col])
+                        for col in df.columns
+                    ],
+                    axis=1,
+                )
         else:
             raise TypeError("Input must be a pandas Series or DataFrame.")
         # make sure index freq is the same (because pandas has a bug that some
@@ -153,16 +196,24 @@ class _Model1D(_Model):
 class _ModelHD(_Model):
     def _fit(self, df):
         if isinstance(df, pd.DataFrame):
+            if df.columns.duplicated().any():
+                raise ValueError(
+                    "Input DataFrame must have unique column names."
+                )
             df_copy = df.copy()
             self._fit_core(df_copy)
         else:
             raise TypeError("Input must be a pandas DataFrame.")
-        self._fitted = True
+        self._fitted = 1
 
     def _predict(self, df):
-        if self._need_fit and (not self._fitted):
+        if self._need_fit and (self._fitted == 0):
             raise RuntimeError("The model must be trained first.")
         if isinstance(df, pd.DataFrame):
+            if df.columns.duplicated().any():
+                raise ValueError(
+                    "Input DataFrame must have unique column names."
+                )
             df_copy = df.copy()
             predicted = self._predict_core(df_copy)
         else:
