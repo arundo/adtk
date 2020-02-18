@@ -2,6 +2,10 @@
 Release History
 ***************
 
+Version 0.5.4-dev
+===================================
+- Optimized the logics how a univariate model is applied to pandas DataFrame (0.5.4-dev.1+pr.67)
+
 Version 0.5.3 (Feb 12, 2020)
 ===================================
 - Quick hotfix to avoid errors caused by statsmodels v0.11 by requiring statsmodels dependency <0.11
