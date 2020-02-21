@@ -976,7 +976,7 @@ class SeasonalAD(_Detector1D):
     anomalous when the residual of seasonal decomposition is beyond a threshold
     based on historical interquartile range.
 
-    This detector is internally implemented aattribute `pipe_`.nced
+    This detector is internally implemented as a `Pipenet` object. Advanced
     users may learn more details by checking attribute `pipe_`.
 
     Parameters

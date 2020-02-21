@@ -9,6 +9,10 @@ Version 0.6.0-dev
 - Optimized release process by publishing package to PyPI through GitHub Actions (0.6.0-dev.7+pr.54, 0.6.0-dev.8+pr.56, 0.6.0-dev.9+pr.57, 0.6.0-dev.10+pr.58)
 - Created an interactive demo notebook in Binder (0.6.0-dev.12+pr.64)
 
+Version 0.5.5-dev
+===================================
+- Fixed some typo in the documentation (0.5.5-dev.1+pr.70, 0.6.0-dev.14+pr.71)
+
 Version 0.5.4 (Feb 18, 2020)
 ===================================
 - Optimized the workflow of how a univariate model is applied to pandas DataFrame
