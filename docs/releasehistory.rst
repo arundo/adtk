@@ -10,6 +10,7 @@ Version 0.6.0-dev
 - Created an interactive demo notebook in Binder (0.6.0-dev.12+pr.64)
 - Fixed compatibility issues with statsmodels v0.11 (0.6.0-dev.15+pr.72)
 - Fixed compatibility issues with pandas v1.0 (0.6.0-dev.16+pr.73)
+- Added Python 3.8 support (0.6.0-dev.17+pr.74)
 
 Version 0.5.5-dev
 ===================================
