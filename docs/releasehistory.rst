@@ -2,6 +2,10 @@
 Release History
 ***************
 
+Version 0.5.5-dev
+===================================
+- Fixed some typo in the documentation (0.5.5-dev.1+pr.70)
+
 Version 0.5.4 (Feb 18, 2020)
 ===================================
 - Optimized the workflow of how a univariate model is applied to pandas DataFrame
