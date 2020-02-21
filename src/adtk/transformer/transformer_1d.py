@@ -11,6 +11,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
+import statsmodels
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import acf
 
@@ -717,9 +718,14 @@ class ClassicSeasonalDecomposition(_Transformer1D):
             self.freq_ = self.freq
         # get seasonal pattern
         if self.trend:
-            self.seasonal_ = getattr(
-                seasonal_decompose(s, freq=self.freq_), "seasonal"
-            )[: self.freq_]
+            seasonal_decompose_results = (
+                seasonal_decompose(s, period=self.freq_)
+                if parse(statsmodels.__version__) >= parse("0.11")
+                else seasonal_decompose(s, freq=self.freq_)
+            )
+            self.seasonal_ = getattr(seasonal_decompose_results, "seasonal")[
+                : self.freq_
+            ]
         else:
             self.seasonal_ = s.iloc[: self.freq_].copy()
             for i in range(len(self.seasonal_)):
@@ -799,7 +805,12 @@ class ClassicSeasonalDecomposition(_Transformer1D):
             starting_phase = 0
         # remove trend
         if self.trend:
-            s_trend = getattr(seasonal_decompose(s, freq=self.freq_), "trend")
+            seasonal_decompose_results = (
+                seasonal_decompose(s, period=self.freq_)
+                if parse(statsmodels.__version__) >= parse("0.11")
+                else seasonal_decompose(s, freq=self.freq_)
+            )
+            s_trend = getattr(seasonal_decompose_results, "trend")
             s_detrended = s - s_trend
         # get seasonal series and remove it from original
         phase_pattern = np.concatenate(
