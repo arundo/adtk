@@ -156,7 +156,7 @@ def validate_events(event_list, point_as_interval=False):
             time_window_ends.append(time_window)
             time_window_type.append(-1)
     time_window_end_series = pd.Series(
-        time_window_type, index=pd.DatetimeIndex(time_window_ends)
+        time_window_type, index=pd.DatetimeIndex(time_window_ends), dtype=int
     )
     time_window_end_series.sort_index(kind="mergesort", inplace=True)
     time_window_end_series = time_window_end_series.cumsum()

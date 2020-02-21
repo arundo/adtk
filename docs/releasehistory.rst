@@ -6,6 +6,26 @@ Version 0.6.0-dev
 ===================================
 - Support str and int as time delta for the input arguments in functions `expand_events` and `resample` in the data module (0.6.0-dev.1+pr.39)
 - Added an example of DoubleRollingAggregate with different window sizes to the documentation (0.6.0-dev.5+pr.43)
+- Optimized release process by publishing package to PyPI through GitHub Actions (0.6.0-dev.7+pr.54, 0.6.0-dev.8+pr.56, 0.6.0-dev.9+pr.57, 0.6.0-dev.10+pr.58)
+- Created an interactive demo notebook in Binder (0.6.0-dev.12+pr.64)
+- Fixed compatibility issues with statsmodels v0.11 (0.6.0-dev.15+pr.72)
+- Fixed compatibility issues with pandas v1.0 (0.6.0-dev.16+pr.73)
+- Added Python 3.8 support (0.6.0-dev.17+pr.74)
+
+Version 0.5.5-dev
+===================================
+- Fixed some typo in the documentation (0.5.5-dev.1+pr.70, 0.6.0-dev.14+pr.71)
+
+Version 0.5.4 (Feb 18, 2020)
+===================================
+- Optimized the workflow of how a univariate model is applied to pandas DataFrame
+    - Added more informative error messages
+    - Fixed some bugs resulting in model-column matching error due to inconsistency between output Series names and DataFrame columns
+    - Clarified the workflow in the documentation
+
+Version 0.5.3 (Feb 12, 2020)
+===================================
+- Quick hotfix to avoid errors caused by statsmodels v0.11 by requiring statsmodels dependency <0.11
 
 Version 0.5.2 (Jan 14, 2020)
 ===================================
