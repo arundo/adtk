@@ -576,7 +576,9 @@ class DoubleRollingAggregate(_Transformer1D):
                 s_shifted = pd.Series(
                     s.values, s.index + pd.Timedelta(window[1])
                 )
-                s_shifted = s_shifted.append(pd.Series(index=s.index))
+                s_shifted = s_shifted.append(
+                    pd.Series(index=s.index, dtype="float64")
+                )
                 s_shifted = s_shifted.iloc[
                     s_shifted.index.duplicated() == False
                 ]
