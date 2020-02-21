@@ -718,7 +718,7 @@ class ClassicSeasonalDecomposition(_Transformer1D):
         # get seasonal pattern
         if self.trend:
             self.seasonal_ = getattr(
-                seasonal_decompose(s, freq=self.freq_), "seasonal"
+                seasonal_decompose(s, period=self.freq_), "seasonal"
             )[: self.freq_]
         else:
             self.seasonal_ = s.iloc[: self.freq_].copy()
@@ -799,7 +799,9 @@ class ClassicSeasonalDecomposition(_Transformer1D):
             starting_phase = 0
         # remove trend
         if self.trend:
-            s_trend = getattr(seasonal_decompose(s, freq=self.freq_), "trend")
+            s_trend = getattr(
+                seasonal_decompose(s, period=self.freq_), "trend"
+            )
             s_detrended = s - s_trend
         # get seasonal series and remove it from original
         phase_pattern = np.concatenate(
