@@ -4,9 +4,11 @@ from ._base import _Model1D, _ModelHD
 from .data import to_events
 from .metrics import recall, precision, f1_score, iou
 
+from typing import Union, List, Dict, Tuple, Any, Callable
+
 
 class _Detector1D(_Model1D):
-    def fit(self, ts):
+    def fit(self, ts: Union[pd.Series, pd.DataFrame]) -> None:
         """Train the detector with given time series.
 
         Parameters
@@ -19,7 +21,9 @@ class _Detector1D(_Model1D):
         """
         self._fit(ts)
 
-    def detect(self, ts, return_list=False):
+    def detect(
+        self, ts: Union[pd.Series, pd.DataFrame], return_list: bool = False
+    ) -> Union[pd.Series, pd.DataFrame, List, Dict]:
         """Detect anomalies from given time series.
 
         Parameters
@@ -58,7 +62,9 @@ class _Detector1D(_Model1D):
         else:
             return detected
 
-    def fit_detect(self, ts, return_list=False):
+    def fit_detect(
+        self, ts: Union[pd.Series, pd.DataFrame], return_list: bool = False
+    ) -> Union[pd.Series, pd.DataFrame, List, Dict]:
         """Train the detector and detect anomalies from the time series used
         for training.
 
@@ -90,19 +96,29 @@ class _Detector1D(_Model1D):
         self.fit(ts)
         return self.detect(ts, return_list=return_list)
 
-    def predict(self, ts, return_list=False):
+    def predict(
+        self, ts: Union[pd.Series, pd.DataFrame], return_list: bool = False
+    ) -> Union[pd.Series, pd.DataFrame, List, Dict]:
         """
         Alias of `detect`.
         """
         return self.detect(ts, return_list=return_list)
 
-    def fit_predict(self, ts, return_list=False):
+    def fit_predict(
+        self, ts: Union[pd.Series, pd.DataFrame], return_list: bool = False
+    ) -> Union[pd.Series, pd.DataFrame, List, Dict]:
         """
         Alias of `fit_detect`.
         """
         return self.fit_detect(ts, return_list=return_list)
 
-    def score(self, ts, anomaly_true, scoring="recall", **kwargs):
+    def score(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        anomaly_true: Union[pd.Series, pd.DataFrame, List, Dict],
+        scoring: str = "recall",
+        **kwargs: Any
+    ) -> Union[float, Dict]:
         """Detect anomalies and score the results against true anomalies.
 
         Parameters
@@ -139,7 +155,7 @@ class _Detector1D(_Model1D):
 
         """
         if scoring == "recall":
-            scoring_func = recall
+            scoring_func = recall  # type: Callable
         elif scoring == "precision":
             scoring_func = precision
         elif scoring == "f1":
@@ -166,7 +182,7 @@ class _Detector1D(_Model1D):
 
 
 class _DetectorHD(_ModelHD):
-    def fit(self, df):
+    def fit(self, df: pd.DataFrame) -> None:
         """Train the detector with given time series.
 
         Parameters
@@ -177,7 +193,9 @@ class _DetectorHD(_ModelHD):
         """
         self._fit(df)
 
-    def detect(self, df, return_list=False):
+    def detect(
+        self, df: pd.DataFrame, return_list: bool = False
+    ) -> Union[pd.Series, List]:
         """Detect anomalies from given time series.
 
         Parameters
@@ -205,7 +223,9 @@ class _DetectorHD(_ModelHD):
         else:
             return detected
 
-    def fit_detect(self, df, return_list=False):
+    def fit_detect(
+        self, df: pd.DataFrame, return_list: bool = False
+    ) -> Union[pd.Series, List]:
         """Train the detector and detect anomalies from the time series used
         for training.
 
@@ -231,19 +251,29 @@ class _DetectorHD(_ModelHD):
         self.fit(df)
         return self.detect(df, return_list=return_list)
 
-    def predict(self, df, return_list=False):
+    def predict(
+        self, df: pd.DataFrame, return_list: bool = False
+    ) -> Union[pd.Series, List]:
         """
         Alias of `detect`.
         """
         return self.detect(df, return_list=return_list)
 
-    def fit_predict(self, df, return_list=False):
+    def fit_predict(
+        self, df: pd.DataFrame, return_list: bool = False
+    ) -> Union[pd.Series, List]:
         """
         Alias of `fit_detect`.
         """
         return self.fit_detect(df, return_list=return_list)
 
-    def score(self, df, anomaly_true, scoring="recall", **kwargs):
+    def score(
+        self,
+        df: pd.DataFrame,
+        anomaly_true: Union[pd.Series, List, Tuple],
+        scoring: str = "recall",
+        **kwargs: Any
+    ) -> float:
         """Detect anomalies and score the results against true anomalies.
 
         Parameters
@@ -275,7 +305,7 @@ class _DetectorHD(_ModelHD):
 
         """
         if scoring == "recall":
-            scoring_func = recall
+            scoring_func = recall  # type: Callable
         elif scoring == "precision":
             scoring_func = precision
         elif scoring == "f1":

@@ -7,23 +7,23 @@ from typing import Dict, List, Any, Union, Optional
 
 
 class _Model(ABC):
-    _need_fit = True
-    _default_params = {}  # type: Dict[Any, Any]
+    _need_fit = True  # type: bool
+    _default_params = {}  # type: Any
 
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-            self._fitted = False
+    def __init__(self) -> None:
+        self._fitted = False
 
     @abstractmethod
     def _fit(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
         pass
 
     @abstractmethod
-    def _predict(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
+    def _predict(
+        self, ts: Union[pd.DataFrame, pd.Series]
+    ) -> Union[pd.DataFrame, pd.Series]:
         pass
 
-    def get_params(self) -> Dict[Any, Any]:
+    def get_params(self) -> Dict:
         """Get parameters of this model.
 
         Returns
@@ -58,9 +58,9 @@ class _Model(ABC):
 class _Model1D(_Model):
     """Base class of _Detector1D and _Transformer1D."""
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self) -> None:
         self._models = None  # type: Any
-        super().__init__(**kwargs)
+        super().__init__()
 
     def _update_models(self, cols: List[str]) -> None:
         """Update attribute _models with given columns and model parameters.
@@ -138,7 +138,9 @@ class _Model1D(_Model):
         pass
 
     @abstractmethod
-    def _predict_core(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
+    def _predict_core(
+        self, ts: Union[pd.DataFrame, pd.Series]
+    ) -> Union[pd.DataFrame, pd.Series]:
         pass
 
     @abstractmethod
@@ -146,11 +148,15 @@ class _Model1D(_Model):
         pass
 
     @abstractmethod
-    def predict(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
+    def predict(
+        self, ts: Union[pd.DataFrame, pd.Series]
+    ) -> Union[pd.Series, pd.DataFrame, List, Dict]:
         pass
 
     @abstractmethod
-    def fit_predict(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
+    def fit_predict(
+        self, ts: Union[pd.DataFrame, pd.Series]
+    ) -> Union[pd.Series, pd.DataFrame, List, Dict]:
         pass
 
 
@@ -181,7 +187,7 @@ class _ModelHD(_Model):
         pass
 
     @abstractmethod
-    def _predict_core(self, df: pd.DataFrame) -> None:
+    def _predict_core(self, df: pd.DataFrame) -> pd.DataFrame:
         pass
 
     @abstractmethod
@@ -189,9 +195,9 @@ class _ModelHD(_Model):
         pass
 
     @abstractmethod
-    def predict(self, df: pd.DataFrame) -> None:
+    def predict(self, df: pd.DataFrame) -> Union[pd.Series, List]:
         pass
 
     @abstractmethod
-    def fit_predict(self, df: pd.DataFrame) -> None:
+    def fit_predict(self, df: pd.DataFrame) -> Union[pd.Series, List]:
         pass

@@ -5,8 +5,8 @@
 from typing import Dict, Any
 
 
-def _get_all_subclasses_from_superclass(superclass: Any) -> Dict:
-    result = dict()  # type: Dict[str,str]
+def _get_all_subclasses_from_superclass(superclass: Any) -> Dict[str, str]:
+    result = dict()  # type: Dict[str, str]
     for sb in superclass.__subclasses__():
         if sb.__name__[0] != "_":
             result.update({sb.__name__: sb.__doc__})

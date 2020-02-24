@@ -20,6 +20,8 @@ __all__ = [
     "CustomizedTransformerHD",
 ]
 
+from typing import Union, List, Dict, Any, Optional, Tuple, Callable
+
 
 class CustomizedTransformerHD(_TransformerHD):
     """Transformer derived from a user-given function and parameters.
@@ -45,30 +47,29 @@ class CustomizedTransformerHD(_TransformerHD):
 
     """
 
-    _need_fit = False
+    _need_fit = False  # type: bool
     _default_params = {
         "transform_func": None,
         "transform_func_params": None,
         "fit_func": None,
         "fit_func_params": None,
-    }
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
-        transform_func=_default_params["transform_func"],
-        transform_func_params=_default_params["transform_func_params"],
-        fit_func=_default_params["fit_func"],
-        fit_func_params=_default_params["fit_func_params"],
-    ):
-        self._fitted_transform_func_params = {}
-        super().__init__(
-            transform_func=transform_func,
-            transform_func_params=transform_func_params,
-            fit_func=fit_func,
-            fit_func_params=fit_func_params,
-        )
+        transform_func: Any = _default_params["transform_func"],
+        transform_func_params: Any = _default_params["transform_func_params"],
+        fit_func: Any = _default_params["fit_func"],
+        fit_func_params: Any = _default_params["fit_func_params"],
+    ) -> None:
+        self._fitted_transform_func_params = {}  # type: Dict
+        super().__init__()
+        self.transform_func = transform_func
+        self.transform_func_params = transform_func_params
+        self.fit_func = fit_func
+        self.fit_func_params = fit_func_params
 
-    def _fit_core(self, df):
+    def _fit_core(self, df: pd.DataFrame) -> None:
         if self.fit_func is not None:
             if self.fit_func_params is not None:
                 fit_func_params = self.fit_func_params
@@ -78,7 +79,9 @@ class CustomizedTransformerHD(_TransformerHD):
                 df, **fit_func_params
             )
 
-    def _predict_core(self, df):
+    def _predict_core(
+        self, df: pd.DataFrame
+    ) -> Union[pd.Series, pd.DataFrame]:
         if self.transform_func_params is not None:
             transform_func_params = self.transform_func_params
         else:
@@ -95,11 +98,11 @@ class CustomizedTransformerHD(_TransformerHD):
             return self.transform_func(df, **transform_func_params)
 
     @property
-    def fit_func(self):
+    def fit_func(self) -> Callable:
         return self._fit_func
 
     @fit_func.setter
-    def fit_func(self, value):
+    def fit_func(self, value: Any) -> None:
         self._fit_func = value
         if value is None:
             self._need_fit = False
@@ -110,15 +113,15 @@ class CustomizedTransformerHD(_TransformerHD):
 class SumAll(_TransformerHD):
     """Transformer that returns the sum all series as one series."""
 
-    _need_fit = False
+    _need_fit = False  # type: bool
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def _fit_core(self, df):
+    def _fit_core(self, df: pd.DataFrame) -> None:
         pass
 
-    def _predict_core(self, df):
+    def _predict_core(self, df: pd.DataFrame) -> pd.Series:
         return df.sum(axis=1, skipna=False)
 
 
@@ -138,17 +141,19 @@ class RegressionResidual(_TransformerHD):
 
     """
 
-    _need_fit = True
-    _default_params = {"regressor": None, "target": None}
+    _need_fit = True  # type: bool
+    _default_params = {"regressor": None, "target": None}  # type: Dict
 
     def __init__(
         self,
-        regressor=_default_params["regressor"],
-        target=_default_params["target"],
-    ):
-        super().__init__(regressor=regressor, target=target)
+        regressor: Any = _default_params["regressor"],
+        target: Any = _default_params["target"],
+    ) -> None:
+        super().__init__()
+        self.regressor = regressor
+        self.target = target
 
-    def _fit_core(self, df):
+    def _fit_core(self, df: pd.DataFrame) -> None:
         if self.regressor is None:
             raise RuntimeError("Regressor is not specified.")
         if self.target is None:
@@ -169,7 +174,7 @@ class RegressionResidual(_TransformerHD):
             df.dropna().loc[:, self._target],
         )
 
-    def _predict_core(self, df):
+    def _predict_core(self, df: pd.DataFrame) -> pd.Series:
         target = self._target
         features = self._features
         if target not in df.columns:
@@ -205,20 +210,23 @@ class PcaProjection(_TransformerHD):
 
     """
 
-    _need_fit = True
-    _default_params = {"k": 1}
+    _need_fit = True  # type: bool
+    _default_params = {"k": 1}  # type: Dict[str, Any]
 
-    def __init__(self, k=_default_params["k"]):
-        self._model = None
-        super().__init__(k=k)
+    def __init__(self, k: int = _default_params["k"]) -> None:
+        self._model = None  # type: Any
+        super().__init__()
+        self.k = k
 
-    def _fit_core(self, df):
+    def _fit_core(self, df: pd.DataFrame) -> None:
         self._model = PCA(n_components=self.k)
         if df.dropna().empty:
             raise RuntimeError("Valid values are not enough for training.")
         self._model.fit(df.dropna().values)
 
-    def _predict_core(self, df):
+    def _predict_core(
+        self, df: pd.DataFrame
+    ) -> Union[pd.Series, pd.DataFrame]:
         if self.k > self._model.n_components:
             raise ValueError(
                 "k is increased after previous fitting. Please fit again."
@@ -246,20 +254,23 @@ class PcaReconstruction(_TransformerHD):
 
     """
 
-    _need_fit = True
-    _default_params = {"k": 1}
+    _need_fit = True  # type: bool
+    _default_params = {"k": 1}  # type: Dict[str, Any]
 
-    def __init__(self, k=_default_params["k"]):
-        self._model = None
-        super().__init__(k=k)
+    def __init__(self, k: int = _default_params["k"]) -> None:
+        self._model = None  # type: Any
+        super().__init__()
+        self.k = k
 
-    def _fit_core(self, df):
+    def _fit_core(self, df: pd.DataFrame) -> None:
         self._model = PCA(n_components=self.k)
         if df.dropna().empty:
             raise RuntimeError("Valid values are not enough for training.")
         self._model.fit(df.dropna().values)
 
-    def _predict_core(self, df):
+    def _predict_core(
+        self, df: pd.DataFrame
+    ) -> Union[pd.Series, pd.DataFrame]:
         if self._model is None:
             raise RuntimeError("Please fit the model first.")
         if self.k > self._model.n_components:
@@ -288,20 +299,21 @@ class PcaReconstructionError(_TransformerHD):
 
     """
 
-    _need_fit = True
-    _default_params = {"k": 1}
+    _need_fit = True  # type: bool
+    _default_params = {"k": 1}  # type: Dict[str, Any]
 
-    def __init__(self, k=_default_params["k"]):
-        self._model = None
-        super().__init__(k=k)
+    def __init__(self, k: int = _default_params["k"]) -> None:
+        self._model = None  # type: Any
+        super().__init__()
+        self.k = k
 
-    def _fit_core(self, df):
+    def _fit_core(self, df: pd.DataFrame) -> None:
         self._model = PCA(n_components=self.k)
         if df.dropna().empty:
             raise RuntimeError("Valid values are not enough for training.")
         self._model.fit(df.dropna().values)
 
-    def _predict_core(self, df):
+    def _predict_core(self, df: pd.DataFrame) -> pd.Series:
         if self._model is None:
             raise RuntimeError("Please fit the model first.")
         if self.k > self._model.n_components:

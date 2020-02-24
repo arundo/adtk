@@ -12,7 +12,7 @@ from .._utils import _get_all_subclasses_from_superclass
 from .._transformer_base import _Transformer1D, _TransformerHD
 
 
-def print_all_models():
+def print_all_models() -> None:
     """
     Print description of every model in this module.
     """

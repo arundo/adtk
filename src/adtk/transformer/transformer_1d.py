@@ -17,6 +17,8 @@ from statsmodels.tsa.stattools import acf
 from .._transformer_base import _Transformer1D
 from .._utils import PandasBugError
 
+from typing import Dict, List, Any, Union, Optional, Tuple, Callable
+
 __all__ = [
     "RollingAggregate",
     "DoubleRollingAggregate",
@@ -24,7 +26,7 @@ __all__ = [
     "Retrospect",
     "StandardScale",
     "CustomizedTransformer1D",
-]
+]  # type: List[str]
 
 
 class CustomizedTransformer1D(_Transformer1D):
@@ -59,30 +61,29 @@ class CustomizedTransformer1D(_Transformer1D):
 
     """
 
-    _need_fit = False
+    _need_fit = False  # type: bool
     _default_params = {
         "transform_func": None,
         "transform_func_params": None,
         "fit_func": None,
         "fit_func_params": None,
-    }
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
-        transform_func=_default_params["transform_func"],
-        transform_func_params=_default_params["transform_func_params"],
-        fit_func=_default_params["fit_func"],
-        fit_func_params=_default_params["fit_func_params"],
-    ):
-        self._fitted_transform_func_params = {}
-        super().__init__(
-            transform_func=transform_func,
-            transform_func_params=transform_func_params,
-            fit_func=fit_func,
-            fit_func_params=fit_func_params,
-        )
+        transform_func: Any = _default_params["transform_func"],
+        transform_func_params: Any = _default_params["transform_func_params"],
+        fit_func: Any = _default_params["fit_func"],
+        fit_func_params: Any = _default_params["fit_func_params"],
+    ) -> None:
+        self._fitted_transform_func_params = {}  # type: Dict
+        super().__init__()
+        self.transform_func = transform_func
+        self.transform_func_params = transform_func_params
+        self.fit_func = fit_func
+        self.fit_func_params = fit_func_params
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         if self.fit_func is not None:
             if self.fit_func_params is not None:
                 fit_func_params = self.fit_func_params
@@ -92,7 +93,9 @@ class CustomizedTransformer1D(_Transformer1D):
                 s, **fit_func_params
             )
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         if self.transform_func_params is not None:
             transform_func_params = self.transform_func_params
         else:
@@ -109,11 +112,11 @@ class CustomizedTransformer1D(_Transformer1D):
             return self.transform_func(s, **transform_func_params)
 
     @property
-    def fit_func(self):
+    def fit_func(self) -> Union[pd.Series, pd.DataFrame]:
         return self._fit_func
 
     @fit_func.setter
-    def fit_func(self, value):
+    def fit_func(self, value: Any) -> None:
         self._fit_func = value
         if value is None:
             self._need_fit = False
@@ -131,15 +134,17 @@ class StandardScale(_Transformer1D):
 
     """
 
-    _need_fit = False
+    _need_fit = False  # type: bool
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         pass
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         mean = s.mean()
         std = s.std()
 
@@ -215,36 +220,37 @@ class RollingAggregate(_Transformer1D):
 
     """
 
-    _need_fit = False
+    _need_fit = False  # type: bool
     _default_params = {
         "agg": "mean",
         "agg_params": None,
         "window": 10,
         "center": False,
         "min_periods": None,
-    }
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
-        agg=_default_params["agg"],
-        agg_params=_default_params["agg_params"],
-        window=_default_params["window"],
-        center=_default_params["center"],
-        min_periods=_default_params["min_periods"],
-    ):
-        super().__init__(
-            agg=agg,
-            agg_params=agg_params,
-            window=window,
-            center=center,
-            min_periods=min_periods,
-        )
-        self._closed = None
+        agg: Any = _default_params["agg"],
+        agg_params: Dict = _default_params["agg_params"],
+        window: int = _default_params["window"],
+        center: bool = _default_params["center"],
+        min_periods: int = _default_params["min_periods"],
+    ) -> None:
+        super().__init__()
+        self.agg = agg
+        self.agg_params = agg_params
+        self.window = window
+        self.center = center
+        self.min_periods = min_periods
+        self._closed = None  # type: Any
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         pass
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
@@ -266,13 +272,17 @@ class RollingAggregate(_Transformer1D):
             center=center,
             min_periods=min_periods,
             closed=closed,
-        )
+        )  # type: Union[pd.Series, pd.DataFrame]
 
-        def getRollingVector(rolling, aggFunc, output_names):
+        def getRollingVector(
+            rolling: Union[pd.Series, pd.DataFrame],
+            aggFunc: Any,
+            output_names: List[str],
+        ) -> Union[pd.Series, pd.DataFrame]:
             # we use this function to trick pandas to get vector rolling agg
-            s_rolling_raw = []
+            s_rolling_raw = []  # type: Union[List, np.array]
 
-            def agg_wrapped(x):
+            def agg_wrapped(x: Any) -> int:
                 s_rolling_raw.append(aggFunc(x))
                 return 0
 
@@ -475,7 +485,7 @@ class DoubleRollingAggregate(_Transformer1D):
 
     """
 
-    _need_fit = False
+    _need_fit = False  # type: bool
     _default_params = {
         "agg": "mean",
         "agg_params": None,
@@ -483,30 +493,33 @@ class DoubleRollingAggregate(_Transformer1D):
         "center": True,
         "min_periods": None,
         "diff": "l1",
-    }
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
-        agg=_default_params["agg"],
-        agg_params=_default_params["agg_params"],
-        window=_default_params["window"],
-        center=_default_params["center"],
-        min_periods=_default_params["min_periods"],
-        diff=_default_params["diff"],
-    ):
-        super().__init__(
-            agg=agg,
-            agg_params=agg_params,
-            window=window,
-            min_periods=min_periods,
-            center=center,
-            diff=diff,
-        )
+        agg: Union[str, Tuple, Callable] = _default_params["agg"],
+        agg_params: Union[Dict, Tuple] = _default_params["agg_params"],
+        window: Union[int, Tuple] = _default_params["window"],
+        center: bool = _default_params["center"],
+        min_periods: Optional[Union[int, Tuple]] = _default_params[
+            "min_periods"
+        ],
+        diff: Union[str, Callable] = _default_params["diff"],
+    ) -> None:
+        super().__init__()
+        self.agg = agg
+        self.agg_params = agg_params
+        self.window = window
+        self.min_periods = min_periods
+        self.center = center
+        self.diff = diff
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         pass
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
@@ -708,14 +721,18 @@ class ClassicSeasonalDecomposition(_Transformer1D):
 
     """
 
-    _default_params = {"freq": None, "trend": False}
+    _default_params = {"freq": None, "trend": False}  # type: Dict[str, Any]
 
     def __init__(
-        self, freq=_default_params["freq"], trend=_default_params["trend"]
-    ):
-        super().__init__(freq=freq, trend=trend)
+        self,
+        freq: int = _default_params["freq"],
+        trend: bool = _default_params["trend"],
+    ) -> None:
+        super().__init__()
+        self.freq = freq
+        self.trend = trend
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
@@ -748,7 +765,7 @@ class ClassicSeasonalDecomposition(_Transformer1D):
         self._dT = pd.Series(s.index).diff().mean()
         # get seasonal freq
         if self.freq is None:
-            self.freq_ = _identify_seasonal_period(s)
+            self.freq_ = _identify_seasonal_period(s)  # type: int
             if self.freq_ is None:
                 raise Exception("Could not find significant seasonality.")
         else:
@@ -765,7 +782,9 @@ class ClassicSeasonalDecomposition(_Transformer1D):
                     i :: len(self.seasonal_)
                 ].mean()
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
@@ -856,7 +875,11 @@ class ClassicSeasonalDecomposition(_Transformer1D):
         return s_residual
 
 
-def _identify_seasonal_period(s, low_autocorr=0.1, high_autocorr=0.3):
+def _identify_seasonal_period(
+    s: Union[pd.Series, pd.DataFrame],
+    low_autocorr: float = 0.1,
+    high_autocorr: float = 0.3,
+) -> Optional[int]:
     """Identify seasonal period of a time series based on autocorrelation.
 
     This is an univariate transformer. When it is applied to a multivariate
@@ -974,21 +997,30 @@ class Retrospect(_Transformer1D):
 
     """
 
-    _need_fit = False
-    _default_params = {"n_steps": 1, "step_size": 1, "till": 0}
+    _need_fit = False  # type: bool
+    _default_params = {
+        "n_steps": 1,
+        "step_size": 1,
+        "till": 0,
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
-        n_steps=_default_params["n_steps"],
-        step_size=_default_params["step_size"],
-        till=_default_params["till"],
-    ):
-        super().__init__(n_steps=n_steps, step_size=step_size, till=till)
+        n_steps: int = _default_params["n_steps"],
+        step_size: int = _default_params["step_size"],
+        till: int = _default_params["till"],
+    ) -> None:
+        super().__init__()
+        self.n_steps = n_steps
+        self.step_size = step_size
+        self.till = till
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         pass
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):

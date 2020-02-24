@@ -6,10 +6,23 @@ import pandas as pd
 from ..aggregator import AndAggregator, OrAggregator
 from ..data import validate_events
 
-__all__ = ["recall", "precision", "f1_score", "iou"]
+__all__ = ["recall", "precision", "f1_score", "iou"]  # type: List[str]
+
+from typing import Any, Dict, List, Tuple, Union, Optional
+
+# from typing_extensions import Protocol, runtime_checkable
 
 
-def recall(y_true, y_pred, thresh=0.5):
+# @runtime_checkable
+# class PdSeries(Protocol):
+#     handles: pd.Series
+
+
+def recall(
+    y_true: Union[pd.Series, pd.DataFrame, List, Dict],
+    y_pred: Union[pd.Series, pd.DataFrame, List, Dict],
+    thresh: float = 0.5,
+) -> Union[float, Dict]:
     """Recall score of prediction.
 
     Recall, a.k.a. sensitivity, hit rate, or true positive rate (TPR), is the
@@ -60,7 +73,7 @@ def recall(y_true, y_pred, thresh=0.5):
     if type(y_true) != type(y_pred):
         raise TypeError("y_true and y_pred must have same type.")
 
-    if isinstance(y_true, pd.Series):
+    if isinstance(y_true, pd.Series) and isinstance(y_pred, pd.Series):
         try:
             pd.testing.assert_index_equal(y_true.index, y_pred.index)
         except AssertionError:
@@ -71,7 +84,7 @@ def recall(y_true, y_pred, thresh=0.5):
             ).sum() / (y_true.clip(0, 1).round()).sum()
         else:
             return float("nan")
-    elif isinstance(y_true, pd.DataFrame):
+    elif isinstance(y_true, pd.DataFrame) and isinstance(y_pred, pd.DataFrame):
         if set(y_true.columns) != set(y_pred.columns):
             raise ValueError("y_true and y_pred must have identical columns.")
         return {
@@ -130,7 +143,11 @@ def recall(y_true, y_pred, thresh=0.5):
         )
 
 
-def precision(y_true, y_pred, thresh=0.5):
+def precision(
+    y_true: Union[pd.Series, pd.DataFrame, List, Dict],
+    y_pred: Union[pd.Series, pd.DataFrame, List, Dict],
+    thresh: float = 0.5,
+) -> Union[float, Dict]:
     """Precision score of prediction.
 
     Precision, a.k.a. positive predictive value (PPV), is the percentage of
@@ -177,7 +194,12 @@ def precision(y_true, y_pred, thresh=0.5):
     return recall(y_pred, y_true, thresh=thresh)
 
 
-def f1_score(y_true, y_pred, recall_thresh=0.5, precision_thresh=0.5):
+def f1_score(
+    y_true: Union[pd.Series, pd.DataFrame, List, Dict],
+    y_pred: Union[pd.Series, pd.DataFrame, List, Dict],
+    recall_thresh: float = 0.5,
+    precision_thresh: float = 0.5,
+) -> Optional[Union[float, Dict]]:
     """F1 score of prediction.
 
     F1 score is the harmonic mean of precision and recall. For more details
@@ -218,7 +240,9 @@ def f1_score(y_true, y_pred, recall_thresh=0.5, precision_thresh=0.5):
     """
     recall_score = recall(y_true, y_pred, recall_thresh)
     precision_score = precision(y_true, y_pred, precision_thresh)
-    if not isinstance(recall_score, dict):
+    if not isinstance(recall_score, dict) and not isinstance(
+        precision_score, dict
+    ):
         if recall_score + precision_score != 0:
             return (
                 2
@@ -228,7 +252,9 @@ def f1_score(y_true, y_pred, recall_thresh=0.5, precision_thresh=0.5):
             )
         else:
             return float("nan")
-    else:
+    elif not isinstance(recall_score, float) and not isinstance(
+        precision_score, float
+    ):
         return {
             key: (
                 (
@@ -242,9 +268,14 @@ def f1_score(y_true, y_pred, recall_thresh=0.5, precision_thresh=0.5):
             )
             for key in recall_score.keys()
         }
+    else:
+        return None
 
 
-def iou(y_true, y_pred):
+def iou(
+    y_true: Union[pd.Series, pd.DataFrame, List, Dict],
+    y_pred: Union[pd.Series, pd.DataFrame, List, Dict],
+) -> Union[float, Dict]:
     """IoU (Intersection over Union) score of prediction.
 
     Intersection over union is the length ratio between time segments that are
@@ -284,7 +315,7 @@ def iou(y_true, y_pred):
     if type(y_true) != type(y_pred):
         raise TypeError("y_true and y_pred must have same type.")
 
-    if isinstance(y_true, pd.Series):
+    if isinstance(y_true, pd.Series) and isinstance(y_pred, pd.Series):
         try:
             pd.testing.assert_index_equal(y_true.index, y_pred.index)
         except AssertionError:
@@ -300,7 +331,7 @@ def iou(y_true, y_pred):
             )
         else:
             return float("nan")
-    elif isinstance(y_true, pd.DataFrame):
+    elif isinstance(y_true, pd.DataFrame) and isinstance(y_pred, pd.DataFrame):
         if set(y_true.columns) != set(y_pred.columns):
             raise ValueError("y_true and y_pred must have identical columns.")
         return {col: iou(y_true[col], y_pred[col]) for col in y_true.columns}

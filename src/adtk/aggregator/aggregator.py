@@ -9,7 +9,7 @@ import pandas as pd
 from .._aggregator_base import _Aggregator
 from ..data import validate_events
 
-from typing import List, Any, Dict, Union
+from typing import List, Any, Dict, Union, Callable, Optional
 
 __all__ = [
     "OrAggregator",
@@ -41,16 +41,17 @@ class CustomizedAggregator(_Aggregator):
 
     def __init__(
         self,
-        aggregate_func: List[Any] = _default_params["aggregate_func"],
-        aggregate_func_params: Any = _default_params["aggregate_func_params"],
+        aggregate_func: Callable = _default_params["aggregate_func"],
+        aggregate_func_params: Optional[Dict] = _default_params[
+            "aggregate_func_params"
+        ],
     ) -> None:
-        super().__init__(
-            aggregate_func=aggregate_func,
-            aggregate_func_params=aggregate_func_params,
-        )
+        super().__init__()
+        self.aggregate_func = aggregate_func
+        self.aggregate_func_params = aggregate_func_params
 
     def _predict_core(
-        self, lists: Union[pd.DataFrame, Dict[Any, Any]]
+        self, lists: Union[pd.DataFrame, Dict]
     ) -> List[pd.Timestamp]:
         if self.aggregate_func_params is None:
             aggregate_func_params = {}
@@ -70,8 +71,8 @@ class OrAggregator(_Aggregator):
         super().__init__()
 
     def _predict_core(
-        self, lists: Union[pd.DataFrame, Dict[Any, Any]]
-    ) -> Union[pd.DataFrame, Dict[Any, Any]]:
+        self, lists: Union[pd.DataFrame, Dict]
+    ) -> Union[pd.DataFrame, Dict]:
         if isinstance(lists, dict):
             if isinstance(next(iter(lists.values())), list):
                 clean_lists = {
@@ -104,7 +105,7 @@ class AndAggregator(_Aggregator):
     def __init__(self) -> None:
         super().__init__()
 
-    def _predict_core(self, lists: Any) -> pd.DataFrame:
+    def _predict_core(self, lists: Union[pd.DataFrame, Dict]) -> pd.DataFrame:
         if isinstance(lists, dict):
             if isinstance(next(iter(lists.values())), list):
                 clean_lists = {
@@ -130,7 +131,7 @@ class AndAggregator(_Aggregator):
                         ),
                     ).sort_index()
                     for key, clean_predict in clean_lists.items()
-                }  # type: Any
+                }  # type: Union[Dict, pd.DataFrame]
                 time_window_stats = {
                     key: value[~value.index.duplicated()]
                     for key, value in time_window_stats.items()

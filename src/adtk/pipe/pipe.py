@@ -21,8 +21,10 @@ from .._transformer_base import _Transformer1D, _TransformerHD
 from .._aggregator_base import _Aggregator
 from ..metrics import recall, precision, f1_score, iou
 
+from typing import Tuple, Union, List, Dict, Any, Optional, Callable
 
-__all__ = ["Pipeline", "Pipenet"]
+
+__all__ = ["Pipeline", "Pipenet"]  # type: List[str]
 
 
 class Pipeline:
@@ -42,7 +44,7 @@ class Pipeline:
 
     """
 
-    def __init__(self, steps=None):
+    def __init__(self, steps: List[Tuple[str, Any]] = None) -> None:
         if steps is None:
             self.steps = []
         else:
@@ -50,9 +52,9 @@ class Pipeline:
         self._pipenet = Pipenet()
         self._update_internal_pipenet()
 
-    def _update_internal_pipenet(self):
-        pipenet_steps = dict()
-        last_name = "original"
+    def _update_internal_pipenet(self) -> None:
+        pipenet_steps = dict()  # type: Dict
+        last_name = "original"  # type: str
         for pipeline_step in self.steps:
             pipenet_steps.update(
                 {
@@ -65,7 +67,12 @@ class Pipeline:
             last_name = pipeline_step[0]
         self._pipenet.steps = pipenet_steps
 
-    def fit(self, ts, skip_fit=None, return_intermediate=False):
+    def fit(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        skip_fit: Optional[List] = None,
+        return_intermediate: bool = False,
+    ) -> Optional[Dict[str, Any]]:
         """Train all models in the pipeline sequentially.
 
         Parameters
@@ -96,7 +103,12 @@ class Pipeline:
             ts=ts, skip_fit=skip_fit, return_intermediate=return_intermediate
         )
 
-    def detect(self, ts, return_intermediate=False, return_list=False):
+    def detect(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        return_intermediate: bool = False,
+        return_list: bool = False,
+    ) -> Union[List, pd.Series, Dict]:
         """Transform time series sequentially along pipeline, and detect
         anomalies with the last detector.
 
@@ -133,7 +145,11 @@ class Pipeline:
             return_list=return_list,
         )
 
-    def transform(self, ts, return_intermediate=False):
+    def transform(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        return_intermediate: bool = False,
+    ) -> Union[List, Dict]:
         """Transform time series sequentially along pipeline.
 
         Parameters
@@ -159,8 +175,12 @@ class Pipeline:
         )
 
     def fit_detect(
-        self, ts, skip_fit=None, return_intermediate=False, return_list=False
-    ):
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        skip_fit: List = None,
+        return_intermediate: bool = False,
+        return_list: bool = False,
+    ) -> Union[List, pd.Series, Dict]:
         """Train models in pipeline sequentially, transform time series along
         pipeline, and use the last detector to detect anomalies.
 
@@ -204,7 +224,12 @@ class Pipeline:
             return_list=return_list,
         )
 
-    def fit_transform(self, ts, skip_fit=None, return_intermediate=False):
+    def fit_transform(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        skip_fit: Optional[List] = None,
+        return_intermediate: bool = False,
+    ) -> Union[List, Dict]:
         """Train models in pipeline sequentially, and transform time series
         along pipeline.
 
@@ -236,7 +261,13 @@ class Pipeline:
             ts=ts, skip_fit=skip_fit, return_intermediate=return_intermediate
         )
 
-    def score(self, ts, anomaly_true, scoring="recall", **kwargs):
+    def score(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        anomaly_true: Union[pd.Series, List[pd.Timestamp], Tuple],
+        scoring: str = "recall",
+        **kwargs: Any
+    ) -> Union[float, Dict]:
         """Detect anomalies and score the results against true anomalies.
 
         Parameters
@@ -267,7 +298,7 @@ class Pipeline:
 
         """
         if scoring == "recall":
-            scoring_func = recall
+            scoring_func = recall  # type: Any
         elif scoring == "precision":
             scoring_func = precision
         elif scoring == "f1":
@@ -292,7 +323,7 @@ class Pipeline:
                 **kwargs
             )
 
-    def get_params(self):
+    def get_params(self) -> Dict:
         """Get parameters of models in pipeline.
 
         Returns
@@ -380,14 +411,14 @@ class Pipenet:
 
     """
 
-    def __init__(self, steps=None):
+    def __init__(self, steps: Dict[str, Dict[str, Any]] = None) -> None:
         if steps is None:
             self.steps = dict()
         else:
             self.steps = steps
         self._validate()
 
-    def _validate(self):
+    def _validate(self) -> None:
         """
         Check the following issues and raise error if found
         - steps is not a list of dict
@@ -445,7 +476,7 @@ class Pipenet:
             )
 
         # check if each step has valid input
-        def islistofstr(li):
+        def islistofstr(li: Any) -> bool:
             if not isinstance(li, list):
                 return False
             if not all([isinstance(x, str) for x in li]):
@@ -647,7 +678,9 @@ class Pipenet:
         self.final_step_ = list(self.steps_graph_.keys())[-1]
 
     @staticmethod
-    def _get_input(step, results):
+    def _get_input(
+        step: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Given a step block and an intermediate results dict, get the input of
         this step based on fields `input` and `subset`.
@@ -696,7 +729,12 @@ class Pipenet:
                 }
         return input
 
-    def fit(self, ts, skip_fit=None, return_intermediate=False):
+    def fit(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        skip_fit: Optional[List] = None,
+        return_intermediate: bool = False,
+    ) -> Optional[Dict[str, Any]]:
         """Train models in the pipenet.
 
         Parameters
@@ -769,10 +807,18 @@ class Pipenet:
         # return intermediate results
         if return_intermediate:
             return results
+        else:
+            return None
 
     def _predict(
-        self, ts, fit, detect, skip_fit, return_intermediate, return_list
-    ):
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        fit: Any,
+        detect: Any,
+        skip_fit: Optional[List],
+        return_intermediate: bool,
+        return_list: Optional[bool],
+    ) -> Dict[str, Union[pd.Series, pd.DataFrame]]:
         """
         Private method for detect, transform, fit_detect, fit_transform
         """
@@ -832,7 +878,12 @@ class Pipenet:
         else:
             return results[last_step_name]
 
-    def detect(self, ts, return_intermediate=False, return_list=False):
+    def detect(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        return_intermediate: bool = False,
+        return_list: bool = False,
+    ) -> Union[List, pd.Series, Dict]:
         """Detect anomaly from time series using the pipenet.
 
         Parameters
@@ -869,7 +920,11 @@ class Pipenet:
             return_list=return_list,
         )
 
-    def transform(self, ts, return_intermediate=False):
+    def transform(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        return_intermediate: bool = False,
+    ) -> Union[List, Dict]:
         """Transform time series using the pipenet.
 
         Parameters
@@ -899,8 +954,12 @@ class Pipenet:
         )
 
     def fit_detect(
-        self, ts, skip_fit=None, return_intermediate=False, return_list=False
-    ):
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        skip_fit: List = None,
+        return_intermediate: bool = False,
+        return_list: bool = False,
+    ) -> Union[List, pd.Series, Dict]:
         """Train models in the pipenet and detect anomaly with it.
 
         Parameters
@@ -943,7 +1002,12 @@ class Pipenet:
             return_list=return_list,
         )
 
-    def fit_transform(self, ts, skip_fit=None, return_intermediate=False):
+    def fit_transform(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        skip_fit: List = None,
+        return_intermediate: bool = False,
+    ) -> Union[List, Dict]:
         """Train models in the pipenet and transform time series with it.
 
         Parameters
@@ -978,7 +1042,13 @@ class Pipenet:
             return_list=None,
         )
 
-    def score(self, ts, anomaly_true, scoring="recall", **kwargs):
+    def score(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        anomaly_true: Union[pd.Series, List[pd.Timestamp], Tuple],
+        scoring: str = "recall",
+        **kwargs: Any
+    ) -> Union[float, Dict]:
         """Detect anomalies and score the results against true anomalies.
 
         Parameters
@@ -1009,7 +1079,7 @@ class Pipenet:
 
         """
         if scoring == "recall":
-            scoring_func = recall
+            scoring_func = recall  # type: Any
         elif scoring == "precision":
             scoring_func = precision
         elif scoring == "f1":
@@ -1034,7 +1104,7 @@ class Pipenet:
                 **kwargs
             )
 
-    def get_params(self):
+    def get_params(self) -> Dict:
         """Get parameters of models in pipenet.
 
         Returns
@@ -1048,7 +1118,7 @@ class Pipenet:
             for step_name, step in self.steps.items()
         }
 
-    def summary(self):
+    def summary(self) -> None:
         """Print a summary of the pipenet."""
         df = pd.DataFrame(columns=["name", "model", "input", "subset"])
         for step_name in self.steps_graph_.keys():
@@ -1069,7 +1139,9 @@ class Pipenet:
             )
         print(tabulate(df, headers="keys", tablefmt="simple", showindex=False))
 
-    def plot_flowchart(self, ax=None, figsize=None, radius=1.0):
+    def plot_flowchart(
+        self, ax: plt.Axes = None, figsize: Tuple = None, radius: float = 1.0
+    ) -> plt.Axes:
         """Plot flowchart of this pipenet.
 
         Parameters
@@ -1102,11 +1174,11 @@ class Pipenet:
             _, ax = plt.subplots(figsize=figsize)
 
         # get coordinate of components
-        layers = []
-        for step, values in self.steps_graph_.items():
+        layers = []  # type: List
+        for graph_step, values in self.steps_graph_.items():
             if values[1] == 0:
                 layers.append([])
-            layers[-1].append(step)
+            layers[-1].append(graph_step)
         n_layer = len(layers)
         max_n_comp = 0
         coord = dict()
@@ -1119,10 +1191,10 @@ class Pipenet:
                 coord[comp] = (x, y)
 
         # plot connection lines, and gather patches
-        io_patches = []
-        detector_patches = []
-        transformer_patches = []
-        aggregator_patches = []
+        io_patches = []  # type: List
+        detector_patches = []  # type: List
+        transformer_patches = []  # type: List
+        aggregator_patches = []  # type: List
         for step_name, step in self.steps.items():
             end_coord = coord[step_name]
             if isinstance(step["model"], (_Detector1D, _DetectorHD)):

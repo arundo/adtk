@@ -43,7 +43,7 @@ l_pred = [
     Timestamp("1970-01-21 00:00:00"),
     (Timestamp("1970-01-23 00:00:00"), Timestamp("1970-01-24 00:00:00")),
 ]
-l0 = []  # type: List[Any]
+l0 = []  # type: List
 
 d_true = {"A": l_true, "B": l_pred}
 d_pred = {"A": l_pred, "B": l_true}

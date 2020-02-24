@@ -1,8 +1,12 @@
 from ._base import _Model1D, _ModelHD
 
+import pandas as pd
+
+from typing import Dict, Union, List, Any
+
 
 class _Transformer1D(_Model1D):
-    def fit(self, ts):
+    def fit(self, ts: Union[pd.Series, pd.DataFrame]) -> None:
         """Train the transformer with given time series.
 
         Parameters
@@ -15,7 +19,9 @@ class _Transformer1D(_Model1D):
         """
         self._fit(ts)
 
-    def transform(self, ts):
+    def transform(
+        self, ts: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         """Transform time series.
 
         Parameters
@@ -33,7 +39,9 @@ class _Transformer1D(_Model1D):
         """
         return self._predict(ts)
 
-    def fit_transform(self, ts):
+    def fit_transform(
+        self, ts: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         """Train the transformer, and tranform the time series used for
         training.
 
@@ -53,13 +61,17 @@ class _Transformer1D(_Model1D):
         self.fit(ts)
         return self.predict(ts)
 
-    def predict(self, ts, *args, **kwargs):
+    def predict(
+        self, ts: Union[pd.Series, pd.DataFrame], *args: Any, **kwargs: Any
+    ) -> Union[pd.Series, pd.DataFrame]:
         """
         Alias of `transform`.
         """
         return self.transform(ts)
 
-    def fit_predict(self, ts, *args, **kwargs):
+    def fit_predict(
+        self, ts: Union[pd.Series, pd.DataFrame], *args: Any, **kwargs: Any
+    ) -> Union[pd.Series, pd.DataFrame]:
         """
         Alias of `fit_transform`.
         """
@@ -67,7 +79,7 @@ class _Transformer1D(_Model1D):
 
 
 class _TransformerHD(_ModelHD):
-    def fit(self, df):
+    def fit(self, df: pd.DataFrame) -> None:
         """Train the transformer with given time series.
 
         Parameters
@@ -78,7 +90,7 @@ class _TransformerHD(_ModelHD):
         """
         self._fit(df)
 
-    def transform(self, df):
+    def transform(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
         """Transform time series.
 
         Parameters
@@ -94,7 +106,9 @@ class _TransformerHD(_ModelHD):
         """
         return self._predict(df)
 
-    def fit_transform(self, df):
+    def fit_transform(
+        self, df: pd.DataFrame
+    ) -> Union[pd.Series, pd.DataFrame]:
         """Train the transformer, and tranform the time series used for
         training.
 
@@ -112,13 +126,17 @@ class _TransformerHD(_ModelHD):
         self.fit(df)
         return self.predict(df)
 
-    def predict(self, df, *args, **kwargs):
+    def predict(
+        self, df: pd.DataFrame, *args: Any, **kwargs: Any
+    ) -> Union[pd.Series, pd.DataFrame]:
         """
         Alias of `transform`.
         """
         return self.transform(df)
 
-    def fit_predict(self, df, *args, **kwargs):
+    def fit_predict(
+        self, df: pd.DataFrame, *args: Any, **kwargs: Any
+    ) -> Union[pd.Series, pd.DataFrame]:
         """
         Alias of `fit_transform`.
         """

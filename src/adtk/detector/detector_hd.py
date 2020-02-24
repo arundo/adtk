@@ -18,7 +18,7 @@ from ..transformer import (
     PcaReconstructionError,
 )
 
-from typing import List, Dict, Any, Tuple, Union
+from typing import List, Dict, Any, Tuple, Union, Optional, Callable
 
 __all__ = [
     "MinClusterDetector",
@@ -61,18 +61,21 @@ class CustomizedDetectorHD(_DetectorHD):
 
     def __init__(
         self,
-        detect_func=_default_params["detect_func"],
-        detect_func_params=_default_params["detect_func_params"],
-        fit_func=_default_params["fit_func"],
-        fit_func_params=_default_params["fit_func_params"],
+        detect_func: Callable = _default_params["detect_func"],
+        detect_func_params: Optional[Dict[str, Any]] = _default_params[
+            "detect_func_params"
+        ],
+        fit_func: Optional[Callable] = _default_params["fit_func"],
+        fit_func_params: Optional[Dict[str, Any]] = _default_params[
+            "fit_func_params"
+        ],
     ) -> None:
-        self._fitted_detect_func_params = {}
-        super().__init__(
-            detect_func=detect_func,
-            detect_func_params=detect_func_params,
-            fit_func=fit_func,
-            fit_func_params=fit_func_params,
-        )
+        self._fitted_detect_func_params = {}  # type: Dict
+        super().__init__()
+        self.detect_func = detect_func
+        self.detect_func_params = detect_func_params
+        self.fit_func = fit_func
+        self.fit_func_params = fit_func_params
 
     def _fit_core(self, df: pd.DataFrame) -> None:
         if self.fit_func is not None:
@@ -84,7 +87,7 @@ class CustomizedDetectorHD(_DetectorHD):
                 df, **fit_func_params
             )
 
-    def _predict_core(self, df: pd.DataFrame):
+    def _predict_core(self, df: pd.DataFrame) -> pd.Series:
         if self.detect_func_params is not None:
             detect_func_params = self.detect_func_params
         else:
@@ -97,11 +100,11 @@ class CustomizedDetectorHD(_DetectorHD):
             return self.detect_func(df, **detect_func_params)
 
     @property
-    def fit_func(self):
+    def fit_func(self) -> Any:
         return self._fit_func
 
     @fit_func.setter
-    def fit_func(self, value):
+    def fit_func(self, value: Any) -> None:
         self._fit_func = value
         if value is None:
             self._need_fit = False
@@ -125,12 +128,13 @@ class MinClusterDetector(_DetectorHD):
 
     """
 
-    _default_params = {"model": None}
+    _default_params = {"model": None}  # type: Dict[str, Any]
 
-    def __init__(self, model=_default_params["model"]):
-        super().__init__(model=model)
+    def __init__(self, model: Any = _default_params["model"]) -> None:
+        super().__init__()
+        self.model = model
 
-    def _fit_core(self, df):
+    def _fit_core(self, df: pd.DataFrame) -> None:
         if self.model is None:
             raise RuntimeError("Model is not specified.")
         if df.dropna().empty:
@@ -139,7 +143,7 @@ class MinClusterDetector(_DetectorHD):
         cluster_count = Counter(clustering_result)
         self._anomalous_cluster_id = cluster_count.most_common()[-1][0]
 
-    def _predict_core(self, df):
+    def _predict_core(self, df: pd.DataFrame) -> pd.DataFrame:
         cluster_id = pd.Series(float("nan"), index=df.index)
         if not df.dropna().empty:
             cluster_id.loc[df.dropna().index] = self.model.predict(df.dropna())
@@ -170,10 +174,11 @@ class OutlierDetector(_DetectorHD):
 
     _default_params = {"model": None}
 
-    def __init__(self, model=_default_params["model"]):
-        super().__init__(model=model)
+    def __init__(self, model: Any = _default_params["model"]) -> None:
+        super().__init__()
+        self.model = model
 
-    def _fit_core(self, df):
+    def _fit_core(self, df: pd.DataFrame) -> None:
         if self.model is None:
             raise RuntimeError("Model is not specified.")
         if hasattr(self.model, "fit"):
@@ -181,7 +186,7 @@ class OutlierDetector(_DetectorHD):
                 raise RuntimeError("Valid values are not enough for training.")
             self.model.fit(df.dropna())
 
-    def _predict_core(self, df):
+    def _predict_core(self, df: pd.DataFrame) -> pd.Series:
         is_outliers = pd.Series(float("nan"), index=df.index)
         if not df.dropna().empty:
             if hasattr(self.model, "predict"):
@@ -245,15 +250,15 @@ class RegressionAD(_DetectorHD):
         "regressor": None,
         "c": 3.0,
         "side": "both",
-    }
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
-        target=_default_params["target"],
-        regressor=_default_params["regressor"],
-        c=_default_params["c"],
-        side=_default_params["side"],
-    ):
+        target: Optional[str] = _default_params["target"],
+        regressor: Any = _default_params["regressor"],
+        c: float = _default_params["c"],
+        side: str = _default_params["side"],
+    ) -> None:
         self.pipe_ = Pipenet(
             {
                 "regression_residual": {
@@ -299,10 +304,14 @@ class RegressionAD(_DetectorHD):
                 },
             }
         )
-        super().__init__(regressor=regressor, target=target, side=side, c=c)
-        self._sync_params()
+        super().__init__()
+        self.regressor = regressor
+        self.target = target
+        self.side = side
+        self.c = c
+        # self._sync_params()
 
-    def _sync_params(self):
+    def _sync_params(self) -> None:
         if self.side not in ["both", "positive", "negative"]:
             raise ValueError(
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
@@ -323,11 +332,13 @@ class RegressionAD(_DetectorHD):
             else (-float("inf") if self.side == "positive" else float("inf"))
         )
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         self._sync_params()
         self.pipe_.fit(s)
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         self._sync_params()
         return self.pipe_.detect(s)
 
@@ -359,26 +370,32 @@ class PcaAD(_DetectorHD):
         Internal pipenet object.
     """
 
-    _default_params = {"k": 1, "c": 5.0}
+    _default_params = {"k": 1, "c": 5.0}  # type: Dict[str, Any]
 
-    def __init__(self, k=_default_params["k"], c=_default_params["c"]):
+    def __init__(
+        self, k: int = _default_params["k"], c: float = _default_params["c"]
+    ) -> None:
         self.pipe_ = Pipeline(
             [
                 ("pca_reconstruct_error", PcaReconstructionError(k=k)),
                 ("ad", InterQuartileRangeAD(c=c)),
             ]
         )
-        super().__init__(k=k, c=c)
+        super().__init__()
+        self.k = k
+        self.c = c
         self._sync_params()
 
-    def _sync_params(self):
+    def _sync_params(self) -> None:
         self.pipe_.steps[0][1].k = self.k
         self.pipe_.steps[1][1].c = self.c
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         self._sync_params()
         self.pipe_.fit(s)
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         self._sync_params()
         return self.pipe_.detect(s)

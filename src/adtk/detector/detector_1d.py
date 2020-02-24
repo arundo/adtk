@@ -22,7 +22,7 @@ from ..transformer import (
     Retrospect,
 )
 
-from typing import List, Dict, Union, Any, Tuple
+from typing import List, Dict, Union, Any, Tuple, Optional, Callable
 
 __all__ = [
     "ThresholdAD",
@@ -67,34 +67,35 @@ class CustomizedDetector1D(_Detector1D):
 
     """
 
-    _need_fit = False
+    _need_fit = False  # type: bool
     _default_params = {
         "detect_func": None,
         "detect_func_params": None,
         "fit_func": None,
         "fit_func_params": None,
-    }
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
-        detect_func: Any = _default_params["detect_func"],
-        detect_func_params: Any = _default_params["detect_func_params"],
-        fit_func: Any = _default_params["fit_func"],
-        fit_func_params: Any = _default_params["fit_func_params"],
+        detect_func: Callable = _default_params["detect_func"],
+        detect_func_params: Optional[Dict] = _default_params[
+            "detect_func_params"
+        ],
+        fit_func: Optional[Callable] = _default_params["fit_func"],
+        fit_func_params: Optional[Dict] = _default_params["fit_func_params"],
     ) -> None:
         self._fitted_detect_func_params = {}  # type: Dict[str, Any]
         if fit_func is not None:
             self._need_fit = True
         else:
             self._need_fit = False
-        super().__init__(
-            detect_func=detect_func,
-            detect_func_params=detect_func_params,
-            fit_func=fit_func,
-            fit_func_params=fit_func_params,
-        )
+        super().__init__()
+        self.detect_func = detect_func
+        self.detect_func_params = detect_func_params
+        self.fit_func = fit_func
+        self.fit_func_params = fit_func_params
 
-    def _fit_core(self, s: float) -> None:
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         if self.fit_func is not None:
             if self.fit_func_params is not None:
                 fit_func_params = self.fit_func_params
@@ -104,7 +105,9 @@ class CustomizedDetector1D(_Detector1D):
                 s, **fit_func_params
             )
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         if self.detect_func_params is not None:
             detect_func_params = self.detect_func_params
         else:
@@ -117,11 +120,11 @@ class CustomizedDetector1D(_Detector1D):
             return self.detect_func(s, **detect_func_params)
 
     @property
-    def fit_func(self):
+    def fit_func(self) -> Optional[Callable]:
         return self._fit_func
 
     @fit_func.setter
-    def fit_func(self, value):
+    def fit_func(self, value: Optional[Callable]) -> None:
         self._fit_func = value
         if value is None:
             self._need_fit = False
@@ -154,18 +157,24 @@ class ThresholdAD(_Detector1D):
 
     """
 
-    _need_fit = False
-    _default_params = {"low": None, "high": None}
+    _need_fit = False  # type: bool
+    _default_params = {"low": None, "high": None}  # type: Dict[str, Any]
 
     def __init__(
-        self, low=_default_params["low"], high=_default_params["high"]
-    ):
-        super().__init__(low=low, high=high)
+        self,
+        low: Optional[float] = _default_params["low"],
+        high: Optional[float] = _default_params["high"],
+    ) -> None:
+        super().__init__()
+        self.low = low
+        self.high = high
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         pass
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         predicted = (
             s > (self.high if (self.high is not None) else float("inf"))
         ) | (s < (self.low if (self.low is not None) else -float("inf")))
@@ -207,14 +216,18 @@ class QuantileAD(_Detector1D):
 
     """
 
-    _default_params = {"low": None, "high": None}
+    _default_params = {"low": None, "high": None}  # type: Dict[str, Any]
 
     def __init__(
-        self, low=_default_params["low"], high=_default_params["low"]
-    ):
-        super().__init__(low=low, high=high)
+        self,
+        low: Optional[float] = _default_params["low"],
+        high: Optional[float] = _default_params["low"],
+    ) -> None:
+        super().__init__()
+        self.low = low
+        self.high = high
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         if s.count() == 0:
             raise RuntimeError("Valid values are not enough for training.")
         if self.high is None:
@@ -226,7 +239,9 @@ class QuantileAD(_Detector1D):
         else:
             self.abs_low_ = s.quantile(self.low)
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         predicted = (s > self.abs_high_) | (s < self.abs_low_)
         predicted[s.isna()] = np.nan
         return predicted
@@ -265,12 +280,16 @@ class InterQuartileRangeAD(_Detector1D):
 
     """
 
-    _default_params = {"c": 3.0}
+    _default_params = {"c": 3.0}  # type: Dict[str, Any]
 
-    def __init__(self, c=_default_params["c"]):
-        super().__init__(c=c)
+    def __init__(
+        self,
+        c: Union[float, Tuple[Optional[float], float]] = _default_params["c"],
+    ) -> None:
+        super().__init__()
+        self.c = c
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         if s.count() == 0:
             raise RuntimeError("Valid values are not enough for training.")
         q1 = s.quantile(0.25)
@@ -298,7 +317,9 @@ class InterQuartileRangeAD(_Detector1D):
             else float("inf")
         )
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         predicted = (s > self.abs_high_) | (s < self.abs_low_)
         predicted[s.isna()] = np.nan
         return predicted
@@ -338,12 +359,13 @@ class GeneralizedESDTestAD(_Detector1D):
 
     """
 
-    _default_params = {"alpha": 0.05}
+    _default_params = {"alpha": 0.05}  # type: Dict[str, Any]
 
-    def __init__(self, alpha=_default_params["alpha"]):
-        super().__init__(alpha=alpha)
+    def __init__(self, alpha: float = _default_params["alpha"]) -> None:
+        super().__init__()
+        self.alpha = alpha
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         if s.count() == 0:
             raise RuntimeError("Valid values are not enough for training.")
         R = pd.Series(np.zeros(len(s)), index=s.index)
@@ -380,7 +402,9 @@ class GeneralizedESDTestAD(_Detector1D):
             / np.sqrt((n - i - 1 + t.ppf(p, n - i - 1) ** 2) * (n - i + 1))
         )
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         new_sum = s + self._normal_sum
         new_count = self._normal_count + 1
         new_mean = new_sum / new_count
@@ -457,16 +481,16 @@ class PersistAD(_Detector1D):
         "side": "both",
         "min_periods": None,
         "agg": "median",
-    }
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
-        window=_default_params["window"],
-        c=_default_params["c"],
-        side=_default_params["side"],
-        min_periods=_default_params["min_periods"],
-        agg=_default_params["agg"],
-    ):
+        window: Any = _default_params["window"],
+        c: float = _default_params["c"],
+        side: str = _default_params["side"],
+        min_periods: Optional[int] = _default_params["min_periods"],
+        agg: str = _default_params["agg"],
+    ) -> None:
         self.pipe_ = Pipenet(
             {
                 "diff_abs": {
@@ -522,12 +546,15 @@ class PersistAD(_Detector1D):
                 },
             }
         )
-        super().__init__(
-            c=c, side=side, window=window, min_periods=min_periods, agg=agg
-        )
-        self._sync_params()
+        super().__init__()
+        # self._sync_params()
+        self.c = c
+        self.side = side
+        self.window = window
+        self.min_periods = min_periods
+        self.agg = agg
 
-    def _sync_params(self):
+    def _sync_params(self) -> None:
         if self.agg not in ["median", "mean"]:
             raise ValueError(
                 "Parameter `agg` must be either 'median' or 'mean'."
@@ -557,11 +584,13 @@ class PersistAD(_Detector1D):
             else (-float("inf") if self.side == "positive" else float("inf"))
         )
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         self._sync_params()
         self.pipe_.fit(s)
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         self._sync_params()
         return self.pipe_.detect(s)
 
@@ -615,15 +644,15 @@ class LevelShiftAD(_Detector1D):
         "c": 6.0,
         "side": "both",
         "min_periods": None,
-    }
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
-        window=_default_params["window"],
-        c=_default_params["c"],
-        side=_default_params["side"],
-        min_periods=_default_params["min_periods"],
-    ):
+        window: int = _default_params["window"],
+        c: float = _default_params["c"],
+        side: str = _default_params["side"],
+        min_periods: Optional[int] = _default_params["min_periods"],
+    ) -> None:
         self.pipe_ = Pipenet(
             {
                 "diff_abs": {
@@ -679,12 +708,14 @@ class LevelShiftAD(_Detector1D):
                 },
             }
         )
-        super().__init__(
-            c=c, side=side, window=window, min_periods=min_periods
-        )
-        self._sync_params()
+        super().__init__()
+        # self._sync_params()
+        self.c = c
+        self.side = side
+        self.window = window
+        self.min_periods = min_periods
 
-    def _sync_params(self):
+    def _sync_params(self) -> None:
         if self.side not in ["both", "positive", "negative"]:
             raise ValueError(
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
@@ -705,11 +736,13 @@ class LevelShiftAD(_Detector1D):
             else (-float("inf") if self.side == "positive" else float("inf"))
         )
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         self._sync_params()
         self.pipe_.fit(s)
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         self._sync_params()
         return self.pipe_.detect(s)
 
@@ -768,16 +801,16 @@ class VolatilityShiftAD(_Detector1D):
         "side": "both",
         "min_periods": None,
         "agg": "std",
-    }
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
-        window=_default_params["window"],
-        c=_default_params["c"],
-        side=_default_params["side"],
-        min_periods=_default_params["min_periods"],
-        agg=_default_params["agg"],
-    ):
+        window: int = _default_params["window"],
+        c: float = _default_params["c"],
+        side: str = _default_params["side"],
+        min_periods: int = _default_params["min_periods"],
+        agg: str = _default_params["agg"],
+    ) -> None:
         self.pipe_ = Pipenet(
             {
                 "diff_abs": {
@@ -833,12 +866,15 @@ class VolatilityShiftAD(_Detector1D):
                 },
             }
         )
-        super().__init__(
-            agg=agg, c=c, side=side, window=window, min_periods=min_periods
-        )
-        self._sync_params()
+        super().__init__()
+        # self._sync_params()
+        self.agg = agg
+        self.c = c
+        self.side = side
+        self.window = window
+        self.min_periods = min_periods
 
-    def _sync_params(self):
+    def _sync_params(self) -> None:
         if self.agg not in ["std", "iqr", "idr"]:
             raise ValueError("Parameter `agg` must be 'std', 'iqr' or 'idr'.")
         if self.side not in ["both", "positive", "negative"]:
@@ -863,11 +899,13 @@ class VolatilityShiftAD(_Detector1D):
             else (-float("inf") if self.side == "positive" else float("inf"))
         )
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         self._sync_params()
         self.pipe_.fit(s)
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         self._sync_params()
         return self.pipe_.detect(s)
 
@@ -932,16 +970,16 @@ class AutoregressionAD(_Detector1D):
         "regressor": None,
         "c": 3.0,
         "side": "both",
-    }
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
-        n_steps=_default_params["n_steps"],
-        step_size=_default_params["step_size"],
-        regressor=_default_params["regressor"],
-        c=_default_params["c"],
-        side=_default_params["side"],
-    ):
+        n_steps: int = _default_params["n_steps"],
+        step_size: int = _default_params["step_size"],
+        regressor: Optional[object] = _default_params["regressor"],
+        c: float = _default_params["c"],
+        side: str = _default_params["side"],
+    ) -> None:
         if regressor is None:
             regressor = LinearRegression()
         self.pipe_ = Pipenet(
@@ -993,16 +1031,15 @@ class AutoregressionAD(_Detector1D):
                 },
             }
         )
-        super().__init__(
-            n_steps=n_steps,
-            step_size=step_size,
-            regressor=regressor,
-            c=c,
-            side=side,
-        )
-        self._sync_params()
+        super().__init__()
+        # self._sync_params()
+        self.n_steps = n_steps
+        self.step_size = step_size
+        self.regressor = regressor
+        self.c = c
+        self.side = side
 
-    def _sync_params(self):
+    def _sync_params(self) -> None:
         if self.side not in ["both", "positive", "negative"]:
             raise ValueError(
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
@@ -1024,11 +1061,13 @@ class AutoregressionAD(_Detector1D):
             else (-float("inf") if self.side == "positive" else float("inf"))
         )
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         self._sync_params()
         self.pipe_.fit(s)
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         self._sync_params()
         return self.pipe_.detect(s)
 
@@ -1086,15 +1125,20 @@ class SeasonalAD(_Detector1D):
 
     """
 
-    _default_params = {"freq": None, "side": "both", "c": 3.0, "trend": False}
+    _default_params = {
+        "freq": None,
+        "side": "both",
+        "c": 3.0,
+        "trend": False,
+    }  # type: Dict[str, Any]
 
     def __init__(
         self,
-        freq=_default_params["freq"],
-        side=_default_params["side"],
-        c=_default_params["c"],
-        trend=_default_params["trend"],
-    ):
+        freq: int = _default_params["freq"],
+        side: str = _default_params["side"],
+        c: float = _default_params["c"],
+        trend: bool = _default_params["trend"],
+    ) -> None:
         self.pipe_ = Pipenet(
             {
                 "deseasonal_residual": {
@@ -1140,10 +1184,14 @@ class SeasonalAD(_Detector1D):
                 },
             }
         )
-        super().__init__(freq=freq, side=side, c=c, trend=trend)
-        self._sync_params()
+        super().__init__()
+        # self._sync_params()
+        self.freq = freq
+        self.side = side
+        self.c = c
+        self.trend = trend
 
-    def _sync_params(self):
+    def _sync_params(self) -> None:
         self.pipe_.steps["deseasonal_residual"]["model"].freq = self.freq
         self.pipe_.steps["deseasonal_residual"]["model"].trend = self.trend
         self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
@@ -1158,7 +1206,7 @@ class SeasonalAD(_Detector1D):
             else (-float("inf") if self.side == "positive" else float("inf"))
         )
 
-    def _fit_core(self, s):
+    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
         self._sync_params()
         self.pipe_.fit(s)
         self.freq_ = self.pipe_.steps["deseasonal_residual"]["model"].freq_
@@ -1166,6 +1214,8 @@ class SeasonalAD(_Detector1D):
             "model"
         ].seasonal_
 
-    def _predict_core(self, s):
+    def _predict_core(
+        self, s: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
         self._sync_params()
         return self.pipe_.detect(s)

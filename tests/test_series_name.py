@@ -34,7 +34,7 @@ one2one_models = [
     ),
     transformer.StandardScale(),
     transformer.ClassicSeasonalDecomposition(freq=2),
-]  # type: List[Any]
+]  # type: List
 
 one2many_models = [
     transformer.RollingAggregate(
@@ -44,7 +44,7 @@ one2many_models = [
         agg="hist", agg_params={"bins": [20, 50, 80]}
     ),
     transformer.Retrospect(n_steps=3),
-]  # type: List[Any]
+]  # type: List
 
 many2one_models = [
     detector.MinClusterDetector(KMeans(n_clusters=2)),
@@ -56,7 +56,7 @@ many2one_models = [
     transformer.SumAll(),
     transformer.RegressionResidual(LinearRegression()),
     transformer.PcaReconstructionError(),
-]  # type: List[Any]
+]  # type: List
 
 
 @pytest.mark.parametrize("model", one2one_models)

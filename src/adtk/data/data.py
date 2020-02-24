@@ -170,7 +170,7 @@ def validate_events(
     time_window_end_series.sort_index(kind="mergesort", inplace=True)
     time_window_end_series = time_window_end_series.cumsum()
     status = 0
-    merged_event_list = []  # type: List[Any]
+    merged_event_list = []  # type: List
     for t, v in time_window_end_series.iteritems():
         if (status == 0) and (v > 0):
             start = t
@@ -198,7 +198,7 @@ def validate_events(
 def to_events(
     labels: Union[pd.Series, pd.DataFrame],
     freq_as_period: bool = True,
-    merge_consecutive: Any = None,
+    merge_consecutive: Optional[bool] = None,
 ) -> Union[List[pd.Timestamp], Dict[str, Any]]:
     """Convert binary label series to event list(s).
 
@@ -306,7 +306,7 @@ def to_events(
 
 
 def to_labels(
-    lists: List[Tuple[pd.Timestamp, pd.Timestamp]],
+    lists: Union[List, Dict],
     time_index: pd.DatetimeIndex,
     freq_as_period: bool = True,
 ) -> Union[pd.Series, pd.DataFrame]:
@@ -391,10 +391,10 @@ def to_labels(
 
 
 def expand_events(
-    lists: Union[List[Any], Dict[Any, Any]],
+    lists: Union[List, Dict],
     left_expand: pd.Timedelta,
     right_expand: pd.Timedelta,
-) -> Union[List[Any], Dict[Any, Any]]:
+) -> Union[List, Dict]:
     """Expand time windows in an event list.
 
     Given a list of events, expand the duration of events by a given factor.
@@ -470,7 +470,7 @@ def resample(
 
     """
 
-    def gcd_of_array(arr: Any) -> int:
+    def gcd_of_array(arr: np.array) -> int:
         """Get the GCD of an array of integer"""
         return reduce(gcd, arr)
 
