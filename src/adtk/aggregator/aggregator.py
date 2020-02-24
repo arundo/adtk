@@ -118,6 +118,7 @@ class AndAggregator(_Aggregator):
                                 for window in clean_predict
                             ]
                         ),
+                        dtype="int",
                     ).sort_index()
                     for key, clean_predict in clean_lists.items()
                 }
