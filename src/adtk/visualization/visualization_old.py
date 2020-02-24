@@ -230,31 +230,35 @@ def plot(
     ts: pandas Series or DataFrame
         Time series to plot.
 
-    anomaly_true: list, pandas Series, or dict, optional
-        Known anomalies.
-        If list, a list of known anomalous event time (pandas Timestamp or
-        2-tuple of pandas Timestamps);
-        If pandas Series, a binary series indicating normal/anomalous;
-        If dict, a dict of lists or Series where each key-value pair is
-        regarded as a type of anomaly.
+    anomaly_true: list, pandas Series, dict, or pandas DataFrame, optional
+        True anomalies.
 
-    anomaly_pred: list, pandas Series, or dict, optional
+        - If list, a list of known anomalous event time (pandas Timestamp or
+          2-tuple of pandas Timestamps);
+        - If pandas Series, a binary series indicating normal/anomalous;
+        - If dict, a dict of lists or Series where each key-value pair is
+          regarded as a type of anomaly.
+        - If pandas DataFrame, each column is regarded as a type of anomaly.
+
+    anomaly_pred: list, pandas Series, dict, or pandas DataFrame, optional
         Predicted anomalies.
-        If list, a list of known anomalous event time (pandas Timestamp or
-        2-tuple of pandas Timestamps);
-        If pandas Series, a binary series indicating normal/anomalous;
-        If dict, a dict of lists or Series where each key-value pair is
-        regarded as a type of anomaly.
+
+        - If list, a list of known anomalous event time (pandas Timestamp or
+          2-tuple of pandas Timestamps);
+        - If pandas Series, a binary series indicating normal/anomalous;
+        - If dict, a dict of lists or Series where each key-value pair is
+          regarded as a type of anomaly.
+        - If pandas DataFrame, each column is regarded as a type of anomaly.
 
     title: str, optional
-        Title of the plot.
+        Title of the plot. Default: None.
 
     axes: matplotlib axes object, or list of axes objects, optional
         Axes to plot at. The number of axes objects should be equal to the
-        number of plots.
+        number of plots. Default: None.
 
     figsize: tuple, optional
-        Size of the figure.
+        Size of the figure. Default: None.
 
     ts_linewidth: float, optional
         Line width of time series curves. Default: 0.5.
@@ -324,16 +328,15 @@ def plot(
         is only used to determine anomaly markers when marker_on_curve is on.
         Default: True.
 
-    curve_group: str or nested list of int, optional
+    curve_group: str or list, optional
         Groups of curves to be drawn at same plots.
 
-        If nested list, for exmaple, [[0], [1,2,5], [4,6]] means dimension #0
-        of time series is drawn separated, while dimensions #1, #2, #5 are
-        drawn together in the second plot, and dimensions #4 and #6 are drawn
-        togehter in the third plot.
-
-        If str, 'each' means every dimension is drawn in a separated plot,
-        'all' means all dimensions are drawn in the same plot.
+        - If str, 'each' means every dimension is drawn in a separated plot,
+          'all' means all dimensions are drawn in the same plot.
+        - If list, each element corresponds to a subplot, which is the name of
+          time series to plot in this subplot, or a list of names. For example,
+          ["A", ("B", "C")] means two subplots, where the first one contain
+          series A, while the second one contains series B and C.
 
         Default: 'each'.
 
@@ -346,27 +349,56 @@ def plot(
             Axes where the plot(s) is drawn.
 
     """
+    plt.style.use("seaborn-whitegrid")
 
-    df = ts
-    if isinstance(df, pd.Series):
-        df = df.to_frame()
-    num_col = len(df.columns)
+    # TODO: ts as None
+
+    # type check for ts
+    if isinstance(ts, pd.Series):
+        if ts.name is None:
+            df = ts.to_frame("Time Series")
+        else:
+            df = ts.to_frame()
+    elif isinstance(ts, pd.DataFrame):
+        df = ts.copy()
+    else:
+        raise TypeError("Argument `ts` must be a pandas Series or DataFrame.")
+
+    # check series index
+    if not isinstance(df.index, pd.DatetimeIndex):
+        raise TypeError(
+            "Index of the input time series must be a pandas "
+            "DatetimeIndex object."
+        )
+
+    # check duplicated column names
+    if df.columns.duplicated().any():
+        raise ValueError("Input DataFrame must have unique column names.")
+
+    # set up curve groups
     if curve_group == "each":
-        curve_group = [[i] for i in range(num_col)]
+        curve_group = list(df.columns)
     elif curve_group == "all":
-        curve_group = [list(range(num_col))]
+        curve_group = [tuple(df.columns)]
 
-    sns.set_style("whitegrid")
-
+    # set up default figure size
     if figsize is None:
         figsize = (16, 4 * len(curve_group))
 
+    # setup axes
     if axes is None:
         _, axes = plt.subplots(
             nrows=len(curve_group), figsize=figsize, sharex=True
         )
     if not isinstance(axes, (list, np.ndarray)):
         axes = [axes]
+
+    for ind, group in enumerate(curve_group):
+        if isinstance(group, str):
+            add_curve_to_axes(df[group], axes[ind])
+        else:
+            for curve in group:
+                add_curve_to_axes(df[curve], axes[ind])
 
     if any([len(cp) > 1 for cp in curve_group]) & (
         at_marker_on_curve | ap_marker_on_curve
