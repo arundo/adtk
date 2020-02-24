@@ -12,9 +12,10 @@ Version 0.6.0-dev
 - Fixed compatibility issues with pandas v1.0 (0.6.0-dev.16+pr.73)
 - Added Python 3.8 support (0.6.0-dev.17+pr.74)
 
-Version 0.5.5-dev
+Version 0.5.5 (Feb 24, 2020)
 ===================================
-- Fixed some typo in the documentation (0.5.5-dev.1+pr.70, 0.6.0-dev.14+pr.71)
+- Fixed a bug that empty lists were ignored by AndAggregator
+- Fixed some typo in the documentation
 
 Version 0.5.4 (Feb 18, 2020)
 ===================================
