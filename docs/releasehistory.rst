@@ -4,7 +4,7 @@ Release History
 
 Version 0.5.5 (Feb 24, 2020)
 ===================================
-- Fix a bug that empty lists are ignored by AndAggregator
+- Fixed a bug that empty lists were ignored by AndAggregator
 - Fixed some typo in the documentation
 
 Version 0.5.4 (Feb 18, 2020)
