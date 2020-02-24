@@ -129,6 +129,7 @@ class AndAggregator(_Aggregator):
                     pd.concat(time_window_stats, axis=1, join="outer")
                     .fillna(method="ffill")
                     .fillna(method="bfill")
+                    .fillna(0)
                 )
                 time_window_stats = time_window_stats.all(axis=1)
                 status = 0

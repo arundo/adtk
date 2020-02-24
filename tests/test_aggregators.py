@@ -29,6 +29,20 @@ def test_or_dict_of_lists():
         Timestamp("2017-1-11"),
     ]
 
+    lists = {
+        "A": [
+            (Timestamp("2017-1-1"), Timestamp("2017-1-2")),
+            (Timestamp("2017-1-5"), Timestamp("2017-1-8")),
+            Timestamp("2017-1-10"),
+        ],
+        "B": [],
+    }
+    assert aggt.OrAggregator().aggregate(lists) == [
+        (Timestamp("2017-1-1"), Timestamp("2017-1-2")),
+        (Timestamp("2017-1-5"), Timestamp("2017-1-8")),
+        Timestamp("2017-1-10"),
+    ]
+
 
 def test_or_df():
     """
@@ -92,6 +106,16 @@ def test_and_dict_of_lists():
         (Timestamp("2017-01-05 00:00:00"), Timestamp("2017-01-06 00:00:00")),
         (Timestamp("2017-1-7 00:00:00"), Timestamp("2017-1-8 00:00:00")),
     ]
+
+    lists = {
+        "A": [
+            (Timestamp("2017-1-1"), Timestamp("2017-1-2")),
+            (Timestamp("2017-1-5"), Timestamp("2017-1-8")),
+            Timestamp("2017-1-10"),
+        ],
+        "B": [],
+    }
+    assert aggt.AndAggregator().aggregate(lists) == []
 
 
 def test_and_df():
