@@ -11,6 +11,9 @@ class _Aggregator(_Model):
     def _fit(self, lists: Union[pd.DataFrame, Dict]) -> None:
         pass
 
+    def _fit_core(self, lists: Union[pd.DataFrame, Dict]) -> None:
+        pass
+
     def _predict(
         self, lists: Union[pd.DataFrame, Dict]
     ) -> Union[pd.DataFrame, pd.Series, List, Dict]:

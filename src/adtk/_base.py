@@ -22,7 +22,17 @@ class _Model(ABC):
         pass
 
     @abstractmethod
+    def _fit_core(self, ts: Union[pd.DataFrame, pd.Series]) -> None:
+        pass
+
+    @abstractmethod
     def _predict(
+        self, ts: Union[pd.DataFrame, pd.Series]
+    ) -> Union[pd.DataFrame, pd.Series]:
+        pass
+
+    @abstractmethod
+    def _predict_core(
         self, ts: Union[pd.DataFrame, pd.Series]
     ) -> Union[pd.DataFrame, pd.Series]:
         pass
