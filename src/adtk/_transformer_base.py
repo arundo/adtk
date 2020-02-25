@@ -27,9 +27,14 @@ class _Transformer1D(_Model1D):
         Parameters
         ----------
         ts: pandas.Series or pandas.DataFrame
-            Time series to be transformed.
-            If a DataFrame with k columns, k univariate transformers will be
-            applied to them independently.
+            Time series to be transformed. If a DataFrame with k columns, it is
+            treated as k independent univariate time series.
+
+            - If the transformer was trained with a Series, the transformer
+              will be applied to each univariate series independently;
+            - If the transformer was trained with a DataFrame, i.e. the
+              transformer is essentially k transformers, those transformers
+              will be applied to each univariate series respectivley.
 
         Returns
         -------
@@ -49,8 +54,9 @@ class _Transformer1D(_Model1D):
         ----------
         ts: pandas.Series or pandas.DataFrame
             Time series to be used for training and be transformed.
-            If a DataFrame with k columns, k univariate transformers will be
-            applied to them independently.
+            If a DataFrame with k columns, it is treated as k independent
+            univariate time series, and k univariate transformers will be
+            trained and applied to each series independently.
 
         Returns
         -------

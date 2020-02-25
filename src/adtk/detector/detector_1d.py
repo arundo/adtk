@@ -41,13 +41,6 @@ __all__ = [
 class CustomizedDetector1D(_Detector1D):
     """Detector derived from a user-given function and parameters.
 
-    This is an univariate detector. When it is applied to a multivariate time
-    series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
-
     Parameters
     ----------
     detect_func: function
@@ -138,13 +131,6 @@ class ThresholdAD(_Detector1D):
     This detector compares time series values with user-given thresholds, and
     identifies time points as anomalous when values are beyond the thresholds.
 
-    This is an univariate detector. When it is applied to a multivariate time
-    series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
-
     Parameters
     ----------
     low: float, optional
@@ -188,13 +174,6 @@ class QuantileAD(_Detector1D):
     This detector compares time series values with user-specified quantiles
     of historical data, and identifies time points as anomalous when values
     are beyond the thresholds.
-
-    This is an univariate detector. When it is applied to a multivariate time
-    series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     Parameters
     ----------
@@ -255,13 +234,6 @@ class InterQuartileRangeAD(_Detector1D):
     This detector compares time series values with 1st and 3rd quartiles of
     historical data, and identifies time points as anomalous when differences
     are beyond the inter-quartile range times a user-given factor c.
-
-    This is an univariate detector. When it is applied to a multivariate time
-    series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     Parameters
     ----------
@@ -339,13 +311,6 @@ class GeneralizedESDTestAD(_Detector1D):
     Please note a key assumption of generalized ESD test is that normal values
     follow an approximately normal distribution. Please only use this detector
     when this assumption holds.
-
-    This is an univariate detector. When it is applied to a multivariate time
-    series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     [1] Rosner, Bernard (May 1983), Percentage Points for a Generalized ESD
     Many-Outlier Procedure,Technometrics, 25(2), pp. 165-172.
@@ -437,13 +402,6 @@ class PersistAD(_Detector1D):
 
     This detector is internally implemented as a `Pipenet` object. Advanced
     users may learn more details by checking attribute `pipe_`.
-
-    This is an univariate detector. When it is applied to a multivariate time
-    series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     Parameters
     ----------
@@ -606,13 +564,6 @@ class LevelShiftAD(_Detector1D):
     This detector is internally implemented as a `Pipenet` object. Advanced
     users may learn more details by checking attribute `pipe_`.
 
-    This is an univariate detector. When it is applied to a multivariate time
-    series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
-
     Parameters
     ----------
     window: int, optional
@@ -757,13 +708,6 @@ class VolatilityShiftAD(_Detector1D):
 
     This detector is internally implemented as a `Pipenet` object. Advanced
     users may learn more details by checking attribute `pipe_`.
-
-    This is an univariate detector. When it is applied to a multivariate time
-    series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     Parameters
     ----------
@@ -926,13 +870,6 @@ class AutoregressionAD(_Detector1D):
     This detector is internally implemented aattribute `pipe_`.nced
     users may learn more details by checking attribute `pipe_`.
 
-    This is an univariate detector. When it is applied to a multivariate time
-    series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
-
     Parameters
     ----------
     n_steps: int, optional
@@ -1080,15 +1017,8 @@ class SeasonalAD(_Detector1D):
     anomalous when the residual of seasonal decomposition is beyond a threshold
     based on historical interquartile range.
 
-    This detector is internally implemented aattribute `pipe_`.nced
+    This detector is internally implemented as a `Pipenet` object. Advanced
     users may learn more details by checking attribute `pipe_`.
-
-    This is an univariate detector. When it is applied to a multivariate time
-    series (i.e. pandas DataFrame), it will be applied to every series
-    independently. All parameters can be defined as a dict object where key-
-    value pairs are series names (i.e. column names of DataFrame) and the
-    model parameter for that series. If not, then the same parameter will be
-    applied to all series.
 
     Parameters
     ----------

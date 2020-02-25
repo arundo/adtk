@@ -13,6 +13,12 @@ from sklearn.linear_model import LinearRegression
 
 from typing import List, Dict, Any
 
+# We have 4 types of models
+#   - one-to-one: input a univariate series, output a univariate series
+#   - one-to-many: input a univariate series, output a multivariate series
+#   - many-to-one: input a multivariate series, output a univariate series
+#   - many-to-many: input a multivariate series, output a multivariate series
+
 one2one_models = [
     detector.ThresholdAD(),
     detector.QuantileAD(),
@@ -60,7 +66,11 @@ many2one_models = [
 
 
 @pytest.mark.parametrize("model", one2one_models)
-def test_one2one_s2s_wo_name(model: Any) -> None:
+def test_one2one_s2s_w_name(model: Any) -> None:
+    """
+    if a one-to-one model is applied to a Series, it should keep the Series
+    name unchanged
+    """
     s_name = pd.Series(
         np.arange(100),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
@@ -71,7 +81,11 @@ def test_one2one_s2s_wo_name(model: Any) -> None:
 
 
 @pytest.mark.parametrize("model", one2one_models)
-def test_one2one_s2s_w_name(model: Any) -> None:
+def test_one2one_s2s_wo_name(model: Any) -> None:
+    """
+    if a one-to-one model is applied to a Series, it should keep the Series
+    name unchanged
+    """
     s_no_name = pd.Series(
         np.arange(100),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
@@ -82,6 +96,10 @@ def test_one2one_s2s_w_name(model: Any) -> None:
 
 @pytest.mark.parametrize("model", one2one_models)
 def test_one2one_df2df(model: Any) -> None:
+    """
+    if a one-to-one model is applied to a DataFrame, it should keep the column
+    names unchanged
+    """
     df = pd.DataFrame(
         np.arange(300).reshape(100, 3),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
@@ -93,6 +111,10 @@ def test_one2one_df2df(model: Any) -> None:
 
 @pytest.mark.parametrize("model", one2one_models)
 def test_one2one_df2list(model: Any) -> None:
+    """
+    if a one-to-one model (detector) is applied to a DataFrame and returns a
+    dict, the output dict keys should match the input column names
+    """
     if hasattr(model, "fit_detect"):
         df = pd.DataFrame(
             np.arange(300).reshape(100, 3),
@@ -108,18 +130,25 @@ def test_one2one_df2list(model: Any) -> None:
 
 @pytest.mark.parametrize("model", one2many_models)
 def test_one2many_s2df_w_name(model: Any) -> None:
+    """
+    if a one-to-many model is applied to a Series, the output should not have
+    prefix in column names, no matter whether the input Series has a name.
+    """
     s_name = pd.Series(
         np.arange(100),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
         name="A",
     )
     result = model.fit_predict(s_name)
-    assert all([col[:2] == "A_" for col in result.columns])
-    assert all([col[2:4] != "A_" for col in result.columns])
+    assert all([col[:2] != "A_" for col in result.columns])
 
 
 @pytest.mark.parametrize("model", one2many_models)
 def test_one2many_s2df_wo_name(model: Any) -> None:
+    """
+    if a one-to-many model is applied to a Series, the output should not have
+    prefix in column names, no matter whether the input Series has a name.
+    """
     s_no_name = pd.Series(
         np.arange(100),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
@@ -130,6 +159,10 @@ def test_one2many_s2df_wo_name(model: Any) -> None:
 
 @pytest.mark.parametrize("model", one2many_models)
 def test_one2many_df2df(model: Any) -> None:
+    """
+    if a one-to-many model is applied to a DataFrame, the output should have
+    prefix in column names to indicate the input columns they correspond.
+    """
     df = pd.DataFrame(
         np.arange(300).reshape(100, 3),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
@@ -151,6 +184,9 @@ def test_one2many_df2df(model: Any) -> None:
 
 @pytest.mark.parametrize("model", many2one_models)
 def test_many2one(model: Any) -> None:
+    """
+    The output Series from a many-to-one model should NOT have name
+    """
     df = pd.DataFrame(
         np.arange(300).reshape(100, 3),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),

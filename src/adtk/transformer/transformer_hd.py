@@ -189,7 +189,7 @@ class RegressionResidual(_TransformerHD):
                     set(features) - set(df.columns)
                 )
             )
-        residual = pd.Series(index=df.index)
+        residual = pd.Series(index=df.index, dtype="float64")
         if not df.dropna().empty:
             residual.loc[df.dropna().index] = df.dropna().loc[
                 :, target

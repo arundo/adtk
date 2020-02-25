@@ -16,9 +16,7 @@ events = [
 
 def test_expand_event_list() -> None:
     expanded_events = expand_events(
-        events,
-        left_expand=pd.Timedelta("1min"),
-        right_expand=pd.Timedelta("3min"),
+        events, left_expand="1min", right_expand="3min"
     )
     assert expanded_events == [
         (pd.Timestamp("2017-1-1 19:59:00"), pd.Timestamp("2017-1-1 20:11:59")),
@@ -29,9 +27,7 @@ def test_expand_event_list() -> None:
 
 def test_expand_event_dict() -> None:
     expanded_events = expand_events(
-        {"A": events, "B": events},
-        left_expand=pd.Timedelta("1min"),
-        right_expand=pd.Timedelta("3min"),
+        {"A": events, "B": events}, left_expand="1min", right_expand="3min"
     )
     assert expanded_events == {
         "A": [

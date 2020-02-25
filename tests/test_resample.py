@@ -17,7 +17,7 @@ def test_resample_given_new_dt() -> None:
         ],
     )
 
-    s_new = resample(s.rename("A"), pd.Timedelta("1min"))
+    s_new = resample(s.rename("A"), "1min")
     pd.testing.assert_series_equal(
         s_new,
         pd.Series(
@@ -29,7 +29,7 @@ def test_resample_given_new_dt() -> None:
         check_dtype=False,
     )
 
-    df_new = resample(pd.DataFrame({"A": s, "B": s}), pd.Timedelta("1min"))
+    df_new = resample(pd.DataFrame({"A": s, "B": s}), "1min")
     pd.testing.assert_frame_equal(
         df_new,
         pd.DataFrame(
