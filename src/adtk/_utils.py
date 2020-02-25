@@ -2,11 +2,13 @@
 
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Type, Optional
 
 
-def _get_all_subclasses_from_superclass(superclass: Any) -> Dict[str, str]:
-    result = dict()  # type: Dict[str, str]
+def _get_all_subclasses_from_superclass(
+    superclass: Type
+) -> Dict[str, Optional[str]]:
+    result = dict()  # type: Dict[str, Optional[str]]
     for sb in superclass.__subclasses__():
         if sb.__name__[0] != "_":
             result.update({sb.__name__: sb.__doc__})

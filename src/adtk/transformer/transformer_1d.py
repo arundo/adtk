@@ -64,10 +64,12 @@ class CustomizedTransformer1D(_Transformer1D):
 
     def __init__(
         self,
-        transform_func: Any = _default_params["transform_func"],
-        transform_func_params: Any = _default_params["transform_func_params"],
-        fit_func: Any = _default_params["fit_func"],
-        fit_func_params: Any = _default_params["fit_func_params"],
+        transform_func: Callable = _default_params["transform_func"],
+        transform_func_params: Dict[str, Any] = _default_params[
+            "transform_func_params"
+        ],
+        fit_func: Callable = _default_params["fit_func"],
+        fit_func_params: Dict[str, Any] = _default_params["fit_func_params"],
     ) -> None:
         self._fitted_transform_func_params = {}  # type: Dict
         super().__init__()

@@ -8,11 +8,9 @@ from typing import Dict, List, Any, Union, Optional
 
 class _Model(ABC):
     _need_fit = True  # type: bool
-    _default_params = {}  # type: Any
+    _default_params = {}  # type: Dict
 
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+    def __init__(self) -> None:
         self._fitted = (
             0
         )  # 0 for not fitted, 1 for fitted, 2 for univariate model fitted by DF
