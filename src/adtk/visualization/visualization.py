@@ -7,15 +7,20 @@ __all__ = ["plot"]
 
 
 def plot(
-    ts,
+    ts=None,
     anomaly=None,
     curve_group="each",
     anomaly_tag="span",
     match_curve_name=True,
+    ts_linewidth=0.5,
+    ts_color=None,
+    ts_alpha=1.0,
+    ts_marker=".",
+    ts_markersize=2,
     anomaly_color=None,
     anomaly_alpha=0.3,
     anomaly_marker="o",
-    anomaly_markersize=None,
+    anomaly_markersize=5,
     freq_as_period=True,
     axes=None,
     figsize=None,
@@ -80,65 +85,106 @@ def plot(
 
     Returns
     --------
-    matplotlib Axes object or list
+    matplotlib Axes object or list of Axes objects
         Axes where the plot(s) is drawn.
 
     """
+    # setup style
     plt.style.use("seaborn-whitegrid")
 
+    # initialize color generator
+    color_generator = ColorGenerator()
+
     # TODO: docstring example
-    # TODO: ts as None
 
-    # type check for ts
-    if isinstance(ts, pd.Series):
-        if ts.name is None:
-            df = ts.to_frame("Time Series")
+    if ts is not None:
+        # type check for ts
+        if isinstance(ts, pd.Series):
+            if ts.name is None:
+                df = ts.to_frame("Time Series")
+            else:
+                df = ts.to_frame()
+        elif isinstance(ts, pd.DataFrame):
+            df = ts.copy()
         else:
-            df = ts.to_frame()
-    elif isinstance(ts, pd.DataFrame):
-        df = ts.copy()
-    else:
-        raise TypeError("Argument `ts` must be a pandas Series or DataFrame.")
+            raise TypeError(
+                "Argument `ts` must be a pandas Series or DataFrame."
+            )
 
-    # check series index
-    if not isinstance(df.index, pd.DatetimeIndex):
-        raise TypeError(
-            "Index of the input time series must be a pandas "
-            "DatetimeIndex object."
+        # check series index
+        if not isinstance(df.index, pd.DatetimeIndex):
+            raise TypeError(
+                "Index of the input time series must be a pandas "
+                "DatetimeIndex object."
+            )
+
+        # check duplicated column names
+        if df.columns.duplicated().any():
+            raise ValueError("Input DataFrame must have unique column names.")
+
+        # set up curve groups
+        if curve_group == "each":
+            curve_group = list(df.columns)
+        elif curve_group == "all":
+            curve_group = [tuple(df.columns)]
+
+        # validate curve groups
+        curve2axes = _validate_curve_group(df, curve_group)
+
+        # set up default figure size
+        if figsize is None:
+            figsize = (16, 4 * len(curve_group))
+
+        # setup axes
+        if axes is None:
+            _, axes = plt.subplots(
+                nrows=len(curve_group), figsize=figsize, sharex=True
+            )
+        if not isinstance(axes, (list, np.ndarray)):
+            axes = [axes]
+        for ax in axes:
+            ax.xaxis_date()
+
+        # expand ts properties to a dict, if not yet
+        ts_color = _assign_properties(ts_color, df)
+        ts_linewidth = _assign_properties(ts_linewidth, df, 0.5)
+        ts_marker = _assign_properties(ts_marker, df, ".")
+        ts_markersize = _assign_properties(ts_markersize, df, 2)
+        ts_alpha = _assign_properties(ts_alpha, df, 1.0)
+
+        # plot curves
+        _plot_curve(
+            df,
+            axes,
+            curve2axes,
+            ts_color,
+            ts_linewidth,
+            ts_marker,
+            ts_markersize,
+            ts_alpha,
+            color_generator,
         )
+    else:  # no time series, just event
+        df = pd.DataFrame(dtype=int)
+        curve2axes = dict()
 
-    # check duplicated column names
-    if df.columns.duplicated().any():
-        raise ValueError("Input DataFrame must have unique column names.")
+        # never try to match curve name, because there is no curve anyway
+        match_curve_name = False
 
-    # set up curve groups
-    if curve_group == "each":
-        curve_group = list(df.columns)
-    elif curve_group == "all":
-        curve_group = [tuple(df.columns)]
+        # never try to plot on curve, because there is no curve anyway
+        anomaly_tag = "span"
 
-    # validate curve groups
-    curve2axes = _validate_curve_group(df, curve_group)
+        # setup figure
+        if figsize is None:
+            figsize = (16, 4)
 
-    # set up default figure size
-    if figsize is None:
-        figsize = (16, 4 * len(curve_group))
-
-    # setup axes
-    if axes is None:
-        _, axes = plt.subplots(
-            nrows=len(curve_group), figsize=figsize, sharex=True
-        )
-    if not isinstance(axes, (list, np.ndarray)):
-        axes = [axes]
-
-    # plot curves
-    for ind, group in enumerate(curve_group):
-        if isinstance(group, str):  # this group has a single curve
-            _add_curve_to_axes(df, group, axes[ind])
-        else:  # this group has a list of curves
-            for curve in group:
-                _add_curve_to_axes(df, curve, axes[ind])
+        # setup axes
+        if axes is None:
+            _, axes = plt.subplots(figsize=figsize)
+        if not isinstance(axes, (list, np.ndarray)):
+            axes = [axes]
+        for ax in axes:
+            ax.xaxis_date()
 
     if anomaly is not None:
         # validate anomaly
@@ -147,15 +193,15 @@ def plot(
         if isinstance(anomaly, (list, pd.Series)):
             anomaly = {"Anomaly": anomaly}
 
-        # expand tree structure of input properties to match that of `anomaly`
-        anomaly_tag = _assign_properties(anomaly_tag, anomaly)
+        # expand tree struct of anomaly properties to match that of `anomaly`
+        anomaly_tag = _assign_properties(anomaly_tag, anomaly, "span")
         anomaly_color = _assign_properties(anomaly_color, anomaly)
-        anomaly_alpha = _assign_properties(anomaly_alpha, anomaly)
-        anomaly_marker = _assign_properties(anomaly_marker, anomaly)
-        anomaly_markersize = _assign_properties(anomaly_markersize, anomaly)
+        anomaly_alpha = _assign_properties(anomaly_alpha, anomaly, 0.3)
+        anomaly_marker = _assign_properties(anomaly_marker, anomaly, "o")
+        anomaly_markersize = _assign_properties(anomaly_markersize, anomaly, 5)
 
         # plot anomalies
-        _add_anomaly_to_plot(
+        _plot_anomaly(
             anomaly,
             axes,
             df,
@@ -167,10 +213,11 @@ def plot(
             anomaly_alpha,
             match_curve_name,
             freq_as_period,
+            color_generator,
         )
 
     # display legend
-    if legend:
+    if legend and ((ts is not None) or (anomaly is not None)):
         for ax in axes:
             ax.legend()
 
@@ -181,7 +228,9 @@ def _validate_curve_group(df, curve_group):
     "Validate curve group, and return inverse map."
     curve2group = {col: set() for col in df.columns}
     for ind, group in enumerate(curve_group):
-        if isinstance(group, str):  # this group has a single curve
+        if not isinstance(
+            group, (list, tuple)
+        ):  # this group has a single curve
             if group in set(df.columns):
                 curve2group[group].add(ind)
             else:
@@ -199,19 +248,44 @@ def _validate_curve_group(df, curve_group):
     return curve2group
 
 
-def _add_curve_to_axes(df, curve_name, axes):
-    """
-    Add a curve to an axes
-    """
-    axes.plot(
-        df.index,
-        df[curve_name],
-        color="C{}".format(list(df.columns).index(curve_name)),
-        label=curve_name,
-    )
+def _plot_curve(
+    df,
+    axes,
+    curve2axes,
+    ts_color,
+    ts_linewidth,
+    ts_marker,
+    ts_markersize,
+    ts_alpha,
+    color_generator,
+):
+    "Plot all curves"
+    for col, axes_inds in curve2axes.items():
+        color = color_generator.emit(ts_color[col])
+        for axes_ind in axes_inds:
+            df[col].plot(
+                ax=axes[axes_ind],
+                color=color,
+                linewidth=ts_linewidth[col],
+                marker=ts_marker[col],
+                markersize=ts_markersize[col],
+                alpha=ts_alpha[col],
+                label=str(col),
+            )
+            # axes[axes_ind].plot_date(
+            #     df.index,
+            #     df[col],
+            #     fmt="-",
+            #     color=color,
+            #     linewidth=ts_linewidth[col],
+            #     marker=ts_marker[col],
+            #     markersize=ts_markersize[col],
+            #     alpha=ts_alpha[col],
+            #     label=str(col),
+            # )
 
 
-def _add_anomaly_to_plot(
+def _plot_anomaly(
     anomaly,
     axes,
     df,
@@ -223,34 +297,47 @@ def _add_anomaly_to_plot(
     anomaly_alpha,
     match_curve_name,
     freq_as_period,
+    color_generator,
     anomaly_name=None,
+    anomaly_label=None,
 ):
     if isinstance(anomaly, (list, pd.Series)):
+        anomaly_color = color_generator.emit(anomaly_color)
         if anomaly_tag == "span":
             # turn anomaly into list, if not yet
             if isinstance(anomaly, pd.Series):
-                anomaly = to_events(
-                    anomaly,
-                    freq_as_period=freq_as_period,
-                    merge_consecutive=True,
-                )
-            else:
-                anomaly = validate_events(anomaly, point_as_interval=True)
+                anomaly = to_events(anomaly, freq_as_period=freq_as_period)
+            anomaly = validate_events(anomaly, point_as_interval=True)
             if match_curve_name and (
                 anomaly_name in set(df.columns)
             ):  # match found, plot on it
                 for axes_ind in curve2axes[anomaly_name]:
-                    _plot_anomaly_list_to_axes(
+                    _add_anomaly_list_to_axes(
                         anomaly,
                         axes[axes_ind],
                         anomaly_color,
                         anomaly_alpha,
-                        anomaly_name,
+                        (
+                            anomaly_label
+                            if (anomaly_label != anomaly_name)
+                            else "Anomaly - {}".format(anomaly_name)
+                        ),
                     )
             else:  # not match found or don't match, plot on all
                 for ax in axes:
-                    _plot_anomaly_list_to_axes(
-                        anomaly, ax, anomaly_color, anomaly_alpha, anomaly_name
+                    _add_anomaly_list_to_axes(
+                        anomaly,
+                        ax,
+                        anomaly_color,
+                        anomaly_alpha,
+                        (
+                            "Anomaly - {}".format(anomaly_name)
+                            if (
+                                (anomaly_label == anomaly_name)
+                                and (anomaly_name in set(df.columns))
+                            )
+                            else anomaly_label
+                        ),
                     )
         elif anomaly_tag == "marker":
             # turn anomaly into binary series, if not yet
@@ -272,27 +359,44 @@ def _add_anomaly_to_plot(
                 anomaly_name in set(df.columns)
             ):  # match found, plot on it
                 for axes_ind in curve2axes[anomaly_name]:
-                    _plot_anomaly_series_to_curve(
+                    _add_anomaly_series_to_curve(
                         anomaly,
                         axes[axes_ind],
                         df[anomaly_name],
                         anomaly_color,
                         anomaly_marker,
                         anomaly_markersize,
-                        anomaly_name,
+                        (
+                            anomaly_label
+                            if (anomaly_label != anomaly_name)
+                            else "Anomaly - {}".format(anomaly_name)
+                        ),
                     )
             else:  # not match found or don't match, plot on all
+                # hasLegend is an auxilary variable to make sure an anomaly
+                # series only appears once in legend in an axes
+                hasLegend = [False] * len(axes)
                 for curve, axes_inds in curve2axes.items():
                     for axes_ind in axes_inds:
-                        _plot_anomaly_series_to_curve(
+                        _add_anomaly_series_to_curve(
                             anomaly,
                             axes[axes_ind],
                             df[curve],
                             anomaly_color,
                             anomaly_marker,
                             anomaly_markersize,
-                            anomaly_name,
+                            (
+                                "Anomaly - {}".format(anomaly_name)
+                                if (
+                                    (anomaly_label == anomaly_name)
+                                    and (anomaly_name in set(df.columns))
+                                )
+                                else anomaly_label
+                            )
+                            if not hasLegend[axes_ind]
+                            else None,
                         )
+                        hasLegend[axes_ind] = True
         else:
             raise ValueError(
                 "An anomaly tag must be either 'span' or 'marker'."
@@ -303,7 +407,7 @@ def _add_anomaly_to_plot(
             if isinstance(anomaly, pd.DataFrame)
             else anomaly.keys()
         ):
-            _add_anomaly_to_plot(
+            _plot_anomaly(
                 anomaly[key],
                 axes,
                 df,
@@ -315,7 +419,9 @@ def _add_anomaly_to_plot(
                 anomaly_alpha[key],
                 match_curve_name,
                 freq_as_period,
-                anomaly_name=(
+                color_generator,
+                anomaly_name=key,
+                anomaly_label=(
                     "{} - {}".format(anomaly_name, key)
                     if (anomaly_name is not None)
                     else key
@@ -328,37 +434,49 @@ def _add_anomaly_to_plot(
         )
 
 
-def _plot_anomaly_list_to_axes(
-    anomaly, ax, anomaly_color, anomaly_alpha, anomaly_name
+def _add_anomaly_list_to_axes(
+    anomaly, ax, anomaly_color, anomaly_alpha, anomaly_label
 ):
+    "Add a list of anomalous event to an axes as spans"
     for i, event in enumerate(anomaly):
         ax.axvspan(
             xmin=event[0],
             xmax=event[1],
             color=anomaly_color,
             alpha=anomaly_alpha,
-            label=(anomaly_name if i == 0 else None),
+            label=(anomaly_label if i == 0 else None),
         )
 
 
-def _plot_anomaly_series_to_curve(
+def _add_anomaly_series_to_curve(
     anomaly,
     ax,
     s,
     anomaly_color,
     anomaly_marker,
     anomaly_markersize,
-    anomaly_name,
+    anomaly_label,
 ):
+    "Add anomalies represented by a binary series as markers on a curve"
     anomaly_curve = s.loc[anomaly == 1]
-    ax.plot(
-        anomaly_curve,
+    anomaly_curve.plot(
+        ax=ax,
         linewidth=0,
         marker=anomaly_marker,
         markersize=anomaly_markersize,
         color=anomaly_color,
-        label=anomaly_name,
+        label=anomaly_label,
     )
+    # ax.plot_date(
+    #     anomaly_curve.index,
+    #     anomaly_curve,
+    #     fmt="-",
+    #     linewidth=0,
+    #     marker=anomaly_marker,
+    #     markersize=anomaly_markersize,
+    #     color=anomaly_color,
+    #     label=anomaly_label,
+    # )
 
 
 def _validate_anomaly(anomaly):
@@ -380,7 +498,7 @@ def _validate_anomaly(anomaly):
         )
 
 
-def _assign_properties(prop, anomaly):
+def _assign_properties(prop, anomaly, default=None):
     "Expand the tree structure of `prop` to that of `anomaly`"
     if (not isinstance(prop, dict)) and isinstance(
         anomaly, (dict, pd.DataFrame)
@@ -407,7 +525,8 @@ def _assign_properties(prop, anomaly):
         ):
             return {
                 key: _assign_properties(
-                    (prop[key] if (key in prop.keys()) else None), anomaly[key]
+                    (prop[key] if (key in prop.keys()) else default),
+                    anomaly[key],
                 )
                 for key in (
                     anomaly.keys()
@@ -419,3 +538,15 @@ def _assign_properties(prop, anomaly):
             raise ValueError(
                 "Property dict and anomaly dict are inconsistent."
             )
+
+
+class ColorGenerator:
+    def __init__(self):
+        self.latest_auto_color = -1
+
+    def emit(self, color=None):
+        if color is not None:
+            return color
+        else:
+            self.latest_auto_color += 1
+            return "C{}".format(self.latest_auto_color)
