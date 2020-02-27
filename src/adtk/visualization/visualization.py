@@ -263,19 +263,8 @@ def _plot_curve(
     for col, axes_inds in curve2axes.items():
         color = color_generator.emit(ts_color[col])
         for axes_ind in axes_inds:
-            df[col].plot(
-                ax=axes[axes_ind],
-                color=color,
-                linewidth=ts_linewidth[col],
-                marker=ts_marker[col],
-                markersize=ts_markersize[col],
-                alpha=ts_alpha[col],
-                label=str(col),
-            )
-            # axes[axes_ind].plot_date(
-            #     df.index,
-            #     df[col],
-            #     fmt="-",
+            # df[col].plot(
+            #     ax=axes[axes_ind],
             #     color=color,
             #     linewidth=ts_linewidth[col],
             #     marker=ts_marker[col],
@@ -283,6 +272,17 @@ def _plot_curve(
             #     alpha=ts_alpha[col],
             #     label=str(col),
             # )
+            axes[axes_ind].plot_date(
+                df.index,
+                df[col],
+                fmt="-",
+                color=color,
+                linewidth=ts_linewidth[col],
+                marker=ts_marker[col],
+                markersize=ts_markersize[col],
+                alpha=ts_alpha[col],
+                label=str(col),
+            )
 
 
 def _plot_anomaly(
@@ -459,24 +459,24 @@ def _add_anomaly_series_to_curve(
 ):
     "Add anomalies represented by a binary series as markers on a curve"
     anomaly_curve = s.loc[anomaly == 1]
-    anomaly_curve.plot(
-        ax=ax,
-        linewidth=0,
-        marker=anomaly_marker,
-        markersize=anomaly_markersize,
-        color=anomaly_color,
-        label=anomaly_label,
-    )
-    # ax.plot_date(
-    #     anomaly_curve.index,
-    #     anomaly_curve,
-    #     fmt="-",
+    # anomaly_curve.plot(
+    #     ax=ax,
     #     linewidth=0,
     #     marker=anomaly_marker,
     #     markersize=anomaly_markersize,
     #     color=anomaly_color,
     #     label=anomaly_label,
     # )
+    ax.plot_date(
+        anomaly_curve.index,
+        anomaly_curve,
+        fmt="-",
+        linewidth=0,
+        marker=anomaly_marker,
+        markersize=anomaly_markersize,
+        color=anomaly_color,
+        label=anomaly_label,
+    )
 
 
 def _validate_anomaly(anomaly):

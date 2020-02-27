@@ -39,7 +39,7 @@ daily) traffic pattern. The data used here is the NYC taxi traffic dataset from
         .. figure:: images/quickstart0.png
                 :width: 800px
                 :align: center
-                :height: 200
+                :height: 150
                 :alt: quickstart0
 
 3. Detect violation of seasonal pattern.
@@ -54,7 +54,7 @@ daily) traffic pattern. The data used here is the NYC taxi traffic dataset from
         .. figure:: images/quickstart1.png
                 :width: 800px
                 :align: center
-                :height: 200
+                :height: 150
                 :alt: quickstart1
 
 4. If known anomalies are available, cross check with detection results.
@@ -85,7 +85,7 @@ daily) traffic pattern. The data used here is the NYC taxi traffic dataset from
         .. figure:: images/quickstart2.png
                 :width: 800px
                 :align: center
-                :height: 200
+                :height: 150
                 :alt: quickstart2
 
 
@@ -110,12 +110,13 @@ daily) traffic pattern. The data used here is the NYC taxi traffic dataset from
                 2015-01-31 23:30:00    26288
                 Freq: 30T, Name: Traffic, Length: 1320, dtype: int64
                 >>> anomalies_pred = seasonal_ad.detect(s_test)
-                >>> plot(s_test, anomaly=anomalies_pred, ts_linewidth=1, anomaly_color='red', anomaly_tag="marker")
+                >>> plot(s_test, anomaly=anomalies_pred,
+                         ts_linewidth=1, anomaly_color='red', anomaly_tag="marker")
 
         .. figure:: images/quickstart3.png
                 :width: 800px
                 :align: center
-                :height: 200
+                :height: 150
                 :alt: quickstart3
 
 For more examples, please check :ref:`examples`. But before that, we recommend
