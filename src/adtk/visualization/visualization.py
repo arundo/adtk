@@ -10,13 +10,13 @@ def plot(
     ts=None,
     anomaly=None,
     curve_group="each",
-    anomaly_tag="span",
-    match_curve_name=True,
     ts_linewidth=0.5,
     ts_color=None,
     ts_alpha=1.0,
     ts_marker=".",
     ts_markersize=2,
+    match_curve_name=True,
+    anomaly_tag="span",
     anomaly_color=None,
     anomaly_alpha=0.3,
     anomaly_marker="o",
@@ -26,11 +26,11 @@ def plot(
     figsize=None,
     legend=True,
 ):
-    """Plot time series and anomalies.
+    """Plot time series and/or anomalies.
 
     Parameters
     ----------
-    ts: pandas Series or DataFrame
+    ts: pandas Series or DataFrame, optional
         Time series to plot.
 
     anomaly: list, pandas Series, DataFrame, or (nested) dict of them, optional
@@ -56,10 +56,60 @@ def plot(
 
         Default: 'each'.
 
+    ts_linewidth: float or dict, optional
+        Line width of each time series curve.
+
+        - If float, all curves have the same line width.
+        - If dict, the key is series name, the value is line width of that
+          series.
+
+        Default: 0.5.
+
+    ts_color: str or dict, optional
+        Color of each time series curve.
+
+        - If str, all curves have the same color.
+        - If dict, the key is series name, the value is color of that series.
+        - If None, color will be assigned automatically.
+
+        Default: None.
+
+    ts_alpha: float or dict, optional
+        Opacity of each time series curve.
+
+        - If float, all curves have the same opacity.
+        - If dict, the key is series name, the value is opacity of that series.
+
+        Default: 1.0.
+
+    ts_marker: str or dict, optional
+        Marker type of each time series curve.
+
+        - If str, all curves have the same marker type.
+        - If dict, the key is series name, the value is marker type of that
+          series.
+
+        Default: ".".
+
+    ts_markersize: int or dict, optional
+        Marker size of each time series curve.
+
+        - If int, all curves have the same marker size.
+        - If dict, the key is series name, the value is marker size of that
+          series.
+
+        Default: 2.
+
+    match_curve_name: bool, optional
+        Whether to plot anomaly with corresponding curve by matching series
+        names. If False, plot anomaly with all curves.
+        Default: True.
+
     anomaly_tag: str, or (nested) dict, optional
         Plot anomaly as horizontal spans or markers on curves.
 
-        - If str, either 'span' or 'marker'
+        - If str, either 'span' or 'marker', all anomalies are marked with the
+          same type of tag.
         - If (nested) dict, it must have a tree structure identical to or
           smaller than that of (nested) dict argument `anomaly`, which can
           define tags for all leaf nodes in `anomaly`.
@@ -68,24 +118,82 @@ def plot(
 
         See ??? for examples
 
-    match_curve_name: bool, optional
-        Whether to plot anomaly with corresponding curve by matching series
-        names. If False, plot anomaly with all curves.
+    anomaly_color: str, or (nested) dict, optional
+        Color of each anomaly tag.
+
+        - If str, all anomalies are marked with the same color.
+        - If (nested) dict, it must have a tree structure identical to or
+          smaller than that of (nested) dict argument `anomaly`, which can
+          define colors for all leaf nodes in `anomaly`.
+        - If None, color will be assigned automatically.
+
+        Default: None.
+
+        See ??? for examples
+
+    anomaly_alpha: float, or (nested) dict, optional
+        Opacity of each anomaly tag. Only used for anomaly drawn as horizontal
+        spans.
+
+        - If float, all anomalies are marked with the same opacity.
+        - If (nested) dict, it must have a tree structure identical to or
+          smaller than that of (nested) dict argument `anomaly`, which can
+          define opacity for all leaf nodes in `anomaly`.
+
+        Default: 0.3.
+
+        See ??? for examples
+
+    anomaly_marker: str, or (nested) dict, optional
+        Marker type of each anomaly marker. Only used for anomaly drawn as
+        markers on curves.
+
+        - If str, all anomalies are marked with the same type of marker.
+        - If (nested) dict, it must have a tree structure identical to or
+          smaller than that of (nested) dict argument `anomaly`, which can
+          define marker types for all leaf nodes in `anomaly`.
+
+        Default: "o".
+
+        See ??? for examples
+
+    anomaly_markersize: int, or (nested) dict, optional
+        Marker size of each anomaly marker. Only used for anomaly drawn as
+        markers on curves.
+
+        - If int, all anomalies are marked with the same size of marker.
+        - If (nested) dict, it must have a tree structure identical to or
+          smaller than that of (nested) dict argument `anomaly`, which can
+          define marker sizes for all leaf nodes in `anomaly`.
+
+        Default: 4.
+
+        See ??? for examples
+
+    freq_as_period: bool, optional
+        Whether to treat time stamps following regular frequency as time
+        spans. E.g. time index [2010-01-01, 2010-02-01, 2010-03-01, 2010-04-01,
+        2010-05-01] follows monthly frequency, and each time stamp represents
+        that month if freq_as_period is True. Otherwsie, each time stamp
+        represents the time point 00:00:00 on the first day of that month. This
+        is only used when anomaly given as binary series.
         Default: True.
 
-    axes: matplotlib Axes object, or list of Axes objects, optional
+    axes: matplotlib Axes object, or array of Axes objects, optional
         Axes to plot at. The number of Axes objects should be equal to the
-        number of plots. Default: None.
+        number of plots. If not specified, figure axes will be automatically
+        generated. Default: None.
 
     figsize: tuple, optional
-        Size of the figure. Default: None.
+        Size of the figure. If not specified, the size of each subplot is 16 x
+        4. Default: None.
 
     legend: bool, optional
         Whether to show legend in the plot. Default: True.
 
     Returns
     --------
-    matplotlib Axes object or list of Axes objects
+    matplotlib Axes object or array of Axes objects
         Axes where the plot(s) is drawn.
 
     """
@@ -95,8 +203,7 @@ def plot(
     # initialize color generator
     color_generator = ColorGenerator()
 
-    # TODO: docstring example
-
+    # plot time series
     if ts is not None:
         # type check for ts
         if isinstance(ts, pd.Series):
@@ -186,6 +293,7 @@ def plot(
         for ax in axes:
             ax.xaxis_date()
 
+    # plot anomaly
     if anomaly is not None:
         # validate anomaly
         _validate_anomaly(anomaly)
