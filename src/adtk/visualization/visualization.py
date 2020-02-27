@@ -20,7 +20,7 @@ def plot(
     anomaly_color=None,
     anomaly_alpha=0.3,
     anomaly_marker="o",
-    anomaly_markersize=5,
+    anomaly_markersize=4,
     freq_as_period=True,
     axes=None,
     figsize=None,
@@ -198,7 +198,7 @@ def plot(
         anomaly_color = _assign_properties(anomaly_color, anomaly)
         anomaly_alpha = _assign_properties(anomaly_alpha, anomaly, 0.3)
         anomaly_marker = _assign_properties(anomaly_marker, anomaly, "o")
-        anomaly_markersize = _assign_properties(anomaly_markersize, anomaly, 5)
+        anomaly_markersize = _assign_properties(anomaly_markersize, anomaly, 4)
 
         # plot anomalies
         _plot_anomaly(
