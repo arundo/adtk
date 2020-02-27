@@ -116,8 +116,6 @@ def plot(
 
         Default: "span".
 
-        See ??? for examples
-
     anomaly_color: str, or (nested) dict, optional
         Color of each anomaly tag.
 
@@ -128,8 +126,6 @@ def plot(
         - If None, color will be assigned automatically.
 
         Default: None.
-
-        See ??? for examples
 
     anomaly_alpha: float, or (nested) dict, optional
         Opacity of each anomaly tag. Only used for anomaly drawn as horizontal
@@ -142,8 +138,6 @@ def plot(
 
         Default: 0.3.
 
-        See ??? for examples
-
     anomaly_marker: str, or (nested) dict, optional
         Marker type of each anomaly marker. Only used for anomaly drawn as
         markers on curves.
@@ -155,8 +149,6 @@ def plot(
 
         Default: "o".
 
-        See ??? for examples
-
     anomaly_markersize: int, or (nested) dict, optional
         Marker size of each anomaly marker. Only used for anomaly drawn as
         markers on curves.
@@ -167,8 +159,6 @@ def plot(
           define marker sizes for all leaf nodes in `anomaly`.
 
         Default: 4.
-
-        See ??? for examples
 
     freq_as_period: bool, optional
         Whether to treat time stamps following regular frequency as time
