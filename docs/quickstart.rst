@@ -39,7 +39,7 @@ daily) traffic pattern. The data used here is the NYC taxi traffic dataset from
         .. figure:: images/quickstart0.png
                 :width: 800px
                 :align: center
-                :height: 150
+                :height: 200
                 :alt: quickstart0
 
 3. Detect violation of seasonal pattern.
@@ -54,7 +54,7 @@ daily) traffic pattern. The data used here is the NYC taxi traffic dataset from
         .. figure:: images/quickstart1.png
                 :width: 800px
                 :align: center
-                :height: 150
+                :height: 200
                 :alt: quickstart1
 
 4. If known anomalies are available, cross check with detection results.
@@ -85,7 +85,7 @@ daily) traffic pattern. The data used here is the NYC taxi traffic dataset from
         .. figure:: images/quickstart2.png
                 :width: 800px
                 :align: center
-                :height: 150
+                :height: 200
                 :alt: quickstart2
 
 
@@ -115,7 +115,7 @@ daily) traffic pattern. The data used here is the NYC taxi traffic dataset from
         .. figure:: images/quickstart3.png
                 :width: 800px
                 :align: center
-                :height: 150
+                :height: 200
                 :alt: quickstart3
 
 For more examples, please check :ref:`examples`. But before that, we recommend
