@@ -7,7 +7,7 @@ from math import gcd
 import numpy as np
 import pandas as pd
 
-from typing import List, Union, Tuple, Any, Dict, Optional, Sequence
+from typing import List, Union, Tuple, Dict, Optional, overload
 
 __all__ = [
     "validate_series",
@@ -17,7 +17,7 @@ __all__ = [
     "validate_events",
     "resample",
     "split_train_test",
-]  # type: List[str]
+]
 
 
 def validate_series(
@@ -109,9 +109,9 @@ def validate_series(
 
 
 def validate_events(
-    event_list: Sequence[Union[Tuple[pd.Timestamp, pd.Timestamp], int, None]],
+    event_list: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
     point_as_interval: bool = False,
-) -> List[Tuple[pd.Timestamp, pd.Timestamp]]:
+) -> List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]:
     """Validate event list.
 
     This process will check some common issues in an event list (a list of time
@@ -150,8 +150,8 @@ def validate_events(
                 "or a 2-tuple of Timestamps."
             )
 
-    time_window_ends = []
-    time_window_type = []
+    time_window_ends = []  # type: List[pd.Timestamp]
+    time_window_type = []  # type: List[int]
     for time_window in event_list:
         if isinstance(time_window, tuple):
             if time_window[0] <= time_window[1]:
@@ -166,24 +166,26 @@ def validate_events(
             time_window_type.append(-1)
     time_window_end_series = pd.Series(
         time_window_type, index=pd.DatetimeIndex(time_window_ends), dtype=int
-    )
+    )  # type: pd.Series
     time_window_end_series.sort_index(kind="mergesort", inplace=True)
     time_window_end_series = time_window_end_series.cumsum()
     status = 0
-    merged_event_list = []  # type: List
-    for t, v in time_window_end_series.iteritems():
+    merged_event_list = (
+        []
+    )  # type: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    for t, v in time_window_end_series.iteritems():  # type: pd.Timestamp, int
         if (status == 0) and (v > 0):
-            start = t
+            start = t  # type: pd.Timestamp
             status = 1
         if (status == 1) and (v <= 0):
-            end = t
+            end = t  # type: pd.Timestamp
             merged_event_list.append([start, end])
             status = 0
     for i in range(1, len(merged_event_list)):
-        this_start = merged_event_list[i][0]
-        this_end = merged_event_list[i][1]
-        last_start = merged_event_list[i - 1][0]
-        last_end = merged_event_list[i - 1][1]
+        this_start = merged_event_list[i][0]  # type: pd.Timestamp
+        this_end = merged_event_list[i][1]  # type: pd.Timestamp
+        last_start = merged_event_list[i - 1][0]  # type: pd.Timestamp
+        last_end = merged_event_list[i - 1][1]  # type: pd.Timestamp
         if last_end + pd.Timedelta("1ns") >= this_start:
             merged_event_list[i] = [last_start, this_end]
             merged_event_list[i - 1] = None
@@ -195,11 +197,32 @@ def validate_events(
     return merged_event_list
 
 
+@overload
+def to_events(
+    labels: pd.Series,
+    freq_as_period: bool = True,
+    merge_consecutive: Optional[bool] = None,
+) -> List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]:
+    ...
+
+
+@overload
+def to_events(  # type: ignore
+    labels: pd.DataFrame,
+    freq_as_period: bool = True,
+    merge_consecutive: Optional[bool] = None,
+) -> Dict[str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]]:
+    ...
+
+
 def to_events(
     labels: Union[pd.Series, pd.DataFrame],
     freq_as_period: bool = True,
     merge_consecutive: Optional[bool] = None,
-) -> Union[List[pd.Timestamp], Dict[str, Any]]:
+) -> Union[
+    List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    Dict[str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]],
+]:
     """Convert binary label series to event list(s).
 
     Parameters
@@ -258,23 +281,30 @@ def to_events(
                     start=labels.index[1],
                     periods=len(labels.index),
                     freq=labels.index.freq,
-                ) - pd.Timedelta("1ns")
-                return list(
-                    zip(list(labels.index[labels]), list(period_end[labels]))
-                )
+                ) - pd.Timedelta(
+                    "1ns"
+                )  # type: pd.DatetimeIndex
+                return [
+                    (start, end) if start != end else start
+                    for start, end in zip(
+                        list(labels.index[labels]), list(period_end[labels])
+                    )
+                ]
             else:
                 return list(labels.index[labels])
         else:
-            labels_values = labels.values.astype(int).reshape(-1, 1)
+            labels_values = labels.values.astype(int).reshape(
+                -1, 1
+            )  # type: np.ndarray
             mydiff = np.vstack(
                 [
                     labels_values[0, :] - 0,
                     np.diff(labels_values, axis=0),
                     0 - labels_values[-1, :],
                 ]
-            )
-            starts = np.argwhere(mydiff == 1)
-            ends = np.argwhere(mydiff == -1)
+            )  # type: np.ndarray
+            starts = np.argwhere(mydiff == 1)  # type: np.ndarray
+            ends = np.argwhere(mydiff == -1)  # type: np.ndarray
             if freq_as_period and (labels.index.freq is not None):
                 period_end = pd.date_range(
                     start=labels.index[1],
@@ -282,20 +312,16 @@ def to_events(
                     freq=labels.index.freq,
                 ) - pd.Timedelta("1ns")
                 return [
-                    (
-                        pd.Timestamp(labels.index[start]),
-                        pd.Timestamp(period_end[end - 1]),
-                    )
+                    (labels.index[start], period_end[end - 1])
+                    if labels.index[start] != period_end[end - 1]
+                    else labels.index[start]
                     for start, end in zip(starts[:, 0], ends[:, 0])
                 ]
             else:
                 return [
-                    (
-                        pd.Timestamp(labels.index[start]),
-                        pd.Timestamp(labels.index[end - 1]),
-                    )
+                    (labels.index[start], labels.index[end - 1])
                     if start != end - 1
-                    else pd.Timestamp(labels.index[start])
+                    else labels.index[start]
                     for start, end in zip(starts[:, 0], ends[:, 0])
                 ]
     else:
@@ -305,8 +331,33 @@ def to_events(
         }
 
 
+@overload
 def to_labels(
-    lists: Union[List, Dict],
+    lists: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    time_index: pd.DatetimeIndex,
+    freq_as_period: bool = True,
+) -> pd.Series:
+    ...
+
+
+@overload
+def to_labels(
+    lists: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    time_index: pd.DatetimeIndex,
+    freq_as_period: bool = True,
+) -> pd.DataFrame:
+    ...
+
+
+def to_labels(
+    lists: Union[
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
     time_index: pd.DatetimeIndex,
     freq_as_period: bool = True,
 ) -> Union[pd.Series, pd.DataFrame]:
@@ -354,15 +405,20 @@ def to_labels(
         raise ValueError("Time index must be monotoic increasing.")
 
     if isinstance(lists, list):
-        labels = pd.Series(False, index=time_index)
+        labels = pd.Series(False, index=time_index)  # type: pd.Series
         lists = validate_events(lists)
         if freq_as_period and (time_index.freq is not None):
             period_end = pd.date_range(
                 start=time_index[1],
                 periods=len(time_index),
                 freq=time_index.freq,
-            ) - pd.Timedelta("1ns")
+            ) - pd.Timedelta(
+                "1ns"
+            )  # type: pd.DatetimeIndex
             for event in lists:
+                isOverlapped = pd.Series(
+                    index=time_index, dtype=bool
+                )  # type: pd.Series
                 if isinstance(event, tuple):
                     isOverlapped = (time_index <= event[1]) & (
                         period_end >= event[0]
@@ -380,21 +436,51 @@ def to_labels(
                     ] = True
                 else:
                     labels.loc[labels.index == event] = True
+        return labels
     elif isinstance(lists, dict):
-        labels = pd.DataFrame(False, index=time_index, columns=lists.keys())
-        for col, key in zip(labels.columns, lists.keys()):
-            labels[col] = to_labels(lists[key], time_index, freq_as_period)
+        labels_df = pd.DataFrame(
+            False, index=time_index, columns=lists.keys()
+        )  # pd.DataFrame
+        for col, key in zip(labels_df.columns, lists.keys()):
+            labels_df[col] = to_labels(lists[key], time_index, freq_as_period)
+        return labels_df
     else:
         raise TypeError("Argument `lists` must be a list or a dict.")
 
-    return labels
+
+@overload
+def expand_events(
+    lists: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    left_expand: Union[pd.Timedelta, str, int] = 0,
+    right_expand: Union[pd.Timedelta, str, int] = 0,
+) -> List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]:
+    ...
+
+
+@overload
+def expand_events(
+    lists: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    left_expand: Union[pd.Timedelta, str, int] = 0,
+    right_expand: Union[pd.Timedelta, str, int] = 0,
+) -> Dict[str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]]:
+    ...
 
 
 def expand_events(
-    lists: Union[List, Dict],
-    left_expand: pd.Timedelta = 0,
-    right_expand: pd.Timedelta = 0,
-) -> Union[List, Dict]:
+    lists: Union[
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    left_expand: Union[pd.Timedelta, str, int] = 0,
+    right_expand: Union[pd.Timedelta, str, int] = 0,
+) -> Union[
+    List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    Dict[str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]],
+]:
     """Expand time windows in an event list.
 
     Given a list of events, expand the duration of events by a given factor.
@@ -412,13 +498,21 @@ def expand_events(
         - If dict, each key-value pair represents an independent type of event.
 
     left_expand: pandas Timedelta, str, or int, optional
-        Time range to expand backward. If str, it must be able to be converted
-        into a pandas Timedelta object. If int, it must be in nanosecond.
+        Time range to expand backward.
+
+        - If str, it must be able to be converted into a pandas Timedelta
+          object.
+        - If int, it must be in nanosecond.
+
         Default: 0.
 
     right_expand: pandas Timedelta, str, or int, optional
-        Time range to expand forward. f str, it must be able to be converted
-        into a pandas Timedelta object. If int, it must be in nanosecond.
+        Time range to expand forward.
+
+        - If str, it must be able to be converted into a pandas Timedelta
+          object.
+        - If int, it must be in nanosecond.
+
         Default: 0.
 
     Returns
@@ -434,22 +528,23 @@ def expand_events(
         right_expand = pd.Timedelta(right_expand)
 
     if isinstance(lists, list):
-        expanded = []  # type: Any
+        expanded = (
+            []
+        )  # type: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
         for ano in lists:
             if isinstance(ano, tuple):
                 expanded.append((ano[0] - left_expand, ano[1] + right_expand))
             else:
                 expanded.append((ano - left_expand, ano + right_expand))
         expanded = validate_events(expanded)
+        return expanded
     elif isinstance(lists, dict):
-        expanded = {
+        return {
             key: expand_events(value, left_expand, right_expand)
             for key, value in lists.items()
         }
     else:
         raise TypeError("Arugment `lists` must be a list or a dict of lists.")
-
-    return expanded
 
 
 def resample(
