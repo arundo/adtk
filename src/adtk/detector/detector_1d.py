@@ -12,7 +12,10 @@ from scipy.stats import t
 from sklearn.linear_model import LinearRegression
 
 from ..aggregator import AndAggregator
-from .._detector_base import _Detector1D
+from .._detector_base import (
+    _NonTrainableUnivariateDetector,
+    _TrainableUnivariateDetector,
+)
 from ..pipe import Pipenet
 from ..transformer import (
     CustomizedTransformer1D,
@@ -22,7 +25,7 @@ from ..transformer import (
     Retrospect,
 )
 
-from typing import List, Dict, Union, Any, Tuple, Optional, Callable
+from typing import List, Dict, Union, Any, Tuple, Optional, Callable, Literal
 
 __all__ = [
     "ThresholdAD",
@@ -38,7 +41,7 @@ __all__ = [
 ]  # type: List[str]
 
 
-class CustomizedDetector1D(_Detector1D):
+class CustomizedDetector1D(_TrainableUnivariateDetector):
     """Detector derived from a user-given function and parameters.
 
     Parameters
@@ -60,35 +63,32 @@ class CustomizedDetector1D(_Detector1D):
 
     """
 
-    _need_fit = False  # type: bool
-    _default_params = {
-        "detect_func": None,
-        "detect_func_params": None,
-        "fit_func": None,
-        "fit_func_params": None,
-    }  # type: Dict[str, Any]
-
     def __init__(
         self,
-        detect_func: Callable = _default_params["detect_func"],
-        detect_func_params: Optional[Dict] = _default_params[
-            "detect_func_params"
-        ],
-        fit_func: Optional[Callable] = _default_params["fit_func"],
-        fit_func_params: Optional[Dict] = _default_params["fit_func_params"],
+        detect_func: Callable,
+        detect_func_params: Optional[Dict[str, Any]] = None,
+        fit_func: Optional[Callable] = None,
+        fit_func_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         self._fitted_detect_func_params = {}  # type: Dict[str, Any]
-        if fit_func is not None:
-            self._need_fit = True
-        else:
-            self._need_fit = False
         super().__init__()
         self.detect_func = detect_func
         self.detect_func_params = detect_func_params
         self.fit_func = fit_func
         self.fit_func_params = fit_func_params
+        if self.fit_func is None:
+            self._fitted = 1
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return (
+            "detect_func",
+            "detect_func_params",
+            "fit_func",
+            "fit_func_params",
+        )
+
+    def _fit_core(self, s: pd.Series) -> None:
         if self.fit_func is not None:
             if self.fit_func_params is not None:
                 fit_func_params = self.fit_func_params
@@ -98,9 +98,7 @@ class CustomizedDetector1D(_Detector1D):
                 s, **fit_func_params
             )
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.Series:
         if self.detect_func_params is not None:
             detect_func_params = self.detect_func_params
         else:
@@ -112,20 +110,8 @@ class CustomizedDetector1D(_Detector1D):
         else:
             return self.detect_func(s, **detect_func_params)
 
-    @property
-    def fit_func(self) -> Optional[Callable]:
-        return self._fit_func
 
-    @fit_func.setter
-    def fit_func(self, value: Optional[Callable]) -> None:
-        self._fit_func = value
-        if value is None:
-            self._need_fit = False
-        else:
-            self._need_fit = True
-
-
-class ThresholdAD(_Detector1D):
+class ThresholdAD(_NonTrainableUnivariateDetector):
     """Detector that detects anomaly based on user-given threshold.
 
     This detector compares time series values with user-given thresholds, and
@@ -143,24 +129,21 @@ class ThresholdAD(_Detector1D):
 
     """
 
-    _need_fit = False  # type: bool
-    _default_params = {"low": None, "high": None}  # type: Dict[str, Any]
-
     def __init__(
-        self,
-        low: Optional[float] = _default_params["low"],
-        high: Optional[float] = _default_params["high"],
+        self, low: Optional[float] = None, high: Optional[float] = None
     ) -> None:
         super().__init__()
         self.low = low
         self.high = high
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("low", "high")
+
+    def _fit_core(self, s: pd.Series) -> None:
         pass
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.Series:
         predicted = (
             s > (self.high if (self.high is not None) else float("inf"))
         ) | (s < (self.low if (self.low is not None) else -float("inf")))
@@ -168,7 +151,7 @@ class ThresholdAD(_Detector1D):
         return predicted
 
 
-class QuantileAD(_Detector1D):
+class QuantileAD(_TrainableUnivariateDetector):
     """Detector that detects anomaly based on quantiles of historical data.
 
     This detector compares time series values with user-specified quantiles
@@ -195,18 +178,18 @@ class QuantileAD(_Detector1D):
 
     """
 
-    _default_params = {"low": None, "high": None}  # type: Dict[str, Any]
-
     def __init__(
-        self,
-        low: Optional[float] = _default_params["low"],
-        high: Optional[float] = _default_params["low"],
+        self, low: Optional[float] = None, high: Optional[float] = None
     ) -> None:
         super().__init__()
         self.low = low
         self.high = high
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("low", "high")
+
+    def _fit_core(self, s: pd.Series) -> None:
         if s.count() == 0:
             raise RuntimeError("Valid values are not enough for training.")
         if self.high is None:
@@ -218,15 +201,13 @@ class QuantileAD(_Detector1D):
         else:
             self.abs_low_ = s.quantile(self.low)
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.Series:
         predicted = (s > self.abs_high_) | (s < self.abs_low_)
         predicted[s.isna()] = np.nan
         return predicted
 
 
-class InterQuartileRangeAD(_Detector1D):
+class InterQuartileRangeAD(_TrainableUnivariateDetector):
     """
     Detector that detects anomaly based on inter-quartile range of historical
     data.
@@ -252,16 +233,15 @@ class InterQuartileRangeAD(_Detector1D):
 
     """
 
-    _default_params = {"c": 3.0}  # type: Dict[str, Any]
-
-    def __init__(
-        self,
-        c: Union[float, Tuple[Optional[float], float]] = _default_params["c"],
-    ) -> None:
+    def __init__(self, c: Union[float, Tuple[float, float]] = 3.0) -> None:
         super().__init__()
         self.c = c
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("c",)
+
+    def _fit_core(self, s: pd.Series) -> None:
         if s.count() == 0:
             raise RuntimeError("Valid values are not enough for training.")
         q1 = s.quantile(0.25)
@@ -289,15 +269,13 @@ class InterQuartileRangeAD(_Detector1D):
             else float("inf")
         )
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.Series:
         predicted = (s > self.abs_high_) | (s < self.abs_low_)
         predicted[s.isna()] = np.nan
         return predicted
 
 
-class GeneralizedESDTestAD(_Detector1D):
+class GeneralizedESDTestAD(_TrainableUnivariateDetector):
     """Detector that detects anomaly based on generalized ESD test.
 
     This detector performs generalized extreme Studentized deviate (ESD) test
@@ -324,13 +302,15 @@ class GeneralizedESDTestAD(_Detector1D):
 
     """
 
-    _default_params = {"alpha": 0.05}  # type: Dict[str, Any]
-
-    def __init__(self, alpha: float = _default_params["alpha"]) -> None:
+    def __init__(self, alpha: float = 0.05) -> None:
         super().__init__()
         self.alpha = alpha
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("alpha",)
+
+    def _fit_core(self, s: pd.Series) -> None:
         if s.count() == 0:
             raise RuntimeError("Valid values are not enough for training.")
         R = pd.Series(np.zeros(len(s)), index=s.index)
@@ -367,9 +347,7 @@ class GeneralizedESDTestAD(_Detector1D):
             / np.sqrt((n - i - 1 + t.ppf(p, n - i - 1) ** 2) * (n - i + 1))
         )
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.Series:
         new_sum = s + self._normal_sum
         new_count = self._normal_count + 1
         new_mean = new_sum / new_count
@@ -392,7 +370,7 @@ class GeneralizedESDTestAD(_Detector1D):
 # =============================================================================
 
 
-class PersistAD(_Detector1D):
+class PersistAD(_TrainableUnivariateDetector):
     """Detector that detects anomaly based on values in a preceding period.
 
     This detector compares time series values with the values of their
@@ -405,7 +383,7 @@ class PersistAD(_Detector1D):
 
     Parameters
     ----------
-    window: int, optional
+    window: int or str
         Number of time points in the time window. Default: 1.
 
     c: float, optional
@@ -433,21 +411,13 @@ class PersistAD(_Detector1D):
 
     """
 
-    _default_params = {
-        "window": 1,
-        "c": 3.0,
-        "side": "both",
-        "min_periods": None,
-        "agg": "median",
-    }  # type: Dict[str, Any]
-
     def __init__(
         self,
-        window: Any = _default_params["window"],
-        c: float = _default_params["c"],
-        side: str = _default_params["side"],
-        min_periods: Optional[int] = _default_params["min_periods"],
-        agg: str = _default_params["agg"],
+        window: Union[int, str],
+        c: float = 3.0,
+        side: Literal["both", "positive", "negative"] = "both",
+        min_periods: Optional[int] = None,
+        agg: Literal["median", "mean"] = "median",
     ) -> None:
         self.pipe_ = Pipenet(
             {
@@ -512,6 +482,10 @@ class PersistAD(_Detector1D):
         self.min_periods = min_periods
         self.agg = agg
 
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("window", "c", "side", "min_periods", "agg")
+
     def _sync_params(self) -> None:
         if self.agg not in ["median", "mean"]:
             raise ValueError(
@@ -542,18 +516,16 @@ class PersistAD(_Detector1D):
             else (-float("inf") if self.side == "positive" else float("inf"))
         )
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    def _fit_core(self, s: pd.Series) -> None:
         self._sync_params()
         self.pipe_.fit(s)
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.Series:
         self._sync_params()
         return self.pipe_.detect(s)
 
 
-class LevelShiftAD(_Detector1D):
+class LevelShiftAD(_TrainableUnivariateDetector):
     """Detector that detects level shift of time series values.
 
     This detector compares median values inside time windows next to each
@@ -566,7 +538,7 @@ class LevelShiftAD(_Detector1D):
 
     Parameters
     ----------
-    window: int, optional
+    window: int or str
         Number of time points in each time window. Default: 10.
 
     c: float, optional
@@ -590,19 +562,12 @@ class LevelShiftAD(_Detector1D):
 
     """
 
-    _default_params = {
-        "window": 10,
-        "c": 6.0,
-        "side": "both",
-        "min_periods": None,
-    }  # type: Dict[str, Any]
-
     def __init__(
         self,
-        window: int = _default_params["window"],
-        c: float = _default_params["c"],
-        side: str = _default_params["side"],
-        min_periods: Optional[int] = _default_params["min_periods"],
+        window: Union[int, str],
+        c: float = 6.0,
+        side: Literal["both", "positive", "negative"] = "both",
+        min_periods: Optional[int] = None,
     ) -> None:
         self.pipe_ = Pipenet(
             {
@@ -666,6 +631,10 @@ class LevelShiftAD(_Detector1D):
         self.window = window
         self.min_periods = min_periods
 
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("window", "c", "side", "min_periods")
+
     def _sync_params(self) -> None:
         if self.side not in ["both", "positive", "negative"]:
             raise ValueError(
@@ -687,18 +656,16 @@ class LevelShiftAD(_Detector1D):
             else (-float("inf") if self.side == "positive" else float("inf"))
         )
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    def _fit_core(self, s: pd.Series) -> None:
         self._sync_params()
         self.pipe_.fit(s)
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.Series:
         self._sync_params()
         return self.pipe_.detect(s)
 
 
-class VolatilityShiftAD(_Detector1D):
+class VolatilityShiftAD(_TrainableUnivariateDetector):
     """Detector that detects level shift of time series volatility.
 
     This detector compares standard deviations inside time windows next to each
@@ -739,21 +706,13 @@ class VolatilityShiftAD(_Detector1D):
 
     """
 
-    _default_params = {
-        "window": 10,
-        "c": 6.0,
-        "side": "both",
-        "min_periods": None,
-        "agg": "std",
-    }  # type: Dict[str, Any]
-
     def __init__(
         self,
-        window: int = _default_params["window"],
-        c: float = _default_params["c"],
-        side: str = _default_params["side"],
-        min_periods: int = _default_params["min_periods"],
-        agg: str = _default_params["agg"],
+        window: Union[int, str],
+        c: float = 6.0,
+        side: Literal["both", "positive", "negative"] = "both",
+        min_periods: Optional[int] = None,
+        agg: Literal["std", "iqr", "idr"] = "std",
     ) -> None:
         self.pipe_ = Pipenet(
             {
@@ -818,6 +777,10 @@ class VolatilityShiftAD(_Detector1D):
         self.window = window
         self.min_periods = min_periods
 
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("window", "c", "side", "min_periods", "agg")
+
     def _sync_params(self) -> None:
         if self.agg not in ["std", "iqr", "idr"]:
             raise ValueError("Parameter `agg` must be 'std', 'iqr' or 'idr'.")
@@ -843,18 +806,16 @@ class VolatilityShiftAD(_Detector1D):
             else (-float("inf") if self.side == "positive" else float("inf"))
         )
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    def _fit_core(self, s: pd.Series) -> None:
         self._sync_params()
         self.pipe_.fit(s)
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.Series:
         self._sync_params()
         return self.pipe_.detect(s)
 
 
-class AutoregressionAD(_Detector1D):
+class AutoregressionAD(_TrainableUnivariateDetector):
     """Detector that detects anomalous autoregression property in time series.
 
     Many time series has autoregression behavior. For example, in a linear
@@ -901,21 +862,13 @@ class AutoregressionAD(_Detector1D):
 
     """
 
-    _default_params = {
-        "n_steps": 1,
-        "step_size": 1,
-        "regressor": None,
-        "c": 3.0,
-        "side": "both",
-    }  # type: Dict[str, Any]
-
     def __init__(
         self,
-        n_steps: int = _default_params["n_steps"],
-        step_size: int = _default_params["step_size"],
-        regressor: Optional[object] = _default_params["regressor"],
-        c: float = _default_params["c"],
-        side: str = _default_params["side"],
+        n_steps: int = 1,
+        step_size: int = 1,
+        regressor: Optional[object] = None,
+        c: float = 3.0,
+        side: Literal["both", "positive", "negative"] = "both",
     ) -> None:
         if regressor is None:
             regressor = LinearRegression()
@@ -976,6 +929,10 @@ class AutoregressionAD(_Detector1D):
         self.c = c
         self.side = side
 
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("n_steps", "step_size", "regressor", "c", "side")
+
     def _sync_params(self) -> None:
         if self.side not in ["both", "positive", "negative"]:
             raise ValueError(
@@ -998,18 +955,16 @@ class AutoregressionAD(_Detector1D):
             else (-float("inf") if self.side == "positive" else float("inf"))
         )
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    def _fit_core(self, s: pd.Series) -> None:
         self._sync_params()
         self.pipe_.fit(s)
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.Series:
         self._sync_params()
         return self.pipe_.detect(s)
 
 
-class SeasonalAD(_Detector1D):
+class SeasonalAD(_TrainableUnivariateDetector):
     """Detector that detects anomalous values away from seasonal pattern.
 
     This detector uses a seasonal decomposition transformer to remove seasonal
@@ -1055,19 +1010,12 @@ class SeasonalAD(_Detector1D):
 
     """
 
-    _default_params = {
-        "freq": None,
-        "side": "both",
-        "c": 3.0,
-        "trend": False,
-    }  # type: Dict[str, Any]
-
     def __init__(
         self,
-        freq: int = _default_params["freq"],
-        side: str = _default_params["side"],
-        c: float = _default_params["c"],
-        trend: bool = _default_params["trend"],
+        freq: Optional[int] = None,
+        side: Literal["both", "positive", "negative"] = "both",
+        c: float = 3.0,
+        trend: bool = False,
     ) -> None:
         self.pipe_ = Pipenet(
             {
@@ -1121,6 +1069,10 @@ class SeasonalAD(_Detector1D):
         self.c = c
         self.trend = trend
 
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("freq", "side", "c", "trend")
+
     def _sync_params(self) -> None:
         self.pipe_.steps["deseasonal_residual"]["model"].freq = self.freq
         self.pipe_.steps["deseasonal_residual"]["model"].trend = self.trend
@@ -1136,7 +1088,7 @@ class SeasonalAD(_Detector1D):
             else (-float("inf") if self.side == "positive" else float("inf"))
         )
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    def _fit_core(self, s: pd.Series) -> None:
         self._sync_params()
         self.pipe_.fit(s)
         self.freq_ = self.pipe_.steps["deseasonal_residual"]["model"].freq_
@@ -1144,8 +1096,6 @@ class SeasonalAD(_Detector1D):
             "model"
         ].seasonal_
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.Series:
         self._sync_params()
         return self.pipe_.detect(s)

@@ -15,10 +15,13 @@ import statsmodels
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import acf
 
-from .._transformer_base import _Transformer1D
+from .._transformer_base import (
+    _NonTrainableUnivariateTransformer,
+    _TrainableUnivariateTransformer,
+)
 from .._utils import PandasBugError
 
-from typing import Dict, List, Any, Union, Optional, Tuple, Callable
+from typing import Dict, List, Any, Union, Optional, Tuple, Callable, Literal
 
 __all__ = [
     "RollingAggregate",
@@ -30,7 +33,7 @@ __all__ = [
 ]  # type: List[str]
 
 
-class CustomizedTransformer1D(_Transformer1D):
+class CustomizedTransformer1D(_TrainableUnivariateTransformer):
     """Transformer derived from a user-given function and parameters.
 
     Parameters
@@ -54,22 +57,12 @@ class CustomizedTransformer1D(_Transformer1D):
 
     """
 
-    _need_fit = False  # type: bool
-    _default_params = {
-        "transform_func": None,
-        "transform_func_params": None,
-        "fit_func": None,
-        "fit_func_params": None,
-    }  # type: Dict[str, Any]
-
     def __init__(
         self,
-        transform_func: Callable = _default_params["transform_func"],
-        transform_func_params: Dict[str, Any] = _default_params[
-            "transform_func_params"
-        ],
-        fit_func: Callable = _default_params["fit_func"],
-        fit_func_params: Dict[str, Any] = _default_params["fit_func_params"],
+        transform_func: Callable,
+        transform_func_params: Optional[Dict[str, Any]] = None,
+        fit_func: Optional[Callable] = None,
+        fit_func_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         self._fitted_transform_func_params = {}  # type: Dict
         super().__init__()
@@ -77,8 +70,19 @@ class CustomizedTransformer1D(_Transformer1D):
         self.transform_func_params = transform_func_params
         self.fit_func = fit_func
         self.fit_func_params = fit_func_params
+        if self.fit_func is None:
+            self._fitted = 1
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return (
+            "transform_func",
+            "transform_func_params",
+            "fit_func",
+            "fit_func_params",
+        )
+
+    def _fit_core(self, s: pd.Series) -> None:
         if self.fit_func is not None:
             if self.fit_func_params is not None:
                 fit_func_params = self.fit_func_params
@@ -88,9 +92,7 @@ class CustomizedTransformer1D(_Transformer1D):
                 s, **fit_func_params
             )
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> Union[pd.Series, pd.DataFrame]:
         if self.transform_func_params is not None:
             transform_func_params = self.transform_func_params
         else:
@@ -106,36 +108,21 @@ class CustomizedTransformer1D(_Transformer1D):
         else:
             return self.transform_func(s, **transform_func_params)
 
-    @property
-    def fit_func(self) -> Union[pd.Series, pd.DataFrame]:
-        return self._fit_func
 
-    @fit_func.setter
-    def fit_func(self, value: Any) -> None:
-        self._fit_func = value
-        if value is None:
-            self._need_fit = False
-        else:
-            self._need_fit = True
-
-
-class StandardScale(_Transformer1D):
+class StandardScale(_NonTrainableUnivariateTransformer):
     """Transformer that scales time series such that mean is equal to 0 and
     standard deviation is equal to 1.
 
     """
 
-    _need_fit = False  # type: bool
-
     def __init__(self) -> None:
         super().__init__()
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
-        pass
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return tuple()
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.Series:
         mean = s.mean()
         std = s.std()
 
@@ -145,7 +132,27 @@ class StandardScale(_Transformer1D):
         return (s - mean) / std
 
 
-class RollingAggregate(_Transformer1D):
+type_all_agg = Literal[
+    "mean",
+    "media",
+    "sum",
+    "min",
+    "max",
+    "std",
+    "var",
+    "skew",
+    "kurt",
+    "count",
+    "nnz",
+    "nunique",
+    "quantile",
+    "iqr",
+    "idr",
+    "hist",
+]
+
+
+class RollingAggregate(_NonTrainableUnivariateTransformer):
     """Transformer that roll a sliding window along a time series, and
     aggregates using a user-selected operation.
 
@@ -204,22 +211,13 @@ class RollingAggregate(_Transformer1D):
 
     """
 
-    _need_fit = False  # type: bool
-    _default_params = {
-        "agg": "mean",
-        "agg_params": None,
-        "window": 10,
-        "center": False,
-        "min_periods": None,
-    }  # type: Dict[str, Any]
-
     def __init__(
         self,
-        agg: Any = _default_params["agg"],
-        agg_params: Dict = _default_params["agg_params"],
-        window: int = _default_params["window"],
-        center: bool = _default_params["center"],
-        min_periods: int = _default_params["min_periods"],
+        window: Union[int, str],
+        agg: Union[type_all_agg, Callable] = "mean",
+        agg_params: Optional[Dict] = None,
+        center: bool = False,
+        min_periods: Optional[int] = None,
     ) -> None:
         super().__init__()
         self.agg = agg
@@ -229,12 +227,11 @@ class RollingAggregate(_Transformer1D):
         self.min_periods = min_periods
         self._closed = None  # type: Any
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
-        pass
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("window", "agg", "agg_params", "center", "min_periods")
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> Union[pd.Series, pd.DataFrame]:
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
@@ -370,7 +367,7 @@ class RollingAggregate(_Transformer1D):
         return s_rolling
 
 
-class DoubleRollingAggregate(_Transformer1D):
+class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
     """Transformer that rolls two sliding windows side-by-side along a time
     series, aggregates using a user-given operation, and calcuates the
     difference of aggregated metrics between two sliding windows.
@@ -458,26 +455,22 @@ class DoubleRollingAggregate(_Transformer1D):
 
     """
 
-    _need_fit = False  # type: bool
-    _default_params = {
-        "agg": "mean",
-        "agg_params": None,
-        "window": 10,
-        "center": True,
-        "min_periods": None,
-        "diff": "l1",
-    }  # type: Dict[str, Any]
-
     def __init__(
         self,
-        agg: Union[str, Tuple, Callable] = _default_params["agg"],
-        agg_params: Union[Dict, Tuple] = _default_params["agg_params"],
-        window: Union[int, Tuple] = _default_params["window"],
-        center: bool = _default_params["center"],
-        min_periods: Optional[Union[int, Tuple]] = _default_params[
-            "min_periods"
-        ],
-        diff: Union[str, Callable] = _default_params["diff"],
+        window: Union[int, str, Tuple[Union[int, str], Union[int, str]]],
+        agg: Union[
+            type_all_agg,
+            Callable,
+            Tuple[
+                Union[type_all_agg, Callable], Union[type_all_agg, Callable]
+            ],
+        ] = "mean",
+        agg_params: Optional[Union[Dict, Tuple[Dict, Dict]]] = None,
+        center: bool = True,
+        min_periods: Optional[Union[int, Tuple[int, int]]] = None,
+        diff: Union[
+            Literal["diff", "rel_diff", "abs_rel_diff", "l1", "l2"], Callable
+        ] = "l1",
     ) -> None:
         super().__init__()
         self.agg = agg
@@ -487,12 +480,11 @@ class DoubleRollingAggregate(_Transformer1D):
         self.center = center
         self.diff = diff
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
-        pass
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("window", "agg", "agg_params", "center", "min_periods")
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.Series:
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
@@ -649,7 +641,7 @@ class DoubleRollingAggregate(_Transformer1D):
         raise ValueError("Invalid value of diff")
 
 
-class ClassicSeasonalDecomposition(_Transformer1D):
+class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
     """Transformer that performs classic seasonal decomposition to the time
     series, and returns residual series.
 
@@ -688,18 +680,18 @@ class ClassicSeasonalDecomposition(_Transformer1D):
 
     """
 
-    _default_params = {"freq": None, "trend": False}  # type: Dict[str, Any]
-
     def __init__(
-        self,
-        freq: int = _default_params["freq"],
-        trend: bool = _default_params["trend"],
+        self, freq: Optional[int] = None, trend: bool = False
     ) -> None:
         super().__init__()
         self.freq = freq
         self.trend = trend
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("freq", "trend")
+
+    def _fit_core(self, s: pd.Series) -> None:
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
@@ -754,9 +746,7 @@ class ClassicSeasonalDecomposition(_Transformer1D):
                     i :: len(self.seasonal_)
                 ].mean()
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.Series:
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
@@ -907,7 +897,7 @@ def _identify_seasonal_period(
         return None
 
 
-class Retrospect(_Transformer1D):
+class Retrospect(_NonTrainableUnivariateTransformer):
     """Transformer that returns dataframe with retrospective values, i.e. a row
     at time t includes value at (t-k)'s where k's are specified by user.
 
@@ -925,7 +915,7 @@ class Retrospect(_Transformer1D):
     step_size: int, optional
         Length of a retrospective step. Default: 1.
     till: int, optional
-        Nearest retrospective step. Default: 0.
+        Nearest retrospective step. Default: 0, i.e. the current time step.
 
     Examples
     --------
@@ -960,30 +950,19 @@ class Retrospect(_Transformer1D):
 
     """
 
-    _need_fit = False  # type: bool
-    _default_params = {
-        "n_steps": 1,
-        "step_size": 1,
-        "till": 0,
-    }  # type: Dict[str, Any]
-
     def __init__(
-        self,
-        n_steps: int = _default_params["n_steps"],
-        step_size: int = _default_params["step_size"],
-        till: int = _default_params["till"],
+        self, n_steps: int = 1, step_size: int = 1, till: int = 0
     ) -> None:
         super().__init__()
         self.n_steps = n_steps
         self.step_size = step_size
         self.till = till
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
-        pass
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("n_steps", "step_size", "till")
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.Series) -> pd.DataFrame:
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):

@@ -15,9 +15,19 @@ from matplotlib.patches import Circle
 
 from tabulate import tabulate
 
-from .._base import _Model
-from .._detector_base import _Detector1D, _DetectorHD
-from .._transformer_base import _Transformer1D, _TransformerHD
+from .._base import _Model, _TrainableModel
+from .._detector_base import (
+    _NonTrainableUnivariateDetector,
+    _NonTrainableMultivariateDetector,
+    _TrainableUnivariateDetector,
+    _TrainableMultivariateDetector,
+)
+from .._transformer_base import (
+    _NonTrainableUnivariateTransformer,
+    _NonTrainableMultivariateTransformer,
+    _TrainableUnivariateTransformer,
+    _TrainableMultivariateTransformer,
+)
 from .._aggregator_base import _Aggregator
 from ..metrics import recall, precision, f1_score, iou
 
@@ -25,6 +35,19 @@ from typing import Tuple, Union, List, Dict, Any, Optional, Callable
 
 
 __all__ = ["Pipeline", "Pipenet"]  # type: List[str]
+
+_Detector = (
+    _NonTrainableUnivariateDetector,
+    _NonTrainableMultivariateDetector,
+    _TrainableUnivariateDetector,
+    _TrainableMultivariateDetector,
+)
+_Transformer = (
+    _NonTrainableUnivariateTransformer,
+    _NonTrainableMultivariateTransformer,
+    _TrainableUnivariateTransformer,
+    _TrainableMultivariateTransformer,
+)
 
 
 class Pipeline:
@@ -596,16 +619,12 @@ class Pipenet:
         # 1. upstream of transformer and detector must be transformer, or input
         # 2. upstream of aggregator must be detector or aggregator
         for step_name, step in self.steps.items():
-            if isinstance(
-                step["model"],
-                (_Detector1D, _DetectorHD, _Transformer1D, _TransformerHD),
-            ):
+            if isinstance(step["model"], (_Detector, _Transformer)):
                 if isinstance(step["input"], str):
                     if step["input"] == "original":
                         pass
                     elif not isinstance(
-                        self.steps[step["input"]]["model"],
-                        (_Transformer1D, _TransformerHD),
+                        self.steps[step["input"]]["model"], _Transformer
                     ):
                         raise TypeError(
                             "Model in step '{}' cannot accept output from "
@@ -616,8 +635,7 @@ class Pipenet:
                         if input == "original":
                             pass
                         elif not isinstance(
-                            self.steps[input]["model"],
-                            (_Transformer1D, _TransformerHD),
+                            self.steps[input]["model"], _Transformer
                         ):
                             raise TypeError(
                                 "Model in step '{}' cannot accept output from "
@@ -628,7 +646,7 @@ class Pipenet:
                     if (step["input"] == "original") or (
                         not isinstance(
                             self.steps[step["input"]]["model"],
-                            (_Detector1D, _DetectorHD, _Aggregator),
+                            (_Detector, _Aggregator),
                         )
                     ):
                         raise TypeError(
@@ -640,7 +658,7 @@ class Pipenet:
                         if (input == "original") or (
                             not isinstance(
                                 self.steps[input]["model"],
-                                (_Detector1D, _DetectorHD, _Aggregator),
+                                (_Detector, _Aggregator),
                             )
                         ):
                             raise TypeError(
@@ -685,10 +703,7 @@ class Pipenet:
         Given a step block and an intermediate results dict, get the input of
         this step based on fields `input` and `subset`.
         """
-        if isinstance(
-            step["model"],
-            (_Detector1D, _DetectorHD, _Transformer1D, _TransformerHD),
-        ):
+        if isinstance(step["model"], (_Detector, _Transformer)):
             if isinstance(step["input"], str):
                 if ("subset" not in step.keys()) or (step["subset"] == "all"):
                     input = results[step["input"]]
@@ -772,7 +787,8 @@ class Pipenet:
         # determine the step needing fit and/or predict
         need_fit = {
             step_name: (
-                (step["model"]._need_fit) & (step_name not in skip_fit)
+                isinstance(step["model"], _TrainableModel)
+                & (step_name not in skip_fit)
             )
             for step_name, step in self.steps.items()
         }
@@ -834,10 +850,7 @@ class Pipenet:
         last_step_name = list(self.steps_graph_.keys())[-1]
 
         if detect:
-            if isinstance(
-                self.steps[last_step_name]["model"],
-                (_Transformer1D, _TransformerHD),
-            ):
+            if isinstance(self.steps[last_step_name]["model"], _Transformer):
                 raise RuntimeError(
                     "This seems a transformation pipenet, "
                     "because model at the final step '{}' is a transformer. "
@@ -847,8 +860,7 @@ class Pipenet:
                 )
         else:
             if isinstance(
-                self.steps[last_step_name]["model"],
-                (_Detector1D, _DetectorHD, _Aggregator),
+                self.steps[last_step_name]["model"], (_Detector, _Aggregator)
             ):
                 raise RuntimeError(
                     "This seems a detection pipenet, "
@@ -1197,9 +1209,9 @@ class Pipenet:
         aggregator_patches = []  # type: List
         for step_name, step in self.steps.items():
             end_coord = coord[step_name]
-            if isinstance(step["model"], (_Detector1D, _DetectorHD)):
+            if isinstance(step["model"], _Detector):
                 detector_patches.append(Circle(xy=end_coord, radius=radius))
-            elif isinstance(step["model"], (_Transformer1D, _TransformerHD)):
+            elif isinstance(step["model"], _Transformer):
                 transformer_patches.append(Circle(xy=end_coord, radius=radius))
             elif isinstance(step["model"], _Aggregator):
                 aggregator_patches.append(Circle(xy=end_coord, radius=radius))

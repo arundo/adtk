@@ -9,7 +9,7 @@ import pandas as pd
 from .._aggregator_base import _Aggregator
 from ..data import validate_events
 
-from typing import List, Any, Dict, Union, Callable, Optional
+from typing import List, Any, Dict, Union, Callable, Optional, Tuple
 
 __all__ = [
     "OrAggregator",
@@ -34,17 +34,10 @@ class CustomizedAggregator(_Aggregator):
 
     """
 
-    _default_params = {
-        "aggregate_func": (lambda lists: []),
-        "aggregate_func_params": None,
-    }  # type: Dict[str, Any]
-
     def __init__(
         self,
-        aggregate_func: Callable = _default_params["aggregate_func"],
-        aggregate_func_params: Optional[Dict] = _default_params[
-            "aggregate_func_params"
-        ],
+        aggregate_func: Callable,
+        aggregate_func_params: Optional[Dict] = None,
     ) -> None:
         super().__init__()
         self.aggregate_func = aggregate_func
@@ -65,10 +58,12 @@ class OrAggregator(_Aggregator):
     included in one of the input anomaly lists.
     """
 
-    _need_fit = False  # type: bool
-
     def __init__(self) -> None:
         super().__init__()
+
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return tuple()
 
     def _predict_core(
         self, lists: Union[pd.DataFrame, Dict]
@@ -100,10 +95,12 @@ class AndAggregator(_Aggregator):
     included in all the input anomaly lists.
     """
 
-    _need_fit = False
-
     def __init__(self) -> None:
         super().__init__()
+
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return tuple()
 
     def _predict_core(self, lists: Union[pd.DataFrame, Dict]) -> pd.DataFrame:
         if isinstance(lists, dict):

@@ -9,7 +9,10 @@ from collections import Counter
 import pandas as pd
 
 from ..aggregator import AndAggregator
-from .._detector_base import _DetectorHD
+from .._detector_base import (
+    _TrainableMultivariateDetector,
+    _NonTrainableMultivariateDetector,
+)
 from ..detector import InterQuartileRangeAD, ThresholdAD
 from ..pipe import Pipenet, Pipeline
 from ..transformer import (
@@ -18,7 +21,7 @@ from ..transformer import (
     PcaReconstructionError,
 )
 
-from typing import List, Dict, Any, Tuple, Union, Optional, Callable
+from typing import List, Dict, Any, Tuple, Union, Optional, Callable, Literal
 
 __all__ = [
     "MinClusterDetector",
@@ -29,7 +32,7 @@ __all__ = [
 ]  # type: List[str]
 
 
-class CustomizedDetectorHD(_DetectorHD):
+class CustomizedDetectorHD(_TrainableMultivariateDetector):
     """Detector derived from a user-given function and parameters.
 
     Parameters
@@ -51,24 +54,12 @@ class CustomizedDetectorHD(_DetectorHD):
 
     """
 
-    _need_fit = False  # type: bool
-    _default_params = {
-        "detect_func": None,
-        "detect_func_params": None,
-        "fit_func": None,
-        "fit_func_params": None,
-    }  # type: Dict[str, Any]
-
     def __init__(
         self,
-        detect_func: Callable = _default_params["detect_func"],
-        detect_func_params: Optional[Dict[str, Any]] = _default_params[
-            "detect_func_params"
-        ],
-        fit_func: Optional[Callable] = _default_params["fit_func"],
-        fit_func_params: Optional[Dict[str, Any]] = _default_params[
-            "fit_func_params"
-        ],
+        detect_func: Callable,
+        detect_func_params: Optional[Dict[str, Any]] = None,
+        fit_func: Optional[Callable] = None,
+        fit_func_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         self._fitted_detect_func_params = {}  # type: Dict
         super().__init__()
@@ -76,6 +67,17 @@ class CustomizedDetectorHD(_DetectorHD):
         self.detect_func_params = detect_func_params
         self.fit_func = fit_func
         self.fit_func_params = fit_func_params
+        if self.fit_func is None:
+            self._fitted = 1
+
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return (
+            "detect_func",
+            "detect_func_params",
+            "fit_func",
+            "fit_func_params",
+        )
 
     def _fit_core(self, df: pd.DataFrame) -> None:
         if self.fit_func is not None:
@@ -99,20 +101,8 @@ class CustomizedDetectorHD(_DetectorHD):
         else:
             return self.detect_func(df, **detect_func_params)
 
-    @property
-    def fit_func(self) -> Any:
-        return self._fit_func
 
-    @fit_func.setter
-    def fit_func(self, value: Any) -> None:
-        self._fit_func = value
-        if value is None:
-            self._need_fit = False
-        else:
-            self._need_fit = True
-
-
-class MinClusterDetector(_DetectorHD):
+class MinClusterDetector(_TrainableMultivariateDetector):
     """Detector that detect anomaly based on clustering of historical data.
 
     This detector peforms clustering using a clustering model, and identifies
@@ -128,22 +118,22 @@ class MinClusterDetector(_DetectorHD):
 
     """
 
-    _default_params = {"model": None}  # type: Dict[str, Any]
-
-    def __init__(self, model: Any = _default_params["model"]) -> None:
+    def __init__(self, model: object) -> None:
         super().__init__()
         self.model = model
 
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("model",)
+
     def _fit_core(self, df: pd.DataFrame) -> None:
-        if self.model is None:
-            raise RuntimeError("Model is not specified.")
         if df.dropna().empty:
             raise RuntimeError("Valid values are not enough for training.")
         clustering_result = self.model.fit_predict(df.dropna())
         cluster_count = Counter(clustering_result)
         self._anomalous_cluster_id = cluster_count.most_common()[-1][0]
 
-    def _predict_core(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _predict_core(self, df: pd.DataFrame) -> pd.Series:
         cluster_id = pd.Series(float("nan"), index=df.index)
         if not df.dropna().empty:
             cluster_id.loc[df.dropna().index] = self.model.predict(df.dropna())
@@ -154,7 +144,7 @@ class MinClusterDetector(_DetectorHD):
         return predicted
 
 
-class OutlierDetector(_DetectorHD):
+class OutlierDetector(_TrainableMultivariateDetector):
     """Detector that detect anomaly based on a outlier detection model.
 
     This detector peforms time-independent outlier detection using given model,
@@ -172,15 +162,15 @@ class OutlierDetector(_DetectorHD):
 
     """
 
-    _default_params = {"model": None}
-
-    def __init__(self, model: Any = _default_params["model"]) -> None:
+    def __init__(self, model: object) -> None:
         super().__init__()
         self.model = model
 
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("model",)
+
     def _fit_core(self, df: pd.DataFrame) -> None:
-        if self.model is None:
-            raise RuntimeError("Model is not specified.")
         if hasattr(self.model, "fit"):
             if df.dropna().empty:
                 raise RuntimeError("Valid values are not enough for training.")
@@ -207,7 +197,7 @@ class OutlierDetector(_DetectorHD):
 # =============================================================================
 
 
-class RegressionAD(_DetectorHD):
+class RegressionAD(_TrainableMultivariateDetector):
     """Detector that detects anomalous inter-series relationship.
 
     This detector performs regression to build relationship between a target
@@ -245,19 +235,12 @@ class RegressionAD(_DetectorHD):
 
     """
 
-    _default_params = {
-        "target": None,
-        "regressor": None,
-        "c": 3.0,
-        "side": "both",
-    }  # type: Dict[str, Any]
-
     def __init__(
         self,
-        target: Optional[str] = _default_params["target"],
-        regressor: Any = _default_params["regressor"],
-        c: float = _default_params["c"],
-        side: str = _default_params["side"],
+        regressor: object,
+        target: str,
+        c: float = 3.0,
+        side: Literal["both", "positive", "negative"] = "both",
     ) -> None:
         self.pipe_ = Pipenet(
             {
@@ -311,6 +294,10 @@ class RegressionAD(_DetectorHD):
         self.c = c
         # self._sync_params()
 
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("regressor", "target", "c", "side")
+
     def _sync_params(self) -> None:
         if self.side not in ["both", "positive", "negative"]:
             raise ValueError(
@@ -332,18 +319,16 @@ class RegressionAD(_DetectorHD):
             else (-float("inf") if self.side == "positive" else float("inf"))
         )
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    def _fit_core(self, s: pd.DataFrame) -> None:
         self._sync_params()
         self.pipe_.fit(s)
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.DataFrame) -> pd.Series:
         self._sync_params()
         return self.pipe_.detect(s)
 
 
-class PcaAD(_DetectorHD):
+class PcaAD(_TrainableMultivariateDetector):
     """Detector that detects outlier point with principal component analysis.
 
     This detector performs principal component analysis (PCA) to the
@@ -370,11 +355,7 @@ class PcaAD(_DetectorHD):
         Internal pipenet object.
     """
 
-    _default_params = {"k": 1, "c": 5.0}  # type: Dict[str, Any]
-
-    def __init__(
-        self, k: int = _default_params["k"], c: float = _default_params["c"]
-    ) -> None:
+    def __init__(self, k: int = 1, c: float = 5.0) -> None:
         self.pipe_ = Pipeline(
             [
                 ("pca_reconstruct_error", PcaReconstructionError(k=k)),
@@ -386,16 +367,18 @@ class PcaAD(_DetectorHD):
         self.c = c
         self._sync_params()
 
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("k", "c")
+
     def _sync_params(self) -> None:
         self.pipe_.steps[0][1].k = self.k
         self.pipe_.steps[1][1].c = self.c
 
-    def _fit_core(self, s: Union[pd.Series, pd.DataFrame]) -> None:
+    def _fit_core(self, s: pd.DataFrame) -> None:
         self._sync_params()
         self.pipe_.fit(s)
 
-    def _predict_core(
-        self, s: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s: pd.DataFrame) -> pd.Series:
         self._sync_params()
         return self.pipe_.detect(s)
