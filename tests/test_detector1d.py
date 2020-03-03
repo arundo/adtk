@@ -12,9 +12,7 @@ from sklearn.svm import SVR
 import adtk.detector as detector
 from adtk._utils import PandasBugError
 
-from typing import Dict, List, Any, Union, Tuple
-
-nan = float("nan")  # type: float
+nan = float("nan")
 
 testCases = [
     {
@@ -318,11 +316,11 @@ testCases = [
         "a": [0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
         "pandas_bug": False,
     },
-]  # type: List[Dict[str, Any]]
+]
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_fit_detect(testCase: Dict[str, Any]) -> None:
+def test_fit_detect(testCase):
     """Test fit_detect the detector."""
     s = pd.Series(
         testCase["s"],
@@ -343,7 +341,7 @@ def test_fit_detect(testCase: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_fit_and_detect(testCase: Dict[str, Any]) -> None:
+def test_fit_and_detect(testCase):
     """Test fit the detector and then detect."""
     s = pd.Series(
         testCase["s"],
@@ -366,7 +364,7 @@ def test_fit_and_detect(testCase: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_dataframe(testCase: Dict[str, Any]) -> None:
+def test_dataframe(testCase):
     """Test apply the detector to dataframe."""
     s = pd.Series(
         testCase["s"],
@@ -385,7 +383,7 @@ def test_dataframe(testCase: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_fit_series_predict_dataframe(testCase: Dict[str, Any]) -> None:
+def test_fit_series_predict_dataframe(testCase):
     """Test fit the detector with a series and predict with dataframe."""
     s = pd.Series(
         testCase["s"],
@@ -405,7 +403,7 @@ def test_fit_series_predict_dataframe(testCase: Dict[str, Any]) -> None:
         pd.testing.assert_frame_equal(a, a_true, check_dtype=False)
 
 
-def test_autoregressive_ad_dataframe() -> None:
+def test_autoregressive_ad_dataframe():
     """Make sure deepcopy works
     """
     df = pd.DataFrame(

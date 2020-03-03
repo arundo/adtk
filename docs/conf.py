@@ -20,8 +20,6 @@
 import os
 import sys
 
-from typing import List, Tuple, Dict, Optional
-
 sys.path.insert(0, os.path.abspath(".."))
 
 import sphinx_rtd_theme
@@ -42,24 +40,24 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "nbsphinx",
-]  # type: List[str]
+]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ["_templates"]  # type: List[str]
+templates_path = ["_templates"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
-source_suffix = ".rst"  # type: str
+source_suffix = ".rst"
 
 # The master toctree document.
-master_doc = "index"  # type: str
+master_doc = "index"
 
 # General information about the project.
-project = "ADTK"  # type: str
-copyright = "2019-2020, Arundo Analytics, Inc."  # type: str
-author = "Arundo Analytics, Inc"  # type: str
+project = "ADTK"
+copyright = "2019-2020, Arundo Analytics, Inc."
+author = "Arundo Analytics, Inc"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -75,23 +73,18 @@ release = "0.6.0-dev.18+pr.78"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None  # type: Optional[str]
+language = None
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = [
-    "_build",
-    "Thumbs.db",
-    ".DS_Store",
-    "**.ipynb_checkpoints",
-]  # type: List[str]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "sphinx"  # type: str
+pygments_style = "sphinx"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = True  # type: bool
+todo_include_todos = True
 
 
 # -- Options for HTML output ----------------------------------------------
@@ -100,20 +93,20 @@ todo_include_todos = True  # type: bool
 # a list of builtin themes.
 #
 # html_theme = 'sphinxdoc'
-html_theme = "sphinx_rtd_theme"  # type: str
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-html_theme_options = {"logo_only": True}  # type: Dict[str, bool]
+html_theme_options = {"logo_only": True}
 
-html_logo = "_static/arundo_logo_black.png"  # type: str
+html_logo = "_static/arundo_logo_black.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]  # type: List[str]
+html_static_path = ["_static"]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -134,7 +127,7 @@ html_static_path = ["_static"]  # type: List[str]
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "ADTKdoc"  # type: str
+htmlhelp_basename = "ADTKdoc"
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -152,7 +145,7 @@ latex_elements = {
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
-}  # type: Dict[str, str]
+}
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
@@ -165,16 +158,14 @@ latex_documents = [
         "Arundo Analytics",
         "manual",
     )
-]  # type: List[Tuple[str, str, str, str, str]]
+]
 
 
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, "ADTK", "ADTK Documentation", [author], 1)
-]  # type: List[Tuple[str, str, str, List[str], int]]
+man_pages = [(master_doc, "ADTK", "ADTK Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output -------------------------------------------
@@ -192,7 +183,7 @@ texinfo_documents = [
         "One line description of project.",
         "Miscellaneous",
     )
-]  # type: List[Tuple[str, str, str, str, str, str, str]]
+]
 
 
-autodoc_member_order = "bysource"  # type: str
+autodoc_member_order = "bysource"

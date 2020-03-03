@@ -6,10 +6,8 @@ import pandas as pd
 from pandas import Timestamp
 from adtk.data import to_events, to_labels
 
-from typing import List, Dict, Tuple
 
-
-def test_binary_label_to_list_freq_as_period_merge_consecutive() -> None:
+def test_binary_label_to_list_freq_as_period_merge_consecutive():
     binary_series = pd.DataFrame(
         np.array(
             [
@@ -21,7 +19,7 @@ def test_binary_label_to_list_freq_as_period_merge_consecutive() -> None:
         ).T,
         index=pd.date_range(start=0, periods=10, freq="1d"),
         columns=["type1", "type2", "type3", "type4"],
-    )  # type: pd.DataFrame
+    )
 
     anomaly_list = to_events(
         binary_series, freq_as_period=True, merge_consecutive=True
@@ -59,7 +57,7 @@ def test_binary_label_to_list_freq_as_period_merge_consecutive() -> None:
                 Timestamp("1970-01-10 23:59:59.999999999"),
             )
         ],
-    }  # type: Dict[str, List[Tuple[pd.Timestamp, pd.Timestamp]]]
+    }
 
     assert anomaly_list == anomaly_list_true
 
@@ -70,7 +68,7 @@ def test_binary_label_to_list_freq_as_period_merge_consecutive() -> None:
         )
 
 
-def test_binary_label_to_list_freq_as_period_not_merge_consecutive() -> None:
+def test_binary_label_to_list_freq_as_period_not_merge_consecutive():
     binary_series = pd.DataFrame(
         np.array(
             [
@@ -172,7 +170,7 @@ def test_binary_label_to_list_freq_as_period_not_merge_consecutive() -> None:
                 Timestamp("1970-01-10 23:59:59.999999999"),
             ),
         ],
-    }  # type: Dict[str, List[Tuple[pd.Timestamp, pd.Timestamp]]]
+    }
 
     assert anomaly_list == anomaly_list_true
 
@@ -187,7 +185,7 @@ def test_binary_label_to_list_freq_as_period_not_merge_consecutive() -> None:
         )
 
 
-def test_binary_label_to_list_freq_not_as_period_merge_consecutive() -> None:
+def test_binary_label_to_list_freq_not_as_period_merge_consecutive():
     binary_series = pd.DataFrame(
         np.array(
             [
@@ -231,7 +229,7 @@ def test_binary_label_to_list_freq_not_as_period_merge_consecutive() -> None:
                 Timestamp("1970-01-10 00:00:00"),
             )
         ],
-    }  # type: Dict[str, List[Tuple[pd.Timestamp, pd.Timestamp]]]
+    }
 
     assert anomaly_list == anomaly_list_true
 
@@ -246,7 +244,7 @@ def test_binary_label_to_list_freq_not_as_period_merge_consecutive() -> None:
         )
 
 
-def test_binary_label_to_list_freq_not_as_period_not_merge_consecutive() -> None:
+def test_binary_label_to_list_freq_not_as_period_not_merge_consecutive():
     binary_series = pd.DataFrame(
         np.array(
             [
@@ -289,7 +287,7 @@ def test_binary_label_to_list_freq_not_as_period_not_merge_consecutive() -> None
             Timestamp("1970-01-09 00:00:00"),
             Timestamp("1970-01-10 00:00:00"),
         ],
-    }  # type: Dict[str, List[pd.Timestamp]]
+    }
 
     assert anomaly_list == anomaly_list_true
 
@@ -304,7 +302,7 @@ def test_binary_label_to_list_freq_not_as_period_not_merge_consecutive() -> None
         )
 
 
-def test_list_to_label_freq_as_period() -> None:
+def test_list_to_label_freq_as_period():
     anomaly_list = {
         "type1": [
             (
@@ -355,7 +353,7 @@ def test_list_to_label_freq_as_period() -> None:
                 Timestamp("1970-01-15 00:00:05"),
             ),
         ],
-    }  # type: Dict[str, List[Tuple[pd.Timestamp, pd.Timestamp]]]
+    }
 
     labels_true = pd.DataFrame(
         np.array(
@@ -393,7 +391,7 @@ def test_list_to_label_freq_as_period() -> None:
     )
 
 
-def test_list_to_label_freq_not_as_period() -> None:
+def test_list_to_label_freq_not_as_period():
     anomaly_list = {
         "type1": [
             Timestamp("1970-01-02 00:00:00"),
@@ -438,7 +436,7 @@ def test_list_to_label_freq_not_as_period() -> None:
                 Timestamp("1970-01-15 00:00:05"),
             ),
         ],
-    }  # type: Dict[str, List[Tuple[pd.Timestamp, pd.Timestamp]]]
+    }
 
     labels_true = pd.DataFrame(
         np.array(
@@ -476,7 +474,7 @@ def test_list_to_label_freq_not_as_period() -> None:
     )
 
 
-def test_nan() -> None:
+def test_nan():
     s = pd.Series(
         [1, 1, 0, 0, 0, np.nan, 1, 1, np.nan, np.nan, 0, 1],
         index=pd.date_range(start="2017-1-1", periods=12, freq="D"),
@@ -495,5 +493,5 @@ def test_nan() -> None:
             Timestamp("2017-01-12 00:00:00"),
             Timestamp("2017-01-12 23:59:59.999999999"),
         ),
-    ]  # type: List[Tuple[pd.Timestamp, pd.Timestamp]]
+    ]
     assert anomaly_list == anomaly_list_true

@@ -6,7 +6,7 @@ import numpy as np
 from adtk.data import split_train_test
 
 
-def test_split_series() -> None:
+def test_split_series():
     """
     test all modes on a naive list of from 0 to 99
     """
@@ -78,7 +78,7 @@ def test_split_series() -> None:
     )
 
 
-def test_split_dataframe() -> None:
+def test_split_dataframe():
     """
     test all modes on a naive df of from 0 to 99
     """
@@ -154,7 +154,7 @@ def test_split_dataframe() -> None:
     )
 
 
-def test_split_train_test_names() -> None:
+def test_split_train_test_names():
     """
     test output series names or column names
     """

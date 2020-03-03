@@ -6,8 +6,6 @@ import pandas as pd
 import adtk.transformer as transformer
 from adtk._utils import PandasBugError
 
-from typing import List, Dict, Any, Union, Tuple
-
 nan = float("nan")
 
 testCases = [
@@ -533,11 +531,11 @@ testCases = [
         "t": [0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
         "pandas_bug": False,
     },
-]  # type: List[Dict[str, Any]]
+]
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_fit_transform(testCase: Dict[str, Any]) -> None:
+def test_fit_transform(testCase):
     """Test fit_transform the transformer."""
     s = pd.Series(
         testCase["s"],
@@ -565,7 +563,7 @@ def test_fit_transform(testCase: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_fit_and_transform(testCase: Dict[str, Any]) -> None:
+def test_fit_and_transform(testCase):
     """Test fit the transformer and then transform."""
     s = pd.Series(
         testCase["s"],
@@ -595,7 +593,7 @@ def test_fit_and_transform(testCase: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_dataframe(testCase: Dict[str, Any]) -> None:
+def test_dataframe(testCase):
     """Test apply the transformer to dataframe."""
     s = pd.Series(
         testCase["s"],
@@ -640,7 +638,7 @@ def test_dataframe(testCase: Dict[str, Any]) -> None:
             )
 
 
-def test_seasonal_transformer_shift() -> None:
+def test_seasonal_transformer_shift():
     s_train = pd.Series(
         [0, 1, 2, 3, 4] * 8,
         index=pd.date_range(start="2017-1-1 00:05:00", periods=40, freq="min"),

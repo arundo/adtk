@@ -4,8 +4,6 @@ from math import isnan
 from pandas import Timestamp
 from adtk.metrics import recall, precision, f1_score, iou
 
-from typing import List, Any, Union, Dict
-
 n = float("nan")
 
 s_true = pd.Series(
@@ -43,14 +41,14 @@ l_pred = [
     Timestamp("1970-01-21 00:00:00"),
     (Timestamp("1970-01-23 00:00:00"), Timestamp("1970-01-24 00:00:00")),
 ]
-l0 = []  # type: List
+l0 = []
 
 d_true = {"A": l_true, "B": l_pred}
 d_pred = {"A": l_pred, "B": l_true}
 d0 = {"A": l0, "B": l0}
 
 
-def test_metric_series() -> None:
+def test_metric_series():
     assert recall(s_true, s_pred) == 9 / 12
     assert isnan(recall(s0, s_pred))
     assert precision(s_true, s_pred) == 9 / 15
@@ -62,7 +60,7 @@ def test_metric_series() -> None:
     assert isnan(iou(s0, s0))
 
 
-def test_metric_list() -> None:
+def test_metric_list():
     assert recall(l_true, l_pred) == 4 / 6
     assert isnan(recall(l0, l_pred))
     assert precision(l_true, l_pred) == 4 / 7
@@ -72,7 +70,7 @@ def test_metric_list() -> None:
     assert isnan(iou(l0, l0))
 
 
-def test_metric_dataframe() -> None:
+def test_metric_dataframe():
     assert recall(df_true, df_pred) == {"A": 9 / 12, "B": 9 / 15}
     assert all([isnan(x) for x in recall(df0, df_pred).values()]) and (
         recall(df0, df_pred).keys() == {"A": n, "B": n}.keys()
@@ -91,7 +89,7 @@ def test_metric_dataframe() -> None:
     )
 
 
-def test_metric_dict() -> None:
+def test_metric_dict():
     assert recall(d_true, d_pred) == {"A": 4 / 6, "B": 4 / 7}
     assert all([isnan(x) for x in recall(d0, d_pred).values()]) and (
         recall(d0, d_pred).keys() == {"A": n, "B": n}.keys()
