@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 import adtk.detector as detector
 
-from typing import List, Dict, Any
-
 testCases = [
     {
         "model": detector.QuantileAD(),
@@ -82,11 +80,11 @@ testCases = [
         "s": np.array([0, 1, 2, 1] * 10) + np.arange(40),
         "a": {"freq_": 8, "seasonal_": [-1, 0, 1, 0, -1, 0, 1, 0]},
     },
-]  # type: List[Dict[str, Any]]
+]
 
 
 @pytest.mark.parametrize("testCase", testCases)
-def test_attribute(testCase: Any) -> None:
+def test_attribute(testCase):
     """Test fit_detect the detector."""
     s = pd.Series(
         testCase["s"],

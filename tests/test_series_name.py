@@ -18,8 +18,6 @@ from sklearn.neighbors import LocalOutlierFactor
 from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression
 
-from typing import List, Dict, Any
-
 _Detector = (
     _NonTrainableUnivariateDetector,
     _NonTrainableMultivariateDetector,
@@ -56,7 +54,7 @@ one2one_models = [
     ),
     transformer.StandardScale(),
     transformer.ClassicSeasonalDecomposition(freq=2),
-]  # type: List
+]
 
 one2many_models = [
     transformer.RollingAggregate(
@@ -66,7 +64,7 @@ one2many_models = [
         window=10, agg="hist", agg_params={"bins": [20, 50, 80]}
     ),
     transformer.Retrospect(n_steps=3),
-]  # type: List
+]
 
 many2one_models = [
     detector.MinClusterDetector(KMeans(n_clusters=2)),
@@ -78,11 +76,11 @@ many2one_models = [
     transformer.SumAll(),
     transformer.RegressionResidual(target="A", regressor=LinearRegression()),
     transformer.PcaReconstructionError(),
-]  # type: List
+]
 
 
 @pytest.mark.parametrize("model", one2one_models)
-def test_one2one_s2s_w_name(model: Any) -> None:
+def test_one2one_s2s_w_name(model):
     """
     if a one-to-one model is applied to a Series, it should keep the Series
     name unchanged
@@ -100,7 +98,7 @@ def test_one2one_s2s_w_name(model: Any) -> None:
 
 
 @pytest.mark.parametrize("model", one2one_models)
-def test_one2one_s2s_wo_name(model: Any) -> None:
+def test_one2one_s2s_wo_name(model):
     """
     if a one-to-one model is applied to a Series, it should keep the Series
     name unchanged
@@ -117,7 +115,7 @@ def test_one2one_s2s_wo_name(model: Any) -> None:
 
 
 @pytest.mark.parametrize("model", one2one_models)
-def test_one2one_df2df(model: Any) -> None:
+def test_one2one_df2df(model):
     """
     if a one-to-one model is applied to a DataFrame, it should keep the column
     names unchanged
@@ -135,7 +133,7 @@ def test_one2one_df2df(model: Any) -> None:
 
 
 @pytest.mark.parametrize("model", one2one_models)
-def test_one2one_df2list(model: Any) -> None:
+def test_one2one_df2list(model):
     """
     if a one-to-one model (detector) is applied to a DataFrame and returns a
     dict, the output dict keys should match the input column names
@@ -157,7 +155,7 @@ def test_one2one_df2list(model: Any) -> None:
 
 
 @pytest.mark.parametrize("model", one2many_models)
-def test_one2many_s2df_w_name(model: Any) -> None:
+def test_one2many_s2df_w_name(model):
     """
     if a one-to-many model is applied to a Series, the output should not have
     prefix in column names, no matter whether the input Series has a name.
@@ -175,7 +173,7 @@ def test_one2many_s2df_w_name(model: Any) -> None:
 
 
 @pytest.mark.parametrize("model", one2many_models)
-def test_one2many_s2df_wo_name(model: Any) -> None:
+def test_one2many_s2df_wo_name(model):
     """
     if a one-to-many model is applied to a Series, the output should not have
     prefix in column names, no matter whether the input Series has a name.
@@ -192,7 +190,7 @@ def test_one2many_s2df_wo_name(model: Any) -> None:
 
 
 @pytest.mark.parametrize("model", one2many_models)
-def test_one2many_df2df(model: Any) -> None:
+def test_one2many_df2df(model):
     """
     if a one-to-many model is applied to a DataFrame, the output should have
     prefix in column names to indicate the input columns they correspond.
@@ -220,7 +218,7 @@ def test_one2many_df2df(model: Any) -> None:
 
 
 @pytest.mark.parametrize("model", many2one_models)
-def test_many2one(model: Any) -> None:
+def test_many2one(model):
     """
     The output Series from a many-to-one model should NOT have name
     """
@@ -236,7 +234,7 @@ def test_many2one(model: Any) -> None:
     assert result.name is None
 
 
-def test_pca_reconstruction() -> None:
+def test_pca_reconstruction():
     df = pd.DataFrame(
         np.arange(300).reshape(100, 3),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
