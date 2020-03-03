@@ -9,7 +9,10 @@ the original time series.
 import pandas as pd
 from sklearn.decomposition import PCA
 
-from .._transformer_base import _TransformerHD
+from .._transformer_base import (
+    _NonTrainableMultivariateTransformer,
+    _TrainableMultivariateTransformer,
+)
 
 __all__ = [
     "RegressionResidual",
@@ -23,7 +26,7 @@ __all__ = [
 from typing import Union, List, Dict, Any, Optional, Tuple, Callable
 
 
-class CustomizedTransformerHD(_TransformerHD):
+class CustomizedTransformerHD(_TrainableMultivariateTransformer):
     """Transformer derived from a user-given function and parameters.
 
     Parameters
@@ -47,22 +50,12 @@ class CustomizedTransformerHD(_TransformerHD):
 
     """
 
-    _need_fit = False  # type: bool
-    _default_params = {
-        "transform_func": None,
-        "transform_func_params": None,
-        "fit_func": None,
-        "fit_func_params": None,
-    }  # type: Dict[str, Any]
-
     def __init__(
         self,
-        transform_func: Callable = _default_params["transform_func"],
-        transform_func_params: Dict[str, Any] = _default_params[
-            "transform_func_params"
-        ],
-        fit_func: Callable = _default_params["fit_func"],
-        fit_func_params: Dict[str, Any] = _default_params["fit_func_params"],
+        transform_func: Callable,
+        transform_func_params: Optional[Dict[str, Any]] = None,
+        fit_func: Optional[Callable] = None,
+        fit_func_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         self._fitted_transform_func_params = {}  # type: Dict
         super().__init__()
@@ -70,6 +63,17 @@ class CustomizedTransformerHD(_TransformerHD):
         self.transform_func_params = transform_func_params
         self.fit_func = fit_func
         self.fit_func_params = fit_func_params
+        if self.fit_func is None:
+            self._fitted = 1
+
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return (
+            "transform_func",
+            "transform_func_params",
+            "fit_func",
+            "fit_func_params",
+        )
 
     def _fit_core(self, df: pd.DataFrame) -> None:
         if self.fit_func is not None:
@@ -99,35 +103,22 @@ class CustomizedTransformerHD(_TransformerHD):
         else:
             return self.transform_func(df, **transform_func_params)
 
-    @property
-    def fit_func(self) -> Callable:
-        return self._fit_func
 
-    @fit_func.setter
-    def fit_func(self, value: Any) -> None:
-        self._fit_func = value
-        if value is None:
-            self._need_fit = False
-        else:
-            self._need_fit = True
-
-
-class SumAll(_TransformerHD):
+class SumAll(_NonTrainableMultivariateTransformer):
     """Transformer that returns the sum all series as one series."""
-
-    _need_fit = False  # type: bool
 
     def __init__(self) -> None:
         super().__init__()
 
-    def _fit_core(self, df: pd.DataFrame) -> None:
-        pass
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return tuple()
 
     def _predict_core(self, df: pd.DataFrame) -> pd.Series:
         return df.sum(axis=1, skipna=False)
 
 
-class RegressionResidual(_TransformerHD):
+class RegressionResidual(_TrainableMultivariateTransformer):
     """Transformer that performs regression to build relationship between a
     target series and the rest of series, and returns regression residual
     series.
@@ -143,17 +134,14 @@ class RegressionResidual(_TransformerHD):
 
     """
 
-    _need_fit = True  # type: bool
-    _default_params = {"regressor": None, "target": None}  # type: Dict
-
-    def __init__(
-        self,
-        regressor: Any = _default_params["regressor"],
-        target: Any = _default_params["target"],
-    ) -> None:
+    def __init__(self, regressor: object, target: str) -> None:
         super().__init__()
         self.regressor = regressor
         self.target = target
+
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("regressor", "target")
 
     def _fit_core(self, df: pd.DataFrame) -> None:
         if self.regressor is None:
@@ -199,7 +187,7 @@ class RegressionResidual(_TransformerHD):
         return residual
 
 
-class PcaProjection(_TransformerHD):
+class PcaProjection(_TrainableMultivariateTransformer):
     """Transformer that performs principal component analysis (PCA) to the
     multivariate time series (every time point is treated as a point in high-
     dimensional space), and represent those points with their projection on
@@ -212,13 +200,14 @@ class PcaProjection(_TransformerHD):
 
     """
 
-    _need_fit = True  # type: bool
-    _default_params = {"k": 1}  # type: Dict[str, Any]
-
-    def __init__(self, k: int = _default_params["k"]) -> None:
-        self._model = None  # type: Any
+    def __init__(self, k: int = 1) -> None:
+        self._model = None  # type: object
         super().__init__()
         self.k = k
+
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("k",)
 
     def _fit_core(self, df: pd.DataFrame) -> None:
         self._model = PCA(n_components=self.k)
@@ -243,7 +232,7 @@ class PcaProjection(_TransformerHD):
         return results
 
 
-class PcaReconstruction(_TransformerHD):
+class PcaReconstruction(_TrainableMultivariateTransformer):
     """Transformer that performs principal component analysis (PCA) to the
     multivariate time series  (every time point is treated as a point in high-
     dimensional space), and reconstruct those points with the first k principal
@@ -256,13 +245,14 @@ class PcaReconstruction(_TransformerHD):
 
     """
 
-    _need_fit = True  # type: bool
-    _default_params = {"k": 1}  # type: Dict[str, Any]
-
-    def __init__(self, k: int = _default_params["k"]) -> None:
-        self._model = None  # type: Any
+    def __init__(self, k: int = 1) -> None:
+        self._model = None  # type: object
         super().__init__()
         self.k = k
+
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("k",)
 
     def _fit_core(self, df: pd.DataFrame) -> None:
         self._model = PCA(n_components=self.k)
@@ -287,7 +277,7 @@ class PcaReconstruction(_TransformerHD):
         return results
 
 
-class PcaReconstructionError(_TransformerHD):
+class PcaReconstructionError(_TrainableMultivariateTransformer):
     """Transformer that performs principal component analysis (PCA) to the
     multivariate time series  (every time point is treated as a point in high-
     dimensional space), reconstruct those points with the first k principal
@@ -301,13 +291,14 @@ class PcaReconstructionError(_TransformerHD):
 
     """
 
-    _need_fit = True  # type: bool
-    _default_params = {"k": 1}  # type: Dict[str, Any]
-
-    def __init__(self, k: int = _default_params["k"]) -> None:
-        self._model = None  # type: Any
+    def __init__(self, k: int = 1) -> None:
+        self._model = None  # type: object
         super().__init__()
         self.k = k
+
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("k",)
 
     def _fit_core(self, df: pd.DataFrame) -> None:
         self._model = PCA(n_components=self.k)

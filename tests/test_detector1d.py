@@ -11,6 +11,8 @@ import pandas as pd
 from sklearn.svm import SVR
 import adtk.detector as detector
 from adtk._utils import PandasBugError
+from adtk._base import _TrainableModel
+from typing import Dict, List, Any, Union, Tuple
 
 nan = float("nan")
 
@@ -332,7 +334,10 @@ def test_fit_detect(testCase):
         with pytest.raises(PandasBugError):
             a = model.fit_detect(s)
     else:
-        a = model.fit_detect(s)
+        if isinstance(model, _TrainableModel):
+            a = model.fit_detect(s)
+        else:
+            a = model.detect(s)
         pd.testing.assert_series_equal(a, a_true, check_dtype=False)
         if a_true.sum() == 0:
             assert isnan(model.score(s, a_true, scoring="recall"))
@@ -351,10 +356,12 @@ def test_fit_and_detect(testCase):
     a_true = pd.Series(testCase["a"], index=s.index)
     if testCase["pandas_bug"] and (parse(pd.__version__) < parse("0.25")):
         with pytest.raises(PandasBugError):
-            model.fit(s)
+            if isinstance(model, _TrainableModel):
+                model.fit(s)
             a = model.detect(s)
     else:
-        model.fit(s)
+        if isinstance(model, _TrainableModel):
+            model.fit(s)
         a = model.detect(s)
         pd.testing.assert_series_equal(a, a_true, check_dtype=False)
         if a_true.sum() == 0:
@@ -376,9 +383,15 @@ def test_dataframe(testCase):
     a_true = pd.concat([a_true.rename("A"), a_true.rename("B")], axis=1)
     if testCase["pandas_bug"] and (parse(pd.__version__) < parse("0.25")):
         with pytest.raises(PandasBugError):
-            a = model.fit_detect(df)
+            if isinstance(model, _TrainableModel):
+                a = model.fit_detect(df)
+            else:
+                a = model.detect(df)
     else:
-        a = model.fit_detect(df)
+        if isinstance(model, _TrainableModel):
+            a = model.fit_detect(df)
+        else:
+            a = model.detect(df)
         pd.testing.assert_frame_equal(a, a_true, check_dtype=False)
 
 
@@ -395,10 +408,12 @@ def test_fit_series_predict_dataframe(testCase):
     a_true = pd.concat([a_true.rename("A"), a_true.rename("B")], axis=1)
     if testCase["pandas_bug"] and (parse(pd.__version__) < parse("0.25")):
         with pytest.raises(PandasBugError):
-            model.fit(s)
+            if isinstance(model, _TrainableModel):
+                model.fit(s)
             a = model.detect(df)
     else:
-        model.fit(s)
+        if isinstance(model, _TrainableModel):
+            model.fit(s)
         a = model.detect(df)
         pd.testing.assert_frame_equal(a, a_true, check_dtype=False)
 
