@@ -365,7 +365,7 @@ class PcaAD(_TrainableMultivariateDetector):
         super().__init__()
         self.k = k
         self.c = c
-        self._sync_params()
+        # self._sync_params()
 
     @property
     def _param_names(self) -> Tuple[str]:

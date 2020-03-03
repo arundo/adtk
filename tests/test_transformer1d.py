@@ -5,7 +5,7 @@ import pytest
 import pandas as pd
 import adtk.transformer as transformer
 from adtk._utils import PandasBugError
-
+from adtk._base import _TrainableModel
 from typing import List, Dict, Any, Union, Tuple
 
 nan = float("nan")
@@ -546,9 +546,15 @@ def test_fit_transform(testCase: Dict[str, Any]) -> None:
     model = testCase["model"](**testCase["params"])
     if testCase["pandas_bug"] and (parse(pd.__version__) < parse("0.25")):
         with pytest.raises(PandasBugError):
-            t = model.fit_transform(s)
+            if isinstance(model, _TrainableModel):
+                t = model.fit_transform(s)
+            else:
+                t = model.transform(s)
     else:
-        t = model.fit_transform(s)
+        if isinstance(model, _TrainableModel):
+            t = model.fit_transform(s)
+        else:
+            t = model.transform(s)
         if not isinstance(testCase["t"], dict):
             t_true = pd.Series(testCase["t"], index=s.index)
             pd.testing.assert_series_equal(t, t_true, check_dtype=False)
@@ -574,10 +580,12 @@ def test_fit_and_transform(testCase: Dict[str, Any]) -> None:
     model = testCase["model"](**testCase["params"])
     if testCase["pandas_bug"] and (parse(pd.__version__) < parse("0.25")):
         with pytest.raises(PandasBugError):
-            model.fit(s)
+            if isinstance(model, _TrainableModel):
+                model.fit(s)
             t = model.transform(s)
     else:
-        model.fit(s)
+        if isinstance(model, _TrainableModel):
+            model.fit(s)
         t = model.transform(s)
         if not isinstance(testCase["t"], dict):
             t_true = pd.Series(testCase["t"], index=s.index)
@@ -605,9 +613,16 @@ def test_dataframe(testCase: Dict[str, Any]) -> None:
     model = testCase["model"](**testCase["params"])
     if testCase["pandas_bug"] and (parse(pd.__version__) < parse("0.25")):
         with pytest.raises(PandasBugError):
-            t = model.fit_transform(df)
+            if isinstance(model, _TrainableModel):
+                t = model.fit_transform(df)
+            else:
+                t = model.transform(df)
+
     else:
-        t = model.fit_transform(df)
+        if isinstance(model, _TrainableModel):
+            t = model.fit_transform(df)
+        else:
+            t = model.transform(df)
         if not isinstance(testCase["t"], dict):
             t_true = pd.Series(testCase["t"], index=s.index)
             t_true = pd.concat(

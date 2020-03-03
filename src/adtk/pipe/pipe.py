@@ -877,11 +877,19 @@ class Pipenet:
             input = self._get_input(step, results)
             results.update(
                 {
-                    step_name: step["model"].fit_predict(
-                        input, return_list=return_list
+                    step_name: (
+                        step["model"].fit_predict(
+                            input, return_list=return_list
+                        )
+                        if isinstance(step["model"], _Detector)
+                        else step["model"].fit_predict(input)
                     )
                     if fit and (step_name not in skip_fit)
-                    else step["model"].predict(input, return_list=return_list)
+                    else (
+                        step["model"].predict(input, return_list=return_list)
+                        if isinstance(step["model"], _Detector)
+                        else step["model"].predict(input)
+                    )
                 }
             )
 

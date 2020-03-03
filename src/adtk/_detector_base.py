@@ -55,7 +55,7 @@ class _NonTrainableUnivariateDetector(_NonTrainableUnivariateModel):
         """
         detected = self._predict(ts)
         if return_list:
-            to_events(detected)
+            return to_events(detected)
         else:
             return detected
 
@@ -210,7 +210,7 @@ class _TrainableUnivariateDetector(_TrainableUnivariateModel):
         """
         detected = self._predict(ts)
         if return_list:
-            to_events(detected)
+            return to_events(detected)
         else:
             return detected
 

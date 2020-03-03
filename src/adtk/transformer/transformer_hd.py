@@ -66,6 +66,15 @@ class CustomizedTransformerHD(_TrainableMultivariateTransformer):
         if self.fit_func is None:
             self._fitted = 1
 
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return (
+            "transform_func",
+            "transform_func_params",
+            "fit_func",
+            "fit_func_params",
+        )
+
     def _fit_core(self, df: pd.DataFrame) -> None:
         if self.fit_func is not None:
             if self.fit_func_params is not None:

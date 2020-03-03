@@ -43,6 +43,10 @@ class CustomizedAggregator(_Aggregator):
         self.aggregate_func = aggregate_func
         self.aggregate_func_params = aggregate_func_params
 
+    @property
+    def _param_names(self) -> Tuple[str]:
+        return ("aggregate_func", "aggregate_func_params")
+
     def _predict_core(
         self, lists: Union[pd.DataFrame, Dict]
     ) -> List[pd.Timestamp]:

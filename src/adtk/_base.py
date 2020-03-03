@@ -106,20 +106,20 @@ class _NonTrainableUnivariateModel(_NonTrainableModel):
                 raise ValueError(
                     "Input DataFrame must have unique column names."
                 )
-                # apply the model to each column
-                predicted_all_cols = []
-                for col in df.columns:
-                    predicted_this_col = self._predict(df[col])
-                    # if a Series-to-DF operation, update column name
-                    if isinstance(predicted_this_col, pd.DataFrame):
-                        predicted_this_col = predicted_this_col.rename(
-                            columns={
-                                col1: "{}_{}".format(col, col1)
-                                for col1 in predicted_this_col.columns
-                            }
-                        )
-                    predicted_all_cols.append(predicted_this_col)
-                predicted = pd.concat(predicted_all_cols, axis=1)
+            # apply the model to each column
+            predicted_all_cols = []
+            for col in df.columns:
+                predicted_this_col = self._predict(df[col])
+                # if a Series-to-DF operation, update column name
+                if isinstance(predicted_this_col, pd.DataFrame):
+                    predicted_this_col = predicted_this_col.rename(
+                        columns={
+                            col1: "{}_{}".format(col, col1)
+                            for col1 in predicted_this_col.columns
+                        }
+                    )
+                predicted_all_cols.append(predicted_this_col)
+            predicted = pd.concat(predicted_all_cols, axis=1)
         else:
             raise TypeError("Input must be a pandas Series or DataFrame.")
         # make sure index freq is the same (because pandas has a bug that some
@@ -146,10 +146,13 @@ class _TrainableUnivariateModel(_TrainableModel):
                     "Input DataFrame must have unique column names."
                 )
             # create internal models
-            self._models = {col: self.__class__() for col in df.columns}
-            # for each parameter, set them over all models.
-            for key in self._models.keys():
-                self._models[key].set_params(**deepcopy(self.get_params()))
+            self._models = {
+                col: self.__class__(**deepcopy(self.get_params()))
+                for col in df.columns
+            }
+            # # for each parameter, set them over all models.
+            # for key in self._models.keys():
+            #     self._models[key].set_params(**deepcopy(self.get_params()))
             # fit model for each column
             for col in df.columns:
                 self._models[col].fit(df[col])
@@ -206,13 +209,13 @@ class _TrainableUnivariateModel(_TrainableModel):
                             list(set(df.columns) - set(self._models.keys())),
                         )
                     )
-                    predicted = pd.concat(
-                        [
-                            self._models[col]._predict(df[col])
-                            for col in df.columns
-                        ],
-                        axis=1,
-                    )
+                predicted = pd.concat(
+                    [
+                        self._models[col]._predict(df[col])
+                        for col in df.columns
+                    ],
+                    axis=1,
+                )
         else:
             raise TypeError("Input must be a pandas Series or DataFrame.")
         # make sure index freq is the same (because pandas has a bug that some
@@ -238,7 +241,7 @@ class _NonTrainableMultivariateModel(_NonTrainableModel):
         return predicted
 
 
-class _TrainableMultivariateModel(_NonTrainableModel):
+class _TrainableMultivariateModel(_TrainableModel):
     def _fit(self, df: pd.DataFrame) -> None:
         if isinstance(df, pd.DataFrame):
             if df.columns.duplicated().any():

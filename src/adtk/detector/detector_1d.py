@@ -413,7 +413,7 @@ class PersistAD(_TrainableUnivariateDetector):
 
     def __init__(
         self,
-        window: Union[int, str],
+        window: Union[int, str] = 1,
         c: float = 3.0,
         side: Literal["both", "positive", "negative"] = "both",
         min_periods: Optional[int] = None,
@@ -881,7 +881,9 @@ class AutoregressionAD(_TrainableUnivariateDetector):
                     "input": "original",
                 },
                 "regression_residual": {
-                    "model": RegressionResidual(regressor=regressor),
+                    "model": RegressionResidual(
+                        target="t-0", regressor=regressor
+                    ),
                     "input": "retrospetive",
                 },
                 "abs_residual": {
