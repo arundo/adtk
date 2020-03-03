@@ -25,7 +25,7 @@ from ..transformer import (
     Retrospect,
 )
 
-from typing import List, Dict, Union, Any, Tuple, Optional, Callable, Literal
+from typing import List, Dict, Union, Any, Tuple, Optional, Callable
 
 __all__ = [
     "ThresholdAD",
@@ -415,9 +415,9 @@ class PersistAD(_TrainableUnivariateDetector):
         self,
         window: Union[int, str] = 1,
         c: float = 3.0,
-        side: Literal["both", "positive", "negative"] = "both",
+        side: str = "both",
         min_periods: Optional[int] = None,
-        agg: Literal["median", "mean"] = "median",
+        agg: str = "median",
     ) -> None:
         self.pipe_ = Pipenet(
             {
@@ -566,7 +566,7 @@ class LevelShiftAD(_TrainableUnivariateDetector):
         self,
         window: Union[int, str],
         c: float = 6.0,
-        side: Literal["both", "positive", "negative"] = "both",
+        side: str = "both",
         min_periods: Optional[int] = None,
     ) -> None:
         self.pipe_ = Pipenet(
@@ -710,9 +710,9 @@ class VolatilityShiftAD(_TrainableUnivariateDetector):
         self,
         window: Union[int, str],
         c: float = 6.0,
-        side: Literal["both", "positive", "negative"] = "both",
+        side: str = "both",
         min_periods: Optional[int] = None,
-        agg: Literal["std", "iqr", "idr"] = "std",
+        agg: str = "std",
     ) -> None:
         self.pipe_ = Pipenet(
             {
@@ -868,7 +868,7 @@ class AutoregressionAD(_TrainableUnivariateDetector):
         step_size: int = 1,
         regressor: Optional[object] = None,
         c: float = 3.0,
-        side: Literal["both", "positive", "negative"] = "both",
+        side: str = "both",
     ) -> None:
         if regressor is None:
             regressor = LinearRegression()
@@ -1015,7 +1015,7 @@ class SeasonalAD(_TrainableUnivariateDetector):
     def __init__(
         self,
         freq: Optional[int] = None,
-        side: Literal["both", "positive", "negative"] = "both",
+        side: str = "both",
         c: float = 3.0,
         trend: bool = False,
     ) -> None:

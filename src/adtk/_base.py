@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import Dict, Any, Union, Tuple, Literal
+from typing import Dict, Any, Union, Tuple
 import pandas as pd
 
 
@@ -59,7 +59,7 @@ class _NonTrainableModel(_Model):
 class _TrainableModel(_Model):
     def __init__(self):
         # 0 for not fitted, 1 for fitted, 2 for univariate model fitted by DF
-        self._fitted = 0  # type: Literal[0, 1, 2]
+        self._fitted = 0  # type: int
 
     @abstractmethod
     def _fit(self, input: Any) -> None:
@@ -273,4 +273,3 @@ class _TrainableMultivariateModel(_TrainableModel):
         # operation, e.g. concat, may change freq)
         predicted.index.freq = df.index.freq
         return predicted
-

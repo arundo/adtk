@@ -21,7 +21,7 @@ from .._transformer_base import (
 )
 from .._utils import PandasBugError
 
-from typing import Dict, List, Any, Union, Optional, Tuple, Callable, Literal
+from typing import Dict, List, Any, Union, Optional, Tuple, Callable
 
 __all__ = [
     "RollingAggregate",
@@ -132,26 +132,6 @@ class StandardScale(_NonTrainableUnivariateTransformer):
         return (s - mean) / std
 
 
-type_all_agg = Literal[
-    "mean",
-    "media",
-    "sum",
-    "min",
-    "max",
-    "std",
-    "var",
-    "skew",
-    "kurt",
-    "count",
-    "nnz",
-    "nunique",
-    "quantile",
-    "iqr",
-    "idr",
-    "hist",
-]
-
-
 class RollingAggregate(_NonTrainableUnivariateTransformer):
     """Transformer that roll a sliding window along a time series, and
     aggregates using a user-selected operation.
@@ -214,7 +194,7 @@ class RollingAggregate(_NonTrainableUnivariateTransformer):
     def __init__(
         self,
         window: Union[int, str],
-        agg: Union[type_all_agg, Callable] = "mean",
+        agg: Union[str, Callable] = "mean",
         agg_params: Optional[Dict] = None,
         center: bool = False,
         min_periods: Optional[int] = None,
@@ -459,18 +439,12 @@ class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
         self,
         window: Union[int, str, Tuple[Union[int, str], Union[int, str]]],
         agg: Union[
-            type_all_agg,
-            Callable,
-            Tuple[
-                Union[type_all_agg, Callable], Union[type_all_agg, Callable]
-            ],
+            str, Callable, Tuple[Union[str, Callable], Union[str, Callable]]
         ] = "mean",
         agg_params: Optional[Union[Dict, Tuple[Dict, Dict]]] = None,
         center: bool = True,
         min_periods: Optional[Union[int, Tuple[int, int]]] = None,
-        diff: Union[
-            Literal["diff", "rel_diff", "abs_rel_diff", "l1", "l2"], Callable
-        ] = "l1",
+        diff: Union[str, Callable] = "l1",
     ) -> None:
         super().__init__()
         self.agg = agg

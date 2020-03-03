@@ -21,7 +21,7 @@ from ..transformer import (
     PcaReconstructionError,
 )
 
-from typing import List, Dict, Any, Tuple, Union, Optional, Callable, Literal
+from typing import List, Dict, Any, Tuple, Union, Optional, Callable
 
 __all__ = [
     "MinClusterDetector",
@@ -240,7 +240,7 @@ class RegressionAD(_TrainableMultivariateDetector):
         regressor: object,
         target: str,
         c: float = 3.0,
-        side: Literal["both", "positive", "negative"] = "both",
+        side: str = "both",
     ) -> None:
         self.pipe_ = Pipenet(
             {
