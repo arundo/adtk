@@ -1,5 +1,5 @@
+from typing import Union, List, Dict, Tuple, Any, Callable
 import pandas as pd
-
 from ._base import (
     _NonTrainableUnivariateModel,
     _TrainableUnivariateModel,
@@ -8,8 +8,6 @@ from ._base import (
 )
 from .data import to_events
 from .metrics import recall, precision, f1_score, iou
-
-from typing import Union, List, Dict, Tuple, Any, Callable
 
 
 class _NonTrainableUnivariateDetector(_NonTrainableUnivariateModel):

@@ -1,11 +1,49 @@
-from ._base import _Model1D, _ModelHD
-
+from typing import Union
 import pandas as pd
+from ._base import (
+    _NonTrainableUnivariateModel,
+    _TrainableUnivariateModel,
+    _NonTrainableMultivariateModel,
+    _TrainableMultivariateModel,
+)
 
-from typing import Dict, Union, List, Any
+
+class _NonTrainableUnivariateTransformer(_NonTrainableUnivariateModel):
+    def transform(
+        self, ts: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
+        """Transform time series.
+
+        Parameters
+        ----------
+        ts: pandas.Series or pandas.DataFrame
+            Time series to be transformed. If a DataFrame with k columns, it is
+            treated as k independent univariate time series.
+
+            - If the transformer was trained with a Series, the transformer
+              will be applied to each univariate series independently;
+            - If the transformer was trained with a DataFrame, i.e. the
+              transformer is essentially k transformers, those transformers
+              will be applied to each univariate series respectivley.
+
+        Returns
+        -------
+        pandas.Series or pandas.DataFrame
+            Transformed time series.
+
+        """
+        return self._predict(ts)
+
+    def predict(
+        self, ts: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
+        """
+        Alias of `transform`.
+        """
+        return self.transform(ts)
 
 
-class _Transformer1D(_Model1D):
+class _TrainableUnivariateTransformer(_TrainableUnivariateModel):
     def fit(self, ts: Union[pd.Series, pd.DataFrame]) -> None:
         """Train the transformer with given time series.
 
@@ -68,7 +106,7 @@ class _Transformer1D(_Model1D):
         return self.predict(ts)
 
     def predict(
-        self, ts: Union[pd.Series, pd.DataFrame], *args: Any, **kwargs: Any
+        self, ts: Union[pd.Series, pd.DataFrame]
     ) -> Union[pd.Series, pd.DataFrame]:
         """
         Alias of `transform`.
@@ -76,7 +114,7 @@ class _Transformer1D(_Model1D):
         return self.transform(ts)
 
     def fit_predict(
-        self, ts: Union[pd.Series, pd.DataFrame], *args: Any, **kwargs: Any
+        self, ts: Union[pd.Series, pd.DataFrame]
     ) -> Union[pd.Series, pd.DataFrame]:
         """
         Alias of `fit_transform`.
@@ -84,7 +122,31 @@ class _Transformer1D(_Model1D):
         return self.fit_transform(ts)
 
 
-class _TransformerHD(_ModelHD):
+class _NonTrainableMultivariateTransformer(_NonTrainableMultivariateModel):
+    def transform(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
+        """Transform time series.
+
+        Parameters
+        ----------
+        df: pandas.DataFrame
+            Time series to be transformed.
+
+        Returns
+        -------
+        pandas.Series or pandas.DataFrame
+            Transformed time series.
+
+        """
+        return self._predict(df)
+
+    def predict(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
+        """
+        Alias of `transform`.
+        """
+        return self.transform(df)
+
+
+class _TrainableMultivariateTransformer(_TrainableMultivariateModel):
     def fit(self, df: pd.DataFrame) -> None:
         """Train the transformer with given time series.
 
@@ -132,17 +194,13 @@ class _TransformerHD(_ModelHD):
         self.fit(df)
         return self.predict(df)
 
-    def predict(
-        self, df: pd.DataFrame, *args: Any, **kwargs: Any
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def predict(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
         """
         Alias of `transform`.
         """
         return self.transform(df)
 
-    def fit_predict(
-        self, df: pd.DataFrame, *args: Any, **kwargs: Any
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def fit_predict(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
         """
         Alias of `fit_transform`.
         """

@@ -1,8 +1,6 @@
-import pandas as pd
-
-from ._base import _Model
-
 from typing import Any, Union, List, Dict
+import pandas as pd
+from ._base import _Model
 
 
 class _Aggregator(_Model):
