@@ -388,7 +388,7 @@ class _NonTrainableMultivariateDetector(_NonTrainableMultivariateModel):
 
             - If return_list=False, return a binary series;
             - If return_list=True, return a list of time stamps or time stamp
-              tuples.
+              2-tuples.
 
         """
         detected = self._predict(df)
@@ -399,7 +399,9 @@ class _NonTrainableMultivariateDetector(_NonTrainableMultivariateModel):
 
     def predict(
         self, df: pd.DataFrame, return_list: bool = False
-    ) -> Union[pd.Series, List]:
+    ) -> Union[
+        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ]:
         """
         Alias of `detect`.
         """
@@ -545,7 +547,9 @@ class _TrainableMultivariateDetector(_TrainableMultivariateModel):
 
     def predict(
         self, df: pd.DataFrame, return_list: bool = False
-    ) -> Union[pd.Series, List]:
+    ) -> Union[
+        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ]:
         """
         Alias of `detect`.
         """
@@ -553,7 +557,9 @@ class _TrainableMultivariateDetector(_TrainableMultivariateModel):
 
     def fit_predict(
         self, df: pd.DataFrame, return_list: bool = False
-    ) -> Union[pd.Series, List]:
+    ) -> Union[
+        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ]:
         """
         Alias of `fit_detect`.
         """

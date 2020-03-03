@@ -74,7 +74,7 @@ class CustomizedTransformer1D(_TrainableUnivariateTransformer):
             self._fitted = 1
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return (
             "transform_func",
             "transform_func_params",
@@ -119,7 +119,7 @@ class StandardScale(_NonTrainableUnivariateTransformer):
         super().__init__()
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return tuple()
 
     def _predict_core(self, s: pd.Series) -> pd.Series:
@@ -208,7 +208,7 @@ class RollingAggregate(_NonTrainableUnivariateTransformer):
         self._closed = None  # type: Any
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("window", "agg", "agg_params", "center", "min_periods")
 
     def _predict_core(self, s: pd.Series) -> Union[pd.Series, pd.DataFrame]:
@@ -441,9 +441,13 @@ class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
         agg: Union[
             str, Callable, Tuple[Union[str, Callable], Union[str, Callable]]
         ] = "mean",
-        agg_params: Optional[Union[Dict, Tuple[Dict, Dict]]] = None,
+        agg_params: Union[
+            Optional[Dict], Tuple[Optional[Dict], Optional[Dict]]
+        ] = None,
         center: bool = True,
-        min_periods: Optional[Union[int, Tuple[int, int]]] = None,
+        min_periods: Union[
+            Optional[int], Tuple[Optional[int], Optional[int]]
+        ] = None,
         diff: Union[str, Callable] = "l1",
     ) -> None:
         super().__init__()
@@ -455,7 +459,7 @@ class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
         self.diff = diff
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("window", "agg", "agg_params", "center", "min_periods")
 
     def _predict_core(self, s: pd.Series) -> pd.Series:
@@ -662,7 +666,7 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
         self.trend = trend
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("freq", "trend")
 
     def _fit_core(self, s: pd.Series) -> None:
@@ -698,9 +702,11 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
         self._dT = pd.Series(s.index).diff().mean()
         # get seasonal freq
         if self.freq is None:
-            self.freq_ = _identify_seasonal_period(s)  # type: int
-            if self.freq_ is None:
+            identified_freq = _identify_seasonal_period(s)
+            if identified_freq is None:
                 raise Exception("Could not find significant seasonality.")
+            else:
+                self.freq_ = identified_freq
         else:
             self.freq_ = self.freq
         # get seasonal pattern
@@ -817,9 +823,7 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
 
 
 def _identify_seasonal_period(
-    s: Union[pd.Series, pd.DataFrame],
-    low_autocorr: float = 0.1,
-    high_autocorr: float = 0.3,
+    s: pd.Series, low_autocorr: float = 0.1, high_autocorr: float = 0.3
 ) -> Optional[int]:
     """Identify seasonal period of a time series based on autocorrelation.
 
@@ -933,7 +937,7 @@ class Retrospect(_NonTrainableUnivariateTransformer):
         self.till = till
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("n_steps", "step_size", "till")
 
     def _predict_core(self, s: pd.Series) -> pd.DataFrame:

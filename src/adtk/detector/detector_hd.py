@@ -71,7 +71,7 @@ class CustomizedDetectorHD(_TrainableMultivariateDetector):
             self._fitted = 1
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return (
             "detect_func",
             "detect_func_params",
@@ -118,12 +118,12 @@ class MinClusterDetector(_TrainableMultivariateDetector):
 
     """
 
-    def __init__(self, model: object) -> None:
+    def __init__(self, model: Any) -> None:
         super().__init__()
         self.model = model
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("model",)
 
     def _fit_core(self, df: pd.DataFrame) -> None:
@@ -162,12 +162,12 @@ class OutlierDetector(_TrainableMultivariateDetector):
 
     """
 
-    def __init__(self, model: object) -> None:
+    def __init__(self, model: Any) -> None:
         super().__init__()
         self.model = model
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("model",)
 
     def _fit_core(self, df: pd.DataFrame) -> None:
@@ -236,11 +236,7 @@ class RegressionAD(_TrainableMultivariateDetector):
     """
 
     def __init__(
-        self,
-        regressor: object,
-        target: str,
-        c: float = 3.0,
-        side: str = "both",
+        self, regressor: Any, target: str, c: float = 3.0, side: str = "both"
     ) -> None:
         self.pipe_ = Pipenet(
             {
@@ -295,7 +291,7 @@ class RegressionAD(_TrainableMultivariateDetector):
         self._sync_params()
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("regressor", "target", "c", "side")
 
     def _sync_params(self) -> None:
@@ -368,7 +364,7 @@ class PcaAD(_TrainableMultivariateDetector):
         self._sync_params()
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("k", "c")
 
     def _sync_params(self) -> None:

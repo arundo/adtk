@@ -38,7 +38,7 @@ __all__ = [
     "AutoregressionAD",
     "SeasonalAD",
     "CustomizedDetector1D",
-]  # type: List[str]
+]
 
 
 class CustomizedDetector1D(_TrainableUnivariateDetector):
@@ -80,7 +80,7 @@ class CustomizedDetector1D(_TrainableUnivariateDetector):
             self._fitted = 1
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return (
             "detect_func",
             "detect_func_params",
@@ -137,7 +137,7 @@ class ThresholdAD(_NonTrainableUnivariateDetector):
         self.high = high
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("low", "high")
 
     def _fit_core(self, s: pd.Series) -> None:
@@ -186,7 +186,7 @@ class QuantileAD(_TrainableUnivariateDetector):
         self.high = high
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("low", "high")
 
     def _fit_core(self, s: pd.Series) -> None:
@@ -233,12 +233,17 @@ class InterQuartileRangeAD(_TrainableUnivariateDetector):
 
     """
 
-    def __init__(self, c: Union[float, Tuple[float, float]] = 3.0) -> None:
+    def __init__(
+        self,
+        c: Union[
+            Optional[float], Tuple[Optional[float], Optional[float]]
+        ] = 3.0,
+    ) -> None:
         super().__init__()
         self.c = c
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("c",)
 
     def _fit_core(self, s: pd.Series) -> None:
@@ -307,7 +312,7 @@ class GeneralizedESDTestAD(_TrainableUnivariateDetector):
         self.alpha = alpha
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("alpha",)
 
     def _fit_core(self, s: pd.Series) -> None:
@@ -483,7 +488,7 @@ class PersistAD(_TrainableUnivariateDetector):
         self._sync_params()
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("window", "c", "side", "min_periods", "agg")
 
     def _sync_params(self) -> None:
@@ -632,7 +637,7 @@ class LevelShiftAD(_TrainableUnivariateDetector):
         self._sync_params()
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("window", "c", "side", "min_periods")
 
     def _sync_params(self) -> None:
@@ -778,7 +783,7 @@ class VolatilityShiftAD(_TrainableUnivariateDetector):
         self._sync_params()
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("window", "c", "side", "min_periods", "agg")
 
     def _sync_params(self) -> None:
@@ -932,7 +937,7 @@ class AutoregressionAD(_TrainableUnivariateDetector):
         self._sync_params()
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("n_steps", "step_size", "regressor", "c", "side")
 
     def _sync_params(self) -> None:
@@ -1072,7 +1077,7 @@ class SeasonalAD(_TrainableUnivariateDetector):
         self._sync_params()
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("freq", "side", "c", "trend")
 
     def _sync_params(self) -> None:

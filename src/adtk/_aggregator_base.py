@@ -1,4 +1,4 @@
-from typing import Any, Union, List, Dict, Tuple
+from typing import Union, List, Dict, Tuple
 import pandas as pd
 from ._base import _NonTrainableModel
 
@@ -83,16 +83,18 @@ class _Aggregator(_NonTrainableModel):
         return self._predict(lists)
 
     def predict(
-        self, lists: Union[pd.DataFrame, Dict], *args: Any, **kwargs: Any
-    ) -> Union[List[pd.Timestamp], pd.Series]:
-        """
-        Alias of `aggregate`.
-        """
-        return self.aggregate(lists)
-
-    def fit_predict(
-        self, lists: Union[pd.DataFrame, Dict], *args: Any, **kwargs: Any
-    ) -> Union[List[pd.Timestamp], pd.Series]:
+        self,
+        lists: Union[
+            pd.DataFrame,
+            Dict[str, Union[pd.Series, pd.DataFrame]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+    ) -> Union[
+        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ]:
         """
         Alias of `aggregate`.
         """

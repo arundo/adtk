@@ -878,11 +878,21 @@ class Pipenet:
             results.update(
                 {
                     step_name: (
-                        step["model"].fit_predict(
-                            input, return_list=return_list
+                        (
+                            step["model"].fit_predict(
+                                input, return_list=return_list
+                            )
+                            if isinstance(step["model"], _TrainableModel)
+                            else step["model"].predict(
+                                input, return_list=return_list
+                            )
                         )
                         if isinstance(step["model"], _Detector)
-                        else step["model"].fit_predict(input)
+                        else (
+                            step["model"].fit_predict(input)
+                            if isinstance(step["model"], _TrainableModel)
+                            else step["model"].predict(input)
+                        )
                     )
                     if fit and (step_name not in skip_fit)
                     else (

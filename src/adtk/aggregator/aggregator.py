@@ -9,13 +9,9 @@ import pandas as pd
 from .._aggregator_base import _Aggregator
 from ..data import validate_events
 
-from typing import List, Any, Dict, Union, Callable, Optional, Tuple
+from typing import List, Dict, Union, Callable, Optional, Tuple
 
-__all__ = [
-    "OrAggregator",
-    "AndAggregator",
-    "CustomizedAggregator",
-]  # type: List[str]
+__all__ = ["OrAggregator", "AndAggregator", "CustomizedAggregator"]
 
 
 class CustomizedAggregator(_Aggregator):
@@ -44,12 +40,22 @@ class CustomizedAggregator(_Aggregator):
         self.aggregate_func_params = aggregate_func_params
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("aggregate_func", "aggregate_func_params")
 
     def _predict_core(
-        self, lists: Union[pd.DataFrame, Dict]
-    ) -> List[pd.Timestamp]:
+        self,
+        lists: Union[
+            pd.DataFrame,
+            Dict[str, Union[pd.Series, pd.DataFrame]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+    ) -> Union[
+        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ]:
         if self.aggregate_func_params is None:
             aggregate_func_params = {}
         else:
@@ -66,12 +72,22 @@ class OrAggregator(_Aggregator):
         super().__init__()
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return tuple()
 
     def _predict_core(
-        self, lists: Union[pd.DataFrame, Dict]
-    ) -> Union[pd.DataFrame, Dict]:
+        self,
+        lists: Union[
+            pd.DataFrame,
+            Dict[str, Union[pd.Series, pd.DataFrame]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+    ) -> Union[
+        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ]:
         if isinstance(lists, dict):
             if isinstance(next(iter(lists.values())), list):
                 clean_lists = {
@@ -103,10 +119,22 @@ class AndAggregator(_Aggregator):
         super().__init__()
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return tuple()
 
-    def _predict_core(self, lists: Union[pd.DataFrame, Dict]) -> pd.DataFrame:
+    def _predict_core(
+        self,
+        lists: Union[
+            pd.DataFrame,
+            Dict[str, Union[pd.Series, pd.DataFrame]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+    ) -> Union[
+        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ]:
         if isinstance(lists, dict):
             if isinstance(next(iter(lists.values())), list):
                 clean_lists = {

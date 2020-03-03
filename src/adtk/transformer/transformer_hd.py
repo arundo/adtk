@@ -23,7 +23,7 @@ __all__ = [
     "CustomizedTransformerHD",
 ]
 
-from typing import Union, List, Dict, Any, Optional, Tuple, Callable
+from typing import Union, Dict, Any, Optional, Tuple, Callable
 
 
 class CustomizedTransformerHD(_TrainableMultivariateTransformer):
@@ -67,7 +67,7 @@ class CustomizedTransformerHD(_TrainableMultivariateTransformer):
             self._fitted = 1
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return (
             "transform_func",
             "transform_func_params",
@@ -111,7 +111,7 @@ class SumAll(_NonTrainableMultivariateTransformer):
         super().__init__()
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return tuple()
 
     def _predict_core(self, df: pd.DataFrame) -> pd.Series:
@@ -134,20 +134,20 @@ class RegressionResidual(_TrainableMultivariateTransformer):
 
     """
 
-    def __init__(self, regressor: object, target: str) -> None:
+    def __init__(self, regressor: Any, target: str) -> None:
         super().__init__()
         self.regressor = regressor
         self.target = target
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("regressor", "target")
 
     def _fit_core(self, df: pd.DataFrame) -> None:
         if self.regressor is None:
             raise RuntimeError("Regressor is not specified.")
         if self.target is None:
-            self._target = df.columns[0]
+            self._target = df.columns[0]  # type: str
         else:
             if self.target not in df.columns:
                 raise RuntimeError(
@@ -201,12 +201,12 @@ class PcaProjection(_TrainableMultivariateTransformer):
     """
 
     def __init__(self, k: int = 1) -> None:
-        self._model = None  # type: object
+        self._model = None  # type: Any
         super().__init__()
         self.k = k
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("k",)
 
     def _fit_core(self, df: pd.DataFrame) -> None:
@@ -215,9 +215,7 @@ class PcaProjection(_TrainableMultivariateTransformer):
             raise RuntimeError("Valid values are not enough for training.")
         self._model.fit(df.dropna().values)
 
-    def _predict_core(
-        self, df: pd.DataFrame
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, df: pd.DataFrame) -> pd.DataFrame:
         if self.k > self._model.n_components:
             raise ValueError(
                 "k is increased after previous fitting. Please fit again."
@@ -246,12 +244,12 @@ class PcaReconstruction(_TrainableMultivariateTransformer):
     """
 
     def __init__(self, k: int = 1) -> None:
-        self._model = None  # type: object
+        self._model = None  # type: Any
         super().__init__()
         self.k = k
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("k",)
 
     def _fit_core(self, df: pd.DataFrame) -> None:
@@ -260,9 +258,7 @@ class PcaReconstruction(_TrainableMultivariateTransformer):
             raise RuntimeError("Valid values are not enough for training.")
         self._model.fit(df.dropna().values)
 
-    def _predict_core(
-        self, df: pd.DataFrame
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, df: pd.DataFrame) -> pd.DataFrame:
         if self._model is None:
             raise RuntimeError("Please fit the model first.")
         if self.k > self._model.n_components:
@@ -292,12 +288,12 @@ class PcaReconstructionError(_TrainableMultivariateTransformer):
     """
 
     def __init__(self, k: int = 1) -> None:
-        self._model = None  # type: object
+        self._model = None  # type: Any
         super().__init__()
         self.k = k
 
     @property
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return ("k",)
 
     def _fit_core(self, df: pd.DataFrame) -> None:

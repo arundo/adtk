@@ -5,10 +5,12 @@ import pandas as pd
 
 
 class _Model(ABC):
-    def __init__(self):
+    "Base class for all models (detectors, transformers, and aggregators)."
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         pass
 
-    def get_params(self) -> Dict:
+    def get_params(self) -> Dict[str, Any]:
         """Get the parameters of this model.
 
         Returns
@@ -38,11 +40,13 @@ class _Model(ABC):
 
     @property
     @abstractmethod
-    def _param_names(self) -> Tuple[str]:
+    def _param_names(self) -> Tuple[str, ...]:
         return tuple()
 
 
 class _NonTrainableModel(_Model):
+    "Base class of models that do not need training."
+
     @abstractmethod
     def _predict(self, input: Any) -> Any:
         pass
@@ -57,7 +61,9 @@ class _NonTrainableModel(_Model):
 
 
 class _TrainableModel(_Model):
-    def __init__(self):
+    "Base class of models that need training."
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         # 0 for not fitted, 1 for fitted, 2 for univariate model fitted by DF
         self._fitted = 0  # type: int
 
@@ -74,7 +80,7 @@ class _TrainableModel(_Model):
         pass
 
     @abstractmethod
-    def _predict(self, input: Any) -> None:
+    def _predict(self, input: Any) -> Any:
         pass
 
     @abstractmethod
@@ -91,17 +97,19 @@ class _TrainableModel(_Model):
 
 
 class _NonTrainableUnivariateModel(_NonTrainableModel):
+    "Base class of univariate detectors and transformers."
+
     def _predict(
         self, ts: Union[pd.Series, pd.DataFrame]
     ) -> Union[pd.Series, pd.DataFrame]:
         if isinstance(ts, pd.Series):
-            s = ts.copy()
+            s = ts.copy()  # type: pd.Series
             predicted = self._predict_core(s)
             # if a Series-to-Series operation, make sure Series name keeps
             if isinstance(predicted, pd.Series):
                 predicted.name = ts.name
         elif isinstance(ts, pd.DataFrame):
-            df = ts.copy()
+            df = ts.copy()  # type: pd.DataFrame
             if df.columns.duplicated().any():
                 raise ValueError(
                     "Input DataFrame must have unique column names."
@@ -129,15 +137,14 @@ class _NonTrainableUnivariateModel(_NonTrainableModel):
 
 
 class _TrainableUnivariateModel(_TrainableModel):
-    def __init__(self):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__()
-        self._models = dict()
+        self._models = dict()  # type: Dict[str, _TrainableUnivariateModel]
 
     def _fit(self, ts: Union[pd.Series, pd.DataFrame]) -> None:
         if isinstance(ts, pd.Series):
-            s = ts.copy()
+            s = ts.copy()  # type: pd.Series
             self._fit_core(s)
-            self._models = None
             self._fitted = 1
         elif isinstance(ts, pd.DataFrame):
             df = ts.copy()
@@ -150,9 +157,6 @@ class _TrainableUnivariateModel(_TrainableModel):
                 col: self.__class__(**deepcopy(self.get_params()))
                 for col in df.columns
             }
-            # # for each parameter, set them over all models.
-            # for key in self._models.keys():
-            #     self._models[key].set_params(**deepcopy(self.get_params()))
             # fit model for each column
             for col in df.columns:
                 self._models[col].fit(df[col])
@@ -255,9 +259,6 @@ class _TrainableMultivariateModel(_TrainableModel):
         self._fitted = 1
 
     def _predict(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
-        # df type check + duplicated column check
-        # call _predict_core
-        # make sure index is unchanged
         if self._fitted == 0:
             raise RuntimeError("The model must be trained first.")
         if isinstance(df, pd.DataFrame):
