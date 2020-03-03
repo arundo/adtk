@@ -475,12 +475,12 @@ class PersistAD(_TrainableUnivariateDetector):
             }
         )
         super().__init__()
-        # self._sync_params()
         self.c = c
         self.side = side
         self.window = window
         self.min_periods = min_periods
         self.agg = agg
+        self._sync_params()
 
     @property
     def _param_names(self) -> Tuple[str]:
@@ -625,11 +625,11 @@ class LevelShiftAD(_TrainableUnivariateDetector):
             }
         )
         super().__init__()
-        # self._sync_params()
         self.c = c
         self.side = side
         self.window = window
         self.min_periods = min_periods
+        self._sync_params()
 
     @property
     def _param_names(self) -> Tuple[str]:
@@ -770,12 +770,12 @@ class VolatilityShiftAD(_TrainableUnivariateDetector):
             }
         )
         super().__init__()
-        # self._sync_params()
         self.agg = agg
         self.c = c
         self.side = side
         self.window = window
         self.min_periods = min_periods
+        self._sync_params()
 
     @property
     def _param_names(self) -> Tuple[str]:
@@ -924,12 +924,12 @@ class AutoregressionAD(_TrainableUnivariateDetector):
             }
         )
         super().__init__()
-        # self._sync_params()
         self.n_steps = n_steps
         self.step_size = step_size
         self.regressor = regressor
         self.c = c
         self.side = side
+        self._sync_params()
 
     @property
     def _param_names(self) -> Tuple[str]:
@@ -1065,11 +1065,11 @@ class SeasonalAD(_TrainableUnivariateDetector):
             }
         )
         super().__init__()
-        # self._sync_params()
         self.freq = freq
         self.side = side
         self.c = c
         self.trend = trend
+        self._sync_params()
 
     @property
     def _param_names(self) -> Tuple[str]:
