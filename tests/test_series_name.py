@@ -9,7 +9,7 @@ import adtk.transformer as transformer
 from adtk._base import _TrainableModel
 from adtk._detector_base import (
     _NonTrainableUnivariateDetector,
-    _NonTrainableMultivariateDetector,
+    # _NonTrainableMultivariateDetector,
     _TrainableUnivariateDetector,
     _TrainableMultivariateDetector,
 )
@@ -20,7 +20,7 @@ from sklearn.linear_model import LinearRegression
 
 _Detector = (
     _NonTrainableUnivariateDetector,
-    _NonTrainableMultivariateDetector,
+    # _NonTrainableMultivariateDetector,
     _TrainableUnivariateDetector,
     _TrainableMultivariateDetector,
 )

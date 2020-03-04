@@ -364,111 +364,111 @@ class _TrainableUnivariateDetector(_TrainableUnivariateModel):
             )
 
 
-class _NonTrainableMultivariateDetector(_NonTrainableMultivariateModel):
-    def detect(
-        self, df: pd.DataFrame, return_list: bool = False
-    ) -> Union[
-        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-    ]:
-        """Detect anomalies from given time series.
+# class _NonTrainableMultivariateDetector(_NonTrainableMultivariateModel):
+#     def detect(
+#         self, df: pd.DataFrame, return_list: bool = False
+#     ) -> Union[
+#         pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+#     ]:
+#         """Detect anomalies from given time series.
 
-        Parameters
-        ----------
-        df: pandas.DataFrame
-            Time series to detect anomalies from.
+#         Parameters
+#         ----------
+#         df: pandas.DataFrame
+#             Time series to detect anomalies from.
 
-        return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+#         return_list: bool, optional
+#             Whether to return a list of anomalous time stamps, or a binary
+#             series indicating normal/anomalous. Default: False.
 
-        Returns
-        -------
-        pandas.Series or list
-            Detected anomalies.
+#         Returns
+#         -------
+#         pandas.Series or list
+#             Detected anomalies.
 
-            - If return_list=False, return a binary series;
-            - If return_list=True, return a list of time stamps or time stamp
-              2-tuples.
+#             - If return_list=False, return a binary series;
+#             - If return_list=True, return a list of time stamps or time stamp
+#               2-tuples.
 
-        """
-        detected = self._predict(df)
-        if return_list:
-            return to_events(detected)
-        else:
-            return detected
+#         """
+#         detected = self._predict(df)
+#         if return_list:
+#             return to_events(detected)
+#         else:
+#             return detected
 
-    def predict(
-        self, df: pd.DataFrame, return_list: bool = False
-    ) -> Union[
-        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-    ]:
-        """
-        Alias of `detect`.
-        """
-        return self.detect(df, return_list=return_list)
+#     def predict(
+#         self, df: pd.DataFrame, return_list: bool = False
+#     ) -> Union[
+#         pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+#     ]:
+#         """
+#         Alias of `detect`.
+#         """
+#         return self.detect(df, return_list=return_list)
 
-    def score(
-        self,
-        df: pd.DataFrame,
-        anomaly_true: Union[pd.Series, List, Tuple],
-        scoring: str = "recall",
-        **kwargs: Any
-    ) -> float:
-        """Detect anomalies and score the results against true anomalies.
+#     def score(
+#         self,
+#         df: pd.DataFrame,
+#         anomaly_true: Union[pd.Series, List, Tuple],
+#         scoring: str = "recall",
+#         **kwargs: Any
+#     ) -> float:
+#         """Detect anomalies and score the results against true anomalies.
 
-        Parameters
-        ----------
-        df: pandas DataFrame
-            Time series to detect anomalies from.
-            If a DataFrame with k columns, k univariate detectors will be
-            applied to them independently.
+#         Parameters
+#         ----------
+#         df: pandas DataFrame
+#             Time series to detect anomalies from.
+#             If a DataFrame with k columns, k univariate detectors will be
+#             applied to them independently.
 
-        anomaly_true: Series, or a list of Timestamps or Timestamp tuple
-            True anomalies.
+#         anomaly_true: Series, or a list of Timestamps or Timestamp tuple
+#             True anomalies.
 
-            - If Series, it is a series binary labels indicating anomalous;
-            - If list, it is a list of anomalous events in form of time windows.
+#             - If Series, it is a series binary labels indicating anomalous;
+#             - If list, it is a list of anomalous events in form of time windows.
 
-        scoring: str, optional
-            Scoring function to use. Must be one of "recall", "precision",
-            "f1", and "iou". See module `metrics` for more information.
-            Default: "recall"
+#         scoring: str, optional
+#             Scoring function to use. Must be one of "recall", "precision",
+#             "f1", and "iou". See module `metrics` for more information.
+#             Default: "recall"
 
-        **kwargs
-            Optional parameters for scoring function. See module `metrics` for
-            more information.
+#         **kwargs
+#             Optional parameters for scoring function. See module `metrics` for
+#             more information.
 
-        Returns
-        -------
-        float
-            Score of detection result.
+#         Returns
+#         -------
+#         float
+#             Score of detection result.
 
-        """
-        if scoring == "recall":
-            scoring_func = recall  # type: Callable
-        elif scoring == "precision":
-            scoring_func = precision
-        elif scoring == "f1":
-            scoring_func = f1_score
-        elif scoring == "iou":
-            scoring_func = iou
-        else:
-            raise ValueError(
-                "Argument `scoring` must be one of 'recall', 'precision', "
-                "'f1' and 'iou'."
-            )
-        if isinstance(anomaly_true, pd.Series):
-            return scoring_func(
-                y_true=anomaly_true,
-                y_pred=self.detect(df, return_list=False),
-                **kwargs
-            )
-        else:
-            return scoring_func(
-                y_true=anomaly_true,
-                y_pred=self.detect(df, return_list=True),
-                **kwargs
-            )
+#         """
+#         if scoring == "recall":
+#             scoring_func = recall  # type: Callable
+#         elif scoring == "precision":
+#             scoring_func = precision
+#         elif scoring == "f1":
+#             scoring_func = f1_score
+#         elif scoring == "iou":
+#             scoring_func = iou
+#         else:
+#             raise ValueError(
+#                 "Argument `scoring` must be one of 'recall', 'precision', "
+#                 "'f1' and 'iou'."
+#             )
+#         if isinstance(anomaly_true, pd.Series):
+#             return scoring_func(
+#                 y_true=anomaly_true,
+#                 y_pred=self.detect(df, return_list=False),
+#                 **kwargs
+#             )
+#         else:
+#             return scoring_func(
+#                 y_true=anomaly_true,
+#                 y_pred=self.detect(df, return_list=True),
+#                 **kwargs
+#             )
 
 
 class _TrainableMultivariateDetector(_TrainableMultivariateModel):

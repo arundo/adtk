@@ -18,7 +18,7 @@ from tabulate import tabulate
 from .._base import _Model, _TrainableModel
 from .._detector_base import (
     _NonTrainableUnivariateDetector,
-    _NonTrainableMultivariateDetector,
+    # _NonTrainableMultivariateDetector,
     _TrainableUnivariateDetector,
     _TrainableMultivariateDetector,
 )
@@ -38,7 +38,7 @@ __all__ = ["Pipeline", "Pipenet"]
 
 _Detector = (
     _NonTrainableUnivariateDetector,
-    _NonTrainableMultivariateDetector,
+    # _NonTrainableMultivariateDetector,
     _TrainableUnivariateDetector,
     _TrainableMultivariateDetector,
 )

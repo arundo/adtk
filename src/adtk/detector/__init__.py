@@ -7,7 +7,7 @@ from .detector_1d import *
 from .detector_hd import *
 from .._detector_base import (
     _NonTrainableUnivariateDetector,
-    _NonTrainableMultivariateDetector,
+    # _NonTrainableMultivariateDetector,
     _TrainableUnivariateDetector,
     _TrainableMultivariateDetector,
 )
@@ -25,7 +25,7 @@ def print_all_models() -> None:
         _NonTrainableUnivariateDetector
     )
     model_desc.update(
-        _get_all_subclasses_from_superclass(_NonTrainableMultivariateDetector)
+        # _get_all_subclasses_from_superclass(_NonTrainableMultivariateDetector)
     )
     model_desc.update(
         _get_all_subclasses_from_superclass(_TrainableUnivariateDetector)
