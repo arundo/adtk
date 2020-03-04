@@ -493,7 +493,9 @@ class Pipenet:
 
     """
 
-    def __init__(self, steps: Optional[Dict[str, Dict[str, Any]]]) -> None:
+    def __init__(
+        self, steps: Optional[Dict[str, Dict[str, Any]]] = None
+    ) -> None:
         if steps is None:
             self.steps = dict()
         else:
