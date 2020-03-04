@@ -88,7 +88,7 @@ class _NonTrainableUnivariateDetector(_NonTrainableUnivariateModel):
         ],
         scoring: str = "recall",
         **kwargs: Any
-    ) -> Union[float, Dict]:
+    ) -> Union[float, Dict[str, float]]:
         """Detect anomalies and score the results against true anomalies.
 
         Parameters
@@ -300,7 +300,7 @@ class _TrainableUnivariateDetector(_TrainableUnivariateModel):
         ],
         scoring: str = "recall",
         **kwargs: Any
-    ) -> Union[float, Dict]:
+    ) -> Union[float, Dict[str, float]]:
         """Detect anomalies and score the results against true anomalies.
 
         Parameters

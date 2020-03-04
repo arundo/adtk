@@ -9,7 +9,7 @@ import pandas as pd
 from .._aggregator_base import _Aggregator
 from ..data import validate_events
 
-from typing import List, Dict, Union, Callable, Optional, Tuple
+from typing import List, Dict, Union, Callable, Optional, Tuple, Any
 
 __all__ = ["OrAggregator", "AndAggregator", "CustomizedAggregator"]
 
@@ -33,7 +33,7 @@ class CustomizedAggregator(_Aggregator):
     def __init__(
         self,
         aggregate_func: Callable,
-        aggregate_func_params: Optional[Dict] = None,
+        aggregate_func_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__()
         self.aggregate_func = aggregate_func

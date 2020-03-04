@@ -195,7 +195,7 @@ class RollingAggregate(_NonTrainableUnivariateTransformer):
         self,
         window: Union[int, str],
         agg: Union[str, Callable] = "mean",
-        agg_params: Optional[Dict] = None,
+        agg_params: Optional[Dict[str, Any]] = None,
         center: bool = False,
         min_periods: Optional[int] = None,
     ) -> None:
@@ -442,7 +442,8 @@ class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
             str, Callable, Tuple[Union[str, Callable], Union[str, Callable]]
         ] = "mean",
         agg_params: Union[
-            Optional[Dict], Tuple[Optional[Dict], Optional[Dict]]
+            Optional[Dict[str, Any]],
+            Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]],
         ] = None,
         center: bool = True,
         min_periods: Union[

@@ -368,8 +368,8 @@ class PcaAD(_TrainableMultivariateDetector):
         return ("k", "c")
 
     def _sync_params(self) -> None:
-        self.pipe_.steps[0][1].k = self.k
-        self.pipe_.steps[1][1].c = self.c
+        setattr(self.pipe_.steps[0][1], "k", self.k)
+        setattr(self.pipe_.steps[1][1], "c", self.c)
 
     def _fit_core(self, s: pd.DataFrame) -> None:
         self._sync_params()

@@ -34,7 +34,7 @@ from ..metrics import recall, precision, f1_score, iou
 from typing import Tuple, Union, List, Dict, Any, Optional, Callable
 
 
-__all__ = ["Pipeline", "Pipenet"]  # type: List[str]
+__all__ = ["Pipeline", "Pipenet"]
 
 _Detector = (
     _NonTrainableUnivariateDetector,
@@ -67,7 +67,7 @@ class Pipeline:
 
     """
 
-    def __init__(self, steps: List[Tuple[str, Any]] = None) -> None:
+    def __init__(self, steps: List[Tuple[str, _Model]] = None) -> None:
         if steps is None:
             self.steps = []
         else:
@@ -93,9 +93,9 @@ class Pipeline:
     def fit(
         self,
         ts: Union[pd.Series, pd.DataFrame],
-        skip_fit: Optional[List] = None,
+        skip_fit: Optional[List[str]] = None,
         return_intermediate: bool = False,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[Dict[str, Optional[Union[pd.Series, pd.DataFrame]]]]:
         """Train all models in the pipeline sequentially.
 
         Parameters
@@ -131,7 +131,31 @@ class Pipeline:
         ts: Union[pd.Series, pd.DataFrame],
         return_intermediate: bool = False,
         return_list: bool = False,
-    ) -> Union[List, pd.Series, Dict]:
+    ) -> Union[
+        Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+        Dict[
+            str,
+            Union[
+                pd.Series,
+                pd.DataFrame,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+                Dict[
+                    str,
+                    List[
+                        Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]
+                    ],
+                ],
+            ],
+        ],
+    ]:
         """Transform time series sequentially along pipeline, and detect
         anomalies with the last detector.
 
@@ -172,7 +196,10 @@ class Pipeline:
         self,
         ts: Union[pd.Series, pd.DataFrame],
         return_intermediate: bool = False,
-    ) -> Union[List, Dict]:
+    ) -> Union[
+        Union[pd.Series, pd.DataFrame],
+        Dict[str, Union[pd.Series, pd.DataFrame]],
+    ]:
         """Transform time series sequentially along pipeline.
 
         Parameters
@@ -200,10 +227,34 @@ class Pipeline:
     def fit_detect(
         self,
         ts: Union[pd.Series, pd.DataFrame],
-        skip_fit: List = None,
+        skip_fit: Optional[List[str]] = None,
         return_intermediate: bool = False,
         return_list: bool = False,
-    ) -> Union[List, pd.Series, Dict]:
+    ) -> Union[
+        Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+        Dict[
+            str,
+            Union[
+                pd.Series,
+                pd.DataFrame,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+                Dict[
+                    str,
+                    List[
+                        Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]
+                    ],
+                ],
+            ],
+        ],
+    ]:
         """Train models in pipeline sequentially, transform time series along
         pipeline, and use the last detector to detect anomalies.
 
@@ -250,9 +301,12 @@ class Pipeline:
     def fit_transform(
         self,
         ts: Union[pd.Series, pd.DataFrame],
-        skip_fit: Optional[List] = None,
+        skip_fit: Optional[List[str]] = None,
         return_intermediate: bool = False,
-    ) -> Union[List, Dict]:
+    ) -> Union[
+        Union[pd.Series, pd.DataFrame],
+        Dict[str, Union[pd.Series, pd.DataFrame]],
+    ]:
         """Train models in pipeline sequentially, and transform time series
         along pipeline.
 
@@ -287,10 +341,18 @@ class Pipeline:
     def score(
         self,
         ts: Union[pd.Series, pd.DataFrame],
-        anomaly_true: Union[pd.Series, List[pd.Timestamp], Tuple],
+        anomaly_true: Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
         scoring: str = "recall",
         **kwargs: Any
-    ) -> Union[float, Dict]:
+    ) -> Union[float, Dict[str, float]]:
         """Detect anomalies and score the results against true anomalies.
 
         Parameters
@@ -346,7 +408,7 @@ class Pipeline:
                 **kwargs
             )
 
-    def get_params(self) -> Dict:
+    def get_params(self) -> Dict[str, Dict[str, Any]]:
         """Get parameters of models in pipeline.
 
         Returns
@@ -747,9 +809,9 @@ class Pipenet:
     def fit(
         self,
         ts: Union[pd.Series, pd.DataFrame],
-        skip_fit: Optional[List] = None,
+        skip_fit: Optional[List[str]] = None,
         return_intermediate: bool = False,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[Dict[str, Optional[Union[pd.Series, pd.DataFrame]]]]:
         """Train models in the pipenet.
 
         Parameters
@@ -829,14 +891,56 @@ class Pipenet:
     def _predict(
         self,
         ts: Union[pd.Series, pd.DataFrame],
-        fit: Any,
-        detect: Any,
-        skip_fit: Optional[List],
+        fit: bool,
+        detect: bool,
+        skip_fit: Optional[List[str]],
         return_intermediate: bool,
-        return_list: Optional[bool],
-    ) -> Dict[str, Union[pd.Series, pd.DataFrame]]:
+        return_list: bool = False,
+    ) -> Union[
+        Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+        Dict[
+            str,
+            Union[
+                pd.Series,
+                pd.DataFrame,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+                Dict[
+                    str,
+                    List[
+                        Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]
+                    ],
+                ],
+            ],
+        ],
+    ]:
         """
         Private method for detect, transform, fit_detect, fit_transform
+
+        Parameters
+        ----------
+        fit: bool
+            Whether this call is for fit_detect/fit_transform or
+            detect/transform.
+
+        detect: bool
+            Whether this call is for detect/fit_detect or
+            transform/fit_transform.
+
+        Others:
+            Same as higher-level calls
+
+        Returns
+        -------
+            Same as higher-level calls
+
         """
         self._validate()
 
@@ -871,7 +975,9 @@ class Pipenet:
                     )
                 )
 
-        results = {"original": ts.copy()}
+        results = {
+            "original": ts.copy()
+        }  # type: Dict[str,Union[pd.Series,pd.DataFrame,List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]], Dict[str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]]]]
         for step_name in list(self.steps_graph_.keys())[1:]:
             step = self.steps[step_name]
             input = self._get_input(step, results)
@@ -882,7 +988,13 @@ class Pipenet:
                             step["model"].fit_predict(
                                 input, return_list=return_list
                             )
-                            if isinstance(step["model"], _TrainableModel)
+                            if isinstance(
+                                step["model"],
+                                (
+                                    _TrainableUnivariateDetector,
+                                    _TrainableMultivariateDetector,
+                                ),
+                            )
                             else step["model"].predict(
                                 input, return_list=return_list
                             )
@@ -890,7 +1002,13 @@ class Pipenet:
                         if isinstance(step["model"], _Detector)
                         else (
                             step["model"].fit_predict(input)
-                            if isinstance(step["model"], _TrainableModel)
+                            if isinstance(
+                                step["model"],
+                                (
+                                    _TrainableUnivariateTransformer,
+                                    _TrainableMultivariateTransformer,
+                                ),
+                            )
                             else step["model"].predict(input)
                         )
                     )
@@ -913,7 +1031,31 @@ class Pipenet:
         ts: Union[pd.Series, pd.DataFrame],
         return_intermediate: bool = False,
         return_list: bool = False,
-    ) -> Union[List, pd.Series, Dict]:
+    ) -> Union[
+        Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+        Dict[
+            str,
+            Union[
+                pd.Series,
+                pd.DataFrame,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+                Dict[
+                    str,
+                    List[
+                        Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]
+                    ],
+                ],
+            ],
+        ],
+    ]:
         """Detect anomaly from time series using the pipenet.
 
         Parameters
@@ -954,7 +1096,10 @@ class Pipenet:
         self,
         ts: Union[pd.Series, pd.DataFrame],
         return_intermediate: bool = False,
-    ) -> Union[List, Dict]:
+    ) -> Union[
+        Union[pd.Series, pd.DataFrame],
+        Dict[str, Union[pd.Series, pd.DataFrame]],
+    ]:
         """Transform time series using the pipenet.
 
         Parameters
@@ -980,16 +1125,39 @@ class Pipenet:
             detect=False,
             skip_fit=None,
             return_intermediate=return_intermediate,
-            return_list=None,
         )
 
     def fit_detect(
         self,
         ts: Union[pd.Series, pd.DataFrame],
-        skip_fit: List = None,
+        skip_fit: Optional[List[str]] = None,
         return_intermediate: bool = False,
         return_list: bool = False,
-    ) -> Union[List, pd.Series, Dict]:
+    ) -> Union[
+        Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+        Dict[
+            str,
+            Union[
+                pd.Series,
+                pd.DataFrame,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+                Dict[
+                    str,
+                    List[
+                        Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]
+                    ],
+                ],
+            ],
+        ],
+    ]:
         """Train models in the pipenet and detect anomaly with it.
 
         Parameters
@@ -1035,9 +1203,12 @@ class Pipenet:
     def fit_transform(
         self,
         ts: Union[pd.Series, pd.DataFrame],
-        skip_fit: List = None,
+        skip_fit: Optional[List[str]] = None,
         return_intermediate: bool = False,
-    ) -> Union[List, Dict]:
+    ) -> Union[
+        Union[pd.Series, pd.DataFrame],
+        Dict[str, Union[pd.Series, pd.DataFrame]],
+    ]:
         """Train models in the pipenet and transform time series with it.
 
         Parameters
@@ -1069,16 +1240,23 @@ class Pipenet:
             detect=False,
             skip_fit=skip_fit,
             return_intermediate=return_intermediate,
-            return_list=None,
         )
 
     def score(
         self,
         ts: Union[pd.Series, pd.DataFrame],
-        anomaly_true: Union[pd.Series, List[pd.Timestamp], Tuple],
+        anomaly_true: Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
         scoring: str = "recall",
         **kwargs: Any
-    ) -> Union[float, Dict]:
+    ) -> Union[float, Dict[str, float]]:
         """Detect anomalies and score the results against true anomalies.
 
         Parameters
@@ -1109,7 +1287,7 @@ class Pipenet:
 
         """
         if scoring == "recall":
-            scoring_func = recall  # type: Any
+            scoring_func = recall  # type: Callable
         elif scoring == "precision":
             scoring_func = precision
         elif scoring == "f1":
@@ -1134,7 +1312,7 @@ class Pipenet:
                 **kwargs
             )
 
-    def get_params(self) -> Dict:
+    def get_params(self) -> Dict[str, Dict[str, Any]]:
         """Get parameters of models in pipenet.
 
         Returns
@@ -1170,7 +1348,10 @@ class Pipenet:
         print(tabulate(df, headers="keys", tablefmt="simple", showindex=False))
 
     def plot_flowchart(
-        self, ax: plt.Axes = None, figsize: Tuple = None, radius: float = 1.0
+        self,
+        ax: Optional[plt.Axes] = None,
+        figsize: Optional[Tuple[float, float]] = None,
+        radius: float = 1.0,
     ) -> plt.Axes:
         """Plot flowchart of this pipenet.
 
@@ -1319,3 +1500,5 @@ class Pipenet:
         )
         ax.set_axis_off()
         ax.set_aspect(1)
+
+        return ax
