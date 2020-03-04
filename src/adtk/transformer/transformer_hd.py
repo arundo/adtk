@@ -144,18 +144,13 @@ class RegressionResidual(_TrainableMultivariateTransformer):
         return ("regressor", "target")
 
     def _fit_core(self, df: pd.DataFrame) -> None:
-        if self.regressor is None:
-            raise RuntimeError("Regressor is not specified.")
-        if self.target is None:
-            self._target = df.columns[0]  # type: str
-        else:
-            if self.target not in df.columns:
-                raise RuntimeError(
-                    "Cannot find target series {} in input dataframe.".format(
-                        self.target
-                    )
+        if self.target not in df.columns:
+            raise RuntimeError(
+                "Cannot find target series {} in input dataframe.".format(
+                    self.target
                 )
-            self._target = self.target
+            )
+        self._target = self.target
         self._features = [col for col in df.columns if col != self._target]
         if df.dropna().empty:
             raise RuntimeError("Valid values are not enough for training.")
