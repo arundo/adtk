@@ -17,16 +17,17 @@ def validate_series(
 ) -> Union[pd.Series, pd.DataFrame]:
     """Validate time series.
 
-    This process will check some common critical issues that may cause problems
-    if anomaly detection is performed to time series without fixing them. The
-    function will automatically fix some of them, while it will raise errors
-    when detect others.
+    This functoin will check some common critical issues of time series that
+    may cause problems if anomaly detection is performed without fixing them.
+    The function will automatically fix some of them and raise errors for the
+    others.
 
     Issues will be checked and automatically fixed include:
 
     - Time index is not monotonically increasing;
     - Time index contains duplicated time stamps (fix by keeping first values);
-    - (optional) Time index attribute `freq` is missed;
+    - (optional) Time index attribute `freq` is missed while the index follows
+      a frequency;
     - (optional) Time series include categorical (non-binary) label columns
       (to fix by converting categorical labels into binary indicators).
 
@@ -76,9 +77,8 @@ def validate_series(
 
     # check time step frequency
     if check_freq:
-        if ts.index.freq is None:
-            if ts.index.inferred_freq is not None:
-                ts = ts.asfreq(ts.index.inferred_freq)
+        if (ts.index.freq is None) and (ts.index.inferred_freq is not None):
+            ts = ts.asfreq(ts.index.inferred_freq)
 
     # convert categorical labels into binary indicators
     if check_categorical:
@@ -104,24 +104,25 @@ def validate_events(
 ) -> List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]:
     """Validate event list.
 
-    This process will check some common issues in an event list (a list of time
-    windows), including invalid time window, overlapped or consecutive time
+    This function will check and fix some common issues in an event list (a
+    list of time windows), including invalid time window, overlapped time
     windows, unsorted events, etc.
 
     Parameters
     ----------
-    event_list: list of pandas Timestamp 2-tuples
-        Start and end of original (unmerged) time windows. Every window is
-        regarded as a closed interval.
+    event_list: list
+        A list of events, where an event is a pandas Timestamp if it is
+        instantaneous or a 2-tuple of pandas Timestamps if it is a closed time
+        interval.
 
     point_as_interval: bool, optional
-        Whether to return a singular time point as a close interval. Default:
-        False.
+        Whether to return all instantaneous event as a close interval with
+        identicial start point and end point. Default: False.
 
     Returns
     -------
-    list of pandas Timestamp 2-tuples:
-        Start and end of merged events.
+    list:
+        A validated list of events.
 
     """
     if not isinstance(event_list, list):
@@ -213,43 +214,41 @@ def to_events(
     List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
     Dict[str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]],
 ]:
-    """Convert binary label series to event list(s).
+    """Convert binary label series to event list.
 
     Parameters
     ----------
     labels: pandas Series or DataFrame
         Binary series of anomaly labels. If a DataFrame, each column is
-        regarded as an independent type of anomaly.
+        regarded as a type of anomaly independently.
 
     freq_as_period: bool, optional
         Whether to regard time index with regular frequency (i.e. attribute
-        `freq` of time index is not None) as time spans.
-        E.g. DatetimeIndex(['2017-01-01', '2017-01-02', '2017-01-03',
-        '2017-01-04', '1970-01-05'], dtype='datetime64[ns]', freq='D') has
-        daily frequency. If freq_as_period=True, each element represents that
-        day. Otherwsie, each time element represents the instantaneous time
-        stamp 00:00:00 on that day.
+        `freq` of time index is not None) as time intervals.
+
+        For example, DatetimeIndex(['2017-01-01', '2017-01-02', '2017-01-03',
+        '2017-01-04', '2017-01-05'], dtype='datetime64[ns]', freq='D') has
+        daily frequency. If freq_as_period=True, each time point in the index
+        represents that day. Otherwsie, each time point represents the
+        instantaneous time instance of 00:00:00 on that day.
+
         Default: True.
 
     merge_consecutive: bool, optional
-        Whether to merge consecutive events into a time window. When the option
-        is on, if input time index has regular frequency (i.e. attribute `freq`
-        of time index is not None) and freq_as_period=True, a merged event ends
-        at the end of last period; otherwise, it ends at the last instantaneous
-        time point. If the option is not specified, it is on automatically if
-        the input time index has regular frequency and freq_as_period=True, and
-        is off otherwise. Default: None.
+        Whether to merge consecutive events into a single time window. If not
+        specified, it is on automatically if the input time index has a regular
+        frequency and freq_as_period=True, and it is off otherwise. Default:
+        None.
 
     Returns
     -------
     list or dict
-        - If input is a Series, output is a list of time instants or periods.
+        - If input is a Series, output is a list of events where an event is a
+          pandas Timestamp if it is instantaneous or a 2-tuple of pandas
+          Timestamps if it is a closed time interval.
         - If input is a DataFrame, every column is treated as an independent
           binary series, and output is a dict where keys are column names and
-          values are corresponding event lists.
-
-        A time instant is a pandas Timestamp object, while a time period is a
-        2-tuple of Timestamp objects that is regarded as a closed interval.
+          values are event lists.
 
     """
 
@@ -351,40 +350,43 @@ def to_labels(
     time_index: pd.DatetimeIndex,
     freq_as_period: bool = True,
 ) -> Union[pd.Series, pd.DataFrame]:
-    """Convert event list(s) to binary series along a time line.
+    """Convert event list to binary series along a time index.
 
     Parameters
     ----------
     lists: list or dict
         A list of events, or a dict of lists of events.
-
-        - If list, it represents a single type of event;
-        - If dict, each key-value pair represents a type of event.
-
-        Each event in a list can be a pandas Timestamp, or a tuple of two
-        Timestamps that is regarded as a closed interval.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair represents an independent list of
+          events.
 
     time_index: pandas DatatimeIndex
         Time index to build the label series.
 
     freq_as_period: bool, optional
         Whether to regard time index with regular frequency (i.e. attribute
-        `freq` of time index is not None) as time spans.
-        E.g. DatetimeIndex(['2017-01-01', '2017-01-02', '2017-01-03',
-        '2017-01-04', '1970-01-05'], dtype='datetime64[ns]', freq='D') has
-        daily frequency. If freq_as_period=True, each element represents that
-        day, and that day will be marked positive if an event in the event list
-        overlaps with any part of that day. Otherwsie, each time element
-        represents the instantaneous time stamp 00:00:00 on that day, and that
-        time point will be marked positive if an event in the event list covers
-        it.
+        `freq` of time index is not None) as time intervals.
+
+        For example, DatetimeIndex(['2017-01-01', '2017-01-02', '2017-01-03',
+        '2017-01-04', '2017-01-05'], dtype='datetime64[ns]', freq='D') has
+        daily frequency. If freq_as_period=True, each time piont represents
+        that day, and that day will be marked positive if an event in the event
+        list overlaps with the period of that day. Otherwsie, each time point
+        represents the instantaneous time instance of 00:00:00 on that day, and
+        that time point will be marked positive if an event in the event list
+        covers it.
+
         Default: True.
 
     Returns
     -------
     pandas Series or DataFrame
-        Series of binary labels. If input is asingle list, the output is a
-        Series, otherwise if input is a dict, the output is a DataFrame.
+        Series of binary labels.
+        - If input is asingle list, the output is a Series.
+        - If input is a dict of lists, the output is a DataFrame where each
+          column corresponds a list in the dict.
 
     """
 
@@ -473,19 +475,15 @@ def expand_events(
 ]:
     """Expand time windows in an event list.
 
-    Given a list of events, expand the duration of events by a given factor.
-    This may help to process true event list before calculating the quality
-    of a detection result using a scoring function, if slight offset in result
-    is considered acceptable.
-
     Parameters
     ----------
     lists: list or dict
         A list of events, or a dict of lists of events.
-
-        - If list, each event can be a pandas Timestamp, or a tuple of two
-          Timestamps that is regarded as a closed interval.
-        - If dict, each key-value pair represents an independent type of event.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair represents an independent list of
+          events.
 
     left_expand: pandas Timedelta, str, or int, optional
         Time range to expand backward.
@@ -547,16 +545,22 @@ def resample(
     Parameters
     ----------
     ts: pandas Series or DataFrame
-        Time series to resample. Index of the object must be DatetimeIndex.
+        Time series to resample.
 
     dT: pandas Timedelta, str, or int, optional
-        The new constant time step. If str, it must be able to be converted
-        into a pandas Timedelta object. If int, it must be in nanosecond. If
-        not given, the greatest common divider of original time steps will be
-        used, which makes the refinement a minimal refinement subject to
+        The new constant time step.
+
+        - If str, it must be able to be converted into a pandas Timedelta
+          object.
+        - If int, it must be in nanosecond.
+
+        If not given, the greatest common divider of original time steps will
+        be used, which makes the refinement a minimal refinement subject to
         keeping all original time points still included in the resampled time
         series. Please note that this may dramatically increase the size of
-        time series and memory usage. Default: None.
+        time series and memory usage.
+
+        Default: None.
 
     Returns
     -------

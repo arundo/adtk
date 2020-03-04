@@ -61,14 +61,14 @@ class _Aggregator(_NonTrainableModel):
             Anomaly lists to be aggregated.
 
             - If a pandas DataFrame, every column is a binary Series
-              representing a list of anomalies;
-            - If a dict of Series/DataFrame, every value of the dict is a
-              binary Series/DataFrame representing a list / a set of lists of
-              anomalies;
-            - If a dict of list, every value of the dict is a list of events
-              where each event is represented as a pandas Timestamp if it is
-              a singular time point or a 2-tuple of pandas Timestamps if it is
-              a time interval.
+              representing a type of anomaly.
+            - If a dict of pandas Series/DataFrame, every value of the dict is
+              a binary Series/DataFrame representing a type or some types of
+              anomaly;
+            - If a dict of list, every value of the dict is a type of anomaly
+              as a list of events, where each event is represented as a pandas
+              Timestamp if it is instantaneous or a 2-tuple of pandas
+              Timestamps if it is a closed time interval.
 
         Returns
         -------
@@ -76,8 +76,8 @@ class _Aggregator(_NonTrainableModel):
             Aggregated list of anomalies.
 
             - If input is a pandas DataFrame or a dict of Series/DataFrame,
-              return a binary Series;
-            - If input is a dict of list, return a list of events.
+              return a single binary pandas Series;
+            - If input is a dict of lists, return a single list of events.
 
         """
         return self._predict(lists)
