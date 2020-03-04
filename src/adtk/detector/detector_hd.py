@@ -9,10 +9,7 @@ from collections import Counter
 import pandas as pd
 
 from ..aggregator import AndAggregator
-from .._detector_base import (
-    _TrainableMultivariateDetector,
-    _NonTrainableMultivariateDetector,
-)
+from .._detector_base import _TrainableMultivariateDetector
 from ..detector import InterQuartileRangeAD, ThresholdAD
 from ..pipe import Pipenet, Pipeline
 from ..transformer import (
@@ -21,7 +18,7 @@ from ..transformer import (
     PcaReconstructionError,
 )
 
-from typing import List, Dict, Any, Tuple, Union, Optional, Callable
+from typing import Dict, Any, Tuple, Optional, Callable
 
 __all__ = [
     "MinClusterDetector",
@@ -29,7 +26,7 @@ __all__ = [
     "RegressionAD",
     "PcaAD",
     "CustomizedDetectorHD",
-]  # type: List[str]
+]
 
 
 class CustomizedDetectorHD(_TrainableMultivariateDetector):

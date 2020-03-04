@@ -25,7 +25,7 @@ from ..transformer import (
     Retrospect,
 )
 
-from typing import List, Dict, Union, Any, Tuple, Optional, Callable
+from typing import Dict, Union, Any, Tuple, Optional, Callable
 
 __all__ = [
     "ThresholdAD",
