@@ -6,23 +6,66 @@ import pandas as pd
 from ..aggregator import AndAggregator, OrAggregator
 from ..data import validate_events
 
-__all__ = ["recall", "precision", "f1_score", "iou"]  # type: List[str]
+__all__ = ["recall", "precision", "f1_score", "iou"]
 
-from typing import Any, Dict, List, Tuple, Union, Optional
-
-# from typing_extensions import Protocol, runtime_checkable
+from typing import Dict, List, Tuple, Union, Optional, overload
 
 
-# @runtime_checkable
-# class PdSeries(Protocol):
-#     handles: pd.Series
+@overload
+def recall(  # type: ignore
+    y_true: pd.Series, y_pred: pd.Series, thresh: float = 0.5
+) -> float:
+    ...
+
+
+@overload
+def recall(  # type: ignore
+    y_true: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    y_pred: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    thresh: float = 0.5,
+) -> float:
+    ...
+
+
+@overload
+def recall(  # type: ignore
+    y_true: pd.DataFrame, y_pred: pd.DataFrame, thresh: float = 0.5
+) -> Dict[str, float]:
+    ...
+
+
+@overload
+def recall(  # type: ignore
+    y_true: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    y_pred: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    thresh: float = 0.5,
+) -> Dict[str, float]:
+    ...
 
 
 def recall(
-    y_true: Union[pd.Series, pd.DataFrame, List, Dict],
-    y_pred: Union[pd.Series, pd.DataFrame, List, Dict],
+    y_true: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    y_pred: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
     thresh: float = 0.5,
-) -> Union[float, Dict]:
+) -> Union[float, Dict[str, float]]:
     """Recall score of prediction.
 
     Recall, a.k.a. sensitivity, hit rate, or true positive rate (TPR), is the
@@ -90,7 +133,7 @@ def recall(
         return {
             col: recall(y_true[col], y_pred[col]) for col in y_true.columns
         }
-    elif isinstance(y_true, list):
+    elif isinstance(y_true, list) and isinstance(y_pred, list):
         y_true = validate_events(y_true)
         if not y_true:
             return float("nan")
@@ -131,7 +174,7 @@ def recall(
                         n_hit += 1
                         break
         return n_hit / len(y_true)
-    elif isinstance(y_true, dict):
+    elif isinstance(y_true, dict) and isinstance(y_pred, dict):
         return {
             key: recall(y_true[key], y_pred[key], thresh=thresh)
             for key in y_true.keys()
@@ -143,11 +186,61 @@ def recall(
         )
 
 
-def precision(
-    y_true: Union[pd.Series, pd.DataFrame, List, Dict],
-    y_pred: Union[pd.Series, pd.DataFrame, List, Dict],
+@overload
+def precision(  # type: ignore
+    y_true: pd.Series, y_pred: pd.Series, thresh: float = 0.5
+) -> float:
+    ...
+
+
+@overload
+def precision(  # type: ignore
+    y_true: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    y_pred: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
     thresh: float = 0.5,
-) -> Union[float, Dict]:
+) -> float:
+    ...
+
+
+@overload
+def precision(  # type: ignore
+    y_true: pd.DataFrame, y_pred: pd.DataFrame, thresh: float = 0.5
+) -> Dict[str, float]:
+    ...
+
+
+@overload
+def precision(  # type: ignore
+    y_true: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    y_pred: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    thresh: float = 0.5,
+) -> Dict[str, float]:
+    ...
+
+
+def precision(
+    y_true: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    y_pred: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    thresh: float = 0.5,
+) -> Union[float, Dict[str, float]]:
     """Precision score of prediction.
 
     Precision, a.k.a. positive predictive value (PPV), is the percentage of
@@ -194,12 +287,70 @@ def precision(
     return recall(y_pred, y_true, thresh=thresh)
 
 
-def f1_score(
-    y_true: Union[pd.Series, pd.DataFrame, List, Dict],
-    y_pred: Union[pd.Series, pd.DataFrame, List, Dict],
+@overload
+def f1_score(  # type: ignore
+    y_true: pd.Series,
+    y_pred: pd.Series,
     recall_thresh: float = 0.5,
     precision_thresh: float = 0.5,
-) -> Optional[Union[float, Dict]]:
+) -> float:
+    ...
+
+
+@overload
+def f1_score(  # type: ignore
+    y_true: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    y_pred: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    recall_thresh: float = 0.5,
+    precision_thresh: float = 0.5,
+) -> float:
+    ...
+
+
+@overload
+def f1_score(  # type: ignore
+    y_true: pd.DataFrame,
+    y_pred: pd.DataFrame,
+    recall_thresh: float = 0.5,
+    precision_thresh: float = 0.5,
+) -> Dict[str, float]:
+    ...
+
+
+@overload
+def f1_score(  # type: ignore
+    y_true: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    y_pred: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    recall_thresh: float = 0.5,
+    precision_thresh: float = 0.5,
+) -> Dict[str, float]:
+    ...
+
+
+def f1_score(
+    y_true: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    y_pred: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    recall_thresh: float = 0.5,
+    precision_thresh: float = 0.5,
+) -> Optional[Union[float, Dict[str, float]]]:
     """F1 score of prediction.
 
     F1 score is the harmonic mean of precision and recall. For more details
@@ -272,10 +423,58 @@ def f1_score(
         return None
 
 
+@overload
+def iou(  # type: ignore
+    y_true: pd.Series, y_pred: pd.Series
+) -> float:
+    ...
+
+
+@overload
+def iou(  # type: ignore
+    y_true: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    y_pred: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+) -> float:
+    ...
+
+
+@overload
+def iou(  # type: ignore
+    y_true: pd.DataFrame, y_pred: pd.DataFrame
+) -> Dict[str, float]:
+    ...
+
+
+@overload
+def iou(  # type: ignore
+    y_true: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    y_pred: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+) -> Dict[str, float]:
+    ...
+
+
 def iou(
-    y_true: Union[pd.Series, pd.DataFrame, List, Dict],
-    y_pred: Union[pd.Series, pd.DataFrame, List, Dict],
-) -> Union[float, Dict]:
+    y_true: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    y_pred: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+) -> Union[float, Dict[str, float]]:
     """IoU (Intersection over Union) score of prediction.
 
     Intersection over union is the length ratio between time segments that are
@@ -335,7 +534,7 @@ def iou(
         if set(y_true.columns) != set(y_pred.columns):
             raise ValueError("y_true and y_pred must have identical columns.")
         return {col: iou(y_true[col], y_pred[col]) for col in y_true.columns}
-    elif isinstance(y_true, list):
+    elif isinstance(y_true, list) and isinstance(y_pred, list):
         y_int = AndAggregator().aggregate({"y_true": y_true, "y_pred": y_pred})
         y_union = OrAggregator().aggregate(
             {"y_true": y_true, "y_pred": y_pred}
@@ -355,7 +554,7 @@ def iou(
         if len_union == 0:
             return float("nan")
         return len_int / len_union
-    elif isinstance(y_true, dict):
+    elif isinstance(y_true, dict) and isinstance(y_pred, dict):
         return {key: iou(y_true[key], y_pred[key]) for key in y_true.keys()}
     else:
         raise TypeError(
