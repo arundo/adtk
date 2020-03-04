@@ -299,17 +299,25 @@ class RegressionAD(_TrainableMultivariateDetector):
         self.pipe_.steps["regression_residual"][
             "model"
         ].regressor = self.regressor
-        self.pipe_.steps["regression_residual"]["model"].target = self.target
-        self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
-        self.pipe_.steps["sign_check"]["model"].high = (
-            0.0
-            if self.side == "positive"
-            else (float("inf") if self.side == "negative" else -float("inf"))
+        self.pipe_.steps["regression_residual"]["model"].set_params(
+            target=self.target
         )
-        self.pipe_.steps["sign_check"]["model"].low = (
-            0.0
-            if self.side == "negative"
-            else (-float("inf") if self.side == "positive" else float("inf"))
+        self.pipe_.steps["iqr_ad"]["model"].set_params(c=(None, self.c))
+        self.pipe_.steps["sign_check"]["model"].set_params(
+            high=(
+                0.0
+                if self.side == "positive"
+                else (
+                    float("inf") if self.side == "negative" else -float("inf")
+                )
+            ),
+            low=(
+                0.0
+                if self.side == "negative"
+                else (
+                    -float("inf") if self.side == "positive" else float("inf")
+                )
+            ),
         )
 
     def _fit_core(self, s: pd.DataFrame) -> None:
@@ -365,8 +373,8 @@ class PcaAD(_TrainableMultivariateDetector):
         return ("k", "c")
 
     def _sync_params(self) -> None:
-        setattr(self.pipe_.steps[0][1], "k", self.k)
-        setattr(self.pipe_.steps[1][1], "c", self.c)
+        self.pipe_.steps[0][1].set_params(k=self.k)
+        self.pipe_.steps[1][1].set_params(c=self.c)
 
     def _fit_core(self, s: pd.DataFrame) -> None:
         self._sync_params()

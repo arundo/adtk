@@ -500,25 +500,32 @@ class PersistAD(_TrainableUnivariateDetector):
             raise ValueError(
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
             )
-        self.pipe_.steps["diff_abs"]["model"].agg = self.agg
-        self.pipe_.steps["diff_abs"]["model"].window = (self.window, 1)
-        self.pipe_.steps["diff_abs"]["model"].min_periods = (
-            self.min_periods,
-            1,
+        self.pipe_.steps["diff_abs"]["model"].set_params(
+            agg=self.agg,
+            window=(self.window, 1),
+            min_periods=(self.min_periods, 1),
         )
-        self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
-        self.pipe_.steps["diff"]["model"].agg = self.agg
-        self.pipe_.steps["diff"]["model"].window = (self.window, 1)
-        self.pipe_.steps["diff"]["model"].min_periods = (self.min_periods, 1)
-        self.pipe_.steps["sign_check"]["model"].high = (
-            0.0
-            if self.side == "positive"
-            else (float("inf") if self.side == "negative" else -float("inf"))
+        self.pipe_.steps["iqr_ad"]["model"].set_params(c=(None, self.c))
+        self.pipe_.steps["diff"]["model"].set_params(
+            agg=self.agg,
+            window=(self.window, 1),
+            min_periods=(self.min_periods, 1),
         )
-        self.pipe_.steps["sign_check"]["model"].low = (
-            0.0
-            if self.side == "negative"
-            else (-float("inf") if self.side == "positive" else float("inf"))
+        self.pipe_.steps["sign_check"]["model"].set_params(
+            high=(
+                0.0
+                if self.side == "positive"
+                else (
+                    float("inf") if self.side == "negative" else -float("inf")
+                )
+            ),
+            low=(
+                0.0
+                if self.side == "negative"
+                else (
+                    -float("inf") if self.side == "positive" else float("inf")
+                )
+            ),
         )
 
     def _fit_core(self, s: pd.Series) -> None:
@@ -645,20 +652,28 @@ class LevelShiftAD(_TrainableUnivariateDetector):
             raise ValueError(
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
             )
-        self.pipe_.steps["diff_abs"]["model"].window = self.window
-        self.pipe_.steps["diff_abs"]["model"].min_periods = self.min_periods
-        self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
-        self.pipe_.steps["diff"]["model"].window = self.window
-        self.pipe_.steps["diff"]["model"].min_periods = self.min_periods
-        self.pipe_.steps["sign_check"]["model"].high = (
-            0.0
-            if self.side == "positive"
-            else (float("inf") if self.side == "negative" else -float("inf"))
+        self.pipe_.steps["diff_abs"]["model"].set_params(
+            window=self.window, min_periods=self.min_periods
         )
-        self.pipe_.steps["sign_check"]["model"].low = (
-            0.0
-            if self.side == "negative"
-            else (-float("inf") if self.side == "positive" else float("inf"))
+        self.pipe_.steps["iqr_ad"]["model"].set_params(c=(None, self.c))
+        self.pipe_.steps["diff"]["model"].set_params(
+            window=self.window, min_periods=self.min_periods
+        )
+        self.pipe_.steps["sign_check"]["model"].set_params(
+            high=(
+                0.0
+                if self.side == "positive"
+                else (
+                    float("inf") if self.side == "negative" else -float("inf")
+                )
+            ),
+            low=(
+                0.0
+                if self.side == "negative"
+                else (
+                    -float("inf") if self.side == "positive" else float("inf")
+                )
+            ),
         )
 
     def _fit_core(self, s: pd.Series) -> None:
@@ -793,22 +808,28 @@ class VolatilityShiftAD(_TrainableUnivariateDetector):
             raise ValueError(
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
             )
-        self.pipe_.steps["diff_abs"]["model"].agg = self.agg
-        self.pipe_.steps["diff_abs"]["model"].window = self.window
-        self.pipe_.steps["diff_abs"]["model"].min_periods = self.min_periods
-        self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
-        self.pipe_.steps["diff"]["model"].agg = self.agg
-        self.pipe_.steps["diff"]["model"].window = self.window
-        self.pipe_.steps["diff"]["model"].min_periods = self.min_periods
-        self.pipe_.steps["sign_check"]["model"].high = (
-            0.0
-            if self.side == "positive"
-            else (float("inf") if self.side == "negative" else -float("inf"))
+        self.pipe_.steps["diff_abs"]["model"].set_params(
+            agg=self.agg, window=self.window, min_periods=self.min_periods
         )
-        self.pipe_.steps["sign_check"]["model"].low = (
-            0.0
-            if self.side == "negative"
-            else (-float("inf") if self.side == "positive" else float("inf"))
+        self.pipe_.steps["iqr_ad"]["model"].set_params(c=(None, self.c))
+        self.pipe_.steps["diff"]["model"].set_params(
+            agg=self.agg, window=self.window, min_periods=self.min_periods
+        )
+        self.pipe_.steps["sign_check"]["model"].set_params(
+            high=(
+                0.0
+                if self.side == "positive"
+                else (
+                    float("inf") if self.side == "negative" else -float("inf")
+                )
+            ),
+            low=(
+                0.0
+                if self.side == "negative"
+                else (
+                    -float("inf") if self.side == "positive" else float("inf")
+                )
+            ),
         )
 
     def _fit_core(self, s: pd.Series) -> None:
@@ -945,21 +966,28 @@ class AutoregressionAD(_TrainableUnivariateDetector):
             raise ValueError(
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
             )
-        self.pipe_.steps["retrospetive"]["model"].n_steps = self.n_steps + 1
-        self.pipe_.steps["retrospetive"]["model"].step_size = self.step_size
-        self.pipe_.steps["regression_residual"][
-            "model"
-        ].regressor = self.regressor
-        self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
-        self.pipe_.steps["sign_check"]["model"].high = (
-            0.0
-            if self.side == "positive"
-            else (float("inf") if self.side == "negative" else -float("inf"))
+        self.pipe_.steps["retrospetive"]["model"].set_params(
+            n_steps=self.n_steps + 1, step_size=self.step_size
         )
-        self.pipe_.steps["sign_check"]["model"].low = (
-            0.0
-            if self.side == "negative"
-            else (-float("inf") if self.side == "positive" else float("inf"))
+        self.pipe_.steps["regression_residual"]["model"].set_params(
+            regressor=self.regressor
+        )
+        self.pipe_.steps["iqr_ad"]["model"].set_params(c=(None, self.c))
+        self.pipe_.steps["sign_check"]["model"].set_params(
+            high=(
+                0.0
+                if self.side == "positive"
+                else (
+                    float("inf") if self.side == "negative" else -float("inf")
+                )
+            ),
+            low=(
+                0.0
+                if self.side == "negative"
+                else (
+                    -float("inf") if self.side == "positive" else float("inf")
+                )
+            ),
         )
 
     def _fit_core(self, s: pd.Series) -> None:
@@ -1081,18 +1109,25 @@ class SeasonalAD(_TrainableUnivariateDetector):
         return ("freq", "side", "c", "trend")
 
     def _sync_params(self) -> None:
-        self.pipe_.steps["deseasonal_residual"]["model"].freq = self.freq
-        self.pipe_.steps["deseasonal_residual"]["model"].trend = self.trend
-        self.pipe_.steps["iqr_ad"]["model"].c = (None, self.c)
-        self.pipe_.steps["sign_check"]["model"].high = (
-            0.0
-            if self.side == "positive"
-            else (float("inf") if self.side == "negative" else -float("inf"))
+        self.pipe_.steps["deseasonal_residual"]["model"].set_params(
+            freq=self.freq, trend=self.trend
         )
-        self.pipe_.steps["sign_check"]["model"].low = (
-            0.0
-            if self.side == "negative"
-            else (-float("inf") if self.side == "positive" else float("inf"))
+        self.pipe_.steps["iqr_ad"]["model"].set_params(c=(None, self.c))
+        self.pipe_.steps["sign_check"]["model"].set_params(
+            high=(
+                0.0
+                if self.side == "positive"
+                else (
+                    float("inf") if self.side == "negative" else -float("inf")
+                )
+            ),
+            low=(
+                0.0
+                if self.side == "negative"
+                else (
+                    -float("inf") if self.side == "positive" else float("inf")
+                )
+            ),
         )
 
     def _fit_core(self, s: pd.Series) -> None:
