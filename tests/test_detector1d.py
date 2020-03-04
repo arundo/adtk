@@ -12,7 +12,6 @@ from sklearn.svm import SVR
 import adtk.detector as detector
 from adtk._utils import PandasBugError
 from adtk._base import _TrainableModel
-from typing import Dict, List, Any, Union, Tuple
 
 nan = float("nan")
 
