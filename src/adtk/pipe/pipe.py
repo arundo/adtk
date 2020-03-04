@@ -1351,7 +1351,7 @@ class Pipenet:
         ax: Optional[plt.Axes] = None,
         figsize: Optional[Tuple[float, float]] = None,
         radius: float = 1.0,
-    ) -> plt.Axes:
+    ) -> plt.Axes:  # pragma: no cover
         """Plot flowchart of this pipenet.
 
         Parameters
