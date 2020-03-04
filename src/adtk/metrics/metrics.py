@@ -350,7 +350,7 @@ def f1_score(
     ],
     recall_thresh: float = 0.5,
     precision_thresh: float = 0.5,
-) -> Optional[Union[float, Dict[str, float]]]:
+) -> Union[float, Dict[str, float]]:
     """F1 score of prediction.
 
     F1 score is the harmonic mean of precision and recall. For more details
@@ -391,9 +391,7 @@ def f1_score(
     """
     recall_score = recall(y_true, y_pred, recall_thresh)
     precision_score = precision(y_true, y_pred, precision_thresh)
-    if not isinstance(recall_score, dict) and not isinstance(
-        precision_score, dict
-    ):
+    if isinstance(recall_score, float) and isinstance(precision_score, float):
         if recall_score + precision_score != 0:
             return (
                 2
@@ -403,9 +401,7 @@ def f1_score(
             )
         else:
             return float("nan")
-    elif not isinstance(recall_score, float) and not isinstance(
-        precision_score, float
-    ):
+    elif isinstance(recall_score, dict) and isinstance(precision_score, dict):
         return {
             key: (
                 (
@@ -420,7 +416,7 @@ def f1_score(
             for key in recall_score.keys()
         }
     else:
-        return None
+        raise RuntimeError("This error is not supposed to be hit.")
 
 
 @overload
