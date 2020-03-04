@@ -73,8 +73,8 @@ class Pipeline:
         self._update_internal_pipenet()
 
     def _update_internal_pipenet(self) -> None:
-        pipenet_steps = dict()  # type: Dict
-        last_name = "original"  # type: str
+        pipenet_steps = dict()
+        last_name = "original"
         for pipeline_step in self.steps:
             pipenet_steps.update(
                 {
@@ -380,7 +380,7 @@ class Pipeline:
 
         """
         if scoring == "recall":
-            scoring_func = recall  # type: Any
+            scoring_func = recall  # type: Callable
         elif scoring == "precision":
             scoring_func = precision
         elif scoring == "f1":

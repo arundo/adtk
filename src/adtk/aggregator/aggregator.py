@@ -161,7 +161,7 @@ class AndAggregator(_Aggregator):
                         dtype=int,
                     ).sort_index()
                     for key, clean_predict in clean_lists.items()
-                }  # type: Union[Dict, pd.DataFrame]
+                }  # type: Union[Dict, pd.Series]
                 time_window_stats = {
                     key: value[~value.index.duplicated()]
                     for key, value in time_window_stats.items()

@@ -30,7 +30,7 @@ __all__ = [
     "Retrospect",
     "StandardScale",
     "CustomizedTransformer1D",
-]  # type: List[str]
+]
 
 
 class CustomizedTransformer1D(_TrainableUnivariateTransformer):

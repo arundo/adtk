@@ -14,7 +14,7 @@ from typing import Any, List, Tuple, Union, Dict, Optional
 
 register_matplotlib_converters()
 
-__all__ = ["plot"]  # type: List[str]
+__all__ = ["plot"]
 
 
 def _plot_anomaly_as_span(

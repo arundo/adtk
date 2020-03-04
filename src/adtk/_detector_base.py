@@ -3,7 +3,6 @@ import pandas as pd
 from ._base import (
     _NonTrainableUnivariateModel,
     _TrainableUnivariateModel,
-    _NonTrainableMultivariateModel,
     _TrainableMultivariateModel,
 )
 from .data import to_events
