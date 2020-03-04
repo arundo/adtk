@@ -34,8 +34,6 @@ from ..metrics import recall, precision, f1_score, iou
 from typing import Tuple, Union, List, Dict, Any, Optional, Callable
 
 
-__all__ = ["Pipeline", "Pipenet"]
-
 _Detector = (
     _NonTrainableUnivariateDetector,
     # _NonTrainableMultivariateDetector,

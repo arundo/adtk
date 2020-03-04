@@ -6,9 +6,8 @@ import pandas as pd
 from ..aggregator import AndAggregator, OrAggregator
 from ..data import validate_events
 
-__all__ = ["recall", "precision", "f1_score", "iou"]
 
-from typing import Dict, List, Tuple, Union, Optional, overload
+from typing import Dict, List, Tuple, Union, overload
 
 
 @overload

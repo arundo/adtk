@@ -3,8 +3,8 @@
 An aggregator combines multiple lists of anomalies into one.
 
 """
-from .aggregator import *
-from .aggregator import __all__
+from ._aggregator import OrAggregator, AndAggregator, CustomizedAggregator
+
 
 from .._utils import _get_all_subclasses_from_superclass
 from .._aggregator_base import _Aggregator
@@ -25,4 +25,9 @@ def print_all_models() -> None:
         print(value)
 
 
-__all__ = __all__ + ["print_all_models"]
+__all__ = [
+    "OrAggregator",
+    "AndAggregator",
+    "CustomizedAggregator",
+    "print_all_models",
+]
