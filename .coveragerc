@@ -5,4 +5,6 @@ exclude_lines =
     raise
     warnings.warn
     pass
+    @property
+    @overload
     def plot_flowchart
