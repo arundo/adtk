@@ -67,11 +67,8 @@ class Pipeline:
 
     """
 
-    def __init__(self, steps: List[Tuple[str, _Model]] = None) -> None:
-        if steps is None:
-            self.steps = []
-        else:
-            self.steps = steps
+    def __init__(self, steps: List[Tuple[str, _Model]]) -> None:
+        self.steps = steps
         self._pipenet = Pipenet()
         self._update_internal_pipenet()
 
@@ -496,7 +493,7 @@ class Pipenet:
 
     """
 
-    def __init__(self, steps: Dict[str, Dict[str, Any]] = None) -> None:
+    def __init__(self, steps: Optional[Dict[str, Dict[str, Any]]]) -> None:
         if steps is None:
             self.steps = dict()
         else:
