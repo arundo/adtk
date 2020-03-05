@@ -48,26 +48,7 @@ class CustomizedAggregator(_Aggregator):
 
     def __init__(
         self,
-        aggregate_func: Callable[
-            [
-                Union[
-                    pd.DataFrame,
-                    Dict[str, Union[pd.Series, pd.DataFrame]],
-                    Dict[
-                        str,
-                        List[
-                            Union[
-                                Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp
-                            ]
-                        ],
-                    ],
-                ]
-            ],
-            Union[
-                pd.Series,
-                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
-            ],
-        ],
+        aggregate_func: Callable,
         aggregate_func_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__()

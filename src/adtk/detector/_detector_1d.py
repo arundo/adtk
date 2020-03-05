@@ -60,9 +60,9 @@ class CustomizedDetector1D(_TrainableUnivariateDetector):
 
     def __init__(
         self,
-        detect_func: Callable[[pd.Series], pd.Series],
+        detect_func: Callable,
         detect_func_params: Optional[Dict[str, Any]] = None,
-        fit_func: Optional[Callable[[pd.Series], Dict[str, Any]]] = None,
+        fit_func: Optional[Callable] = None,
         fit_func_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         self._fitted_detect_func_params = {}  # type: Dict[str, Any]

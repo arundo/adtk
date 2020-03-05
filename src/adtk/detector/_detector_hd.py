@@ -53,9 +53,9 @@ class CustomizedDetectorHD(_TrainableMultivariateDetector):
 
     def __init__(
         self,
-        detect_func: Callable[[pd.DataFrame], pd.Series],
+        detect_func: Callable,
         detect_func_params: Optional[Dict[str, Any]] = None,
-        fit_func: Optional[Callable[[pd.DataFrame], Dict[str, Any]]] = None,
+        fit_func: Optional[Callable] = None,
         fit_func_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         self._fitted_detect_func_params = {}  # type: Dict

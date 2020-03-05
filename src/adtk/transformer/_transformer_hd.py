@@ -52,11 +52,9 @@ class CustomizedTransformerHD(_TrainableMultivariateTransformer):
 
     def __init__(
         self,
-        transform_func: Callable[
-            [pd.DataFrame], Union[pd.Series, pd.DataFrame]
-        ],
+        transform_func: Callable,
         transform_func_params: Optional[Dict[str, Any]] = None,
-        fit_func: Optional[Callable[[pd.Series], Dict[str, Any]]] = None,
+        fit_func: Optional[Callable] = None,
         fit_func_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         self._fitted_transform_func_params = {}  # type: Dict
