@@ -1,15 +1,22 @@
+from typing import Union, List, Dict, Tuple
 import pandas as pd
+from ._base import _NonTrainableModel
 
-from ._base import _Model
 
-
-class _Aggregator(_Model):
-    _need_fit = False
-
-    def _fit(self, lists):
-        pass
-
-    def _predict(self, lists):
+class _Aggregator(_NonTrainableModel):
+    def _predict(
+        self,
+        lists: Union[
+            pd.DataFrame,
+            Dict[str, Union[pd.Series, pd.DataFrame]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+    ) -> Union[
+        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ]:
         if isinstance(lists, dict):
             if not (
                 all([isinstance(lst, list) for lst in lists.values()])
@@ -33,7 +40,19 @@ class _Aggregator(_Model):
             )
         return self._predict_core(lists)
 
-    def aggregate(self, lists):
+    def aggregate(
+        self,
+        lists: Union[
+            pd.DataFrame,
+            Dict[str, Union[pd.Series, pd.DataFrame]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+    ) -> Union[
+        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ]:
         """Aggregate multiple lists of anomalies into one.
 
         Parameters
@@ -42,32 +61,40 @@ class _Aggregator(_Model):
             Anomaly lists to be aggregated.
 
             - If a pandas DataFrame, every column is a binary Series
-              representing a list of anomalies;
-            - If a dict of Series/DataFrame, every value of the dict is a
-              binary Series/DataFrame representing a list / a set of lists of
-              anomalies;
-            - If a dict of list, every value of the dict is a list of pandas
-              Timestamps representing anomalous time points.
+              representing a type of anomaly.
+            - If a dict of pandas Series/DataFrame, every value of the dict is
+              a binary Series/DataFrame representing a type or some types of
+              anomaly;
+            - If a dict of list, every value of the dict is a type of anomaly
+              as a list of events, where each event is represented as a pandas
+              Timestamp if it is instantaneous or a 2-tuple of pandas
+              Timestamps if it is a closed time interval.
 
         Returns
         -------
-        list of pandas TimeStamps, or a binary pandas Series
+        list or a binary pandas Series
             Aggregated list of anomalies.
 
             - If input is a pandas DataFrame or a dict of Series/DataFrame,
-              return a binary Series;
-            - If input is a dict of list, return a list.
+              return a single binary pandas Series;
+            - If input is a dict of lists, return a single list of events.
 
         """
         return self._predict(lists)
 
-    def predict(self, lists, *args, **kwargs):
-        """
-        Alias of `aggregate`.
-        """
-        return self.aggregate(lists)
-
-    def fit_predict(self, lists, *args, **kwargs):
+    def predict(
+        self,
+        lists: Union[
+            pd.DataFrame,
+            Dict[str, Union[pd.Series, pd.DataFrame]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+    ) -> Union[
+        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ]:
         """
         Alias of `aggregate`.
         """

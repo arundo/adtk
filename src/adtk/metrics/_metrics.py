@@ -6,10 +6,65 @@ import pandas as pd
 from ..aggregator import AndAggregator, OrAggregator
 from ..data import validate_events
 
-__all__ = ["recall", "precision", "f1_score", "iou"]
+
+from typing import Dict, List, Tuple, Union, overload
 
 
-def recall(y_true, y_pred, thresh=0.5):
+@overload
+def recall(  # type: ignore
+    y_true: pd.Series, y_pred: pd.Series, thresh: float = 0.5
+) -> float:
+    ...
+
+
+@overload
+def recall(  # type: ignore
+    y_true: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    y_pred: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    thresh: float = 0.5,
+) -> float:
+    ...
+
+
+@overload
+def recall(  # type: ignore
+    y_true: pd.DataFrame, y_pred: pd.DataFrame, thresh: float = 0.5
+) -> Dict[str, float]:
+    ...
+
+
+@overload
+def recall(  # type: ignore
+    y_true: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    y_pred: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    thresh: float = 0.5,
+) -> Dict[str, float]:
+    ...
+
+
+def recall(
+    y_true: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    y_pred: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    thresh: float = 0.5,
+) -> Union[float, Dict[str, float]]:
     """Recall score of prediction.
 
     Recall, a.k.a. sensitivity, hit rate, or true positive rate (TPR), is the
@@ -22,7 +77,7 @@ def recall(y_true, y_pred, thresh=0.5):
     When the input is lists of anomalous time windows, metric calculation
     treats every anomalous time window as an independent event. A true event is
     considered as successfully detected if the percentage of this time window
-    included in the detected list is greater or equal to `thresh`. Note that
+    covered by the detected list is greater or equal to `thresh`. Note that
     input time windows will be merged first if overlapped time windows exists
     in the list.
 
@@ -32,17 +87,25 @@ def recall(y_true, y_pred, thresh=0.5):
         Labels or lists of true anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     y_pred: pandas Series or DataFrame, list, or dict
         Labels or lists of predicted anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     thresh: float, optional
         Threshold of a hit. Only used if input is list or dict. Default: 0.5.
@@ -60,7 +123,7 @@ def recall(y_true, y_pred, thresh=0.5):
     if type(y_true) != type(y_pred):
         raise TypeError("y_true and y_pred must have same type.")
 
-    if isinstance(y_true, pd.Series):
+    if isinstance(y_true, pd.Series) and isinstance(y_pred, pd.Series):
         try:
             pd.testing.assert_index_equal(y_true.index, y_pred.index)
         except AssertionError:
@@ -71,13 +134,13 @@ def recall(y_true, y_pred, thresh=0.5):
             ).sum() / (y_true.clip(0, 1).round()).sum()
         else:
             return float("nan")
-    elif isinstance(y_true, pd.DataFrame):
+    elif isinstance(y_true, pd.DataFrame) and isinstance(y_pred, pd.DataFrame):
         if set(y_true.columns) != set(y_pred.columns):
             raise ValueError("y_true and y_pred must have identical columns.")
         return {
             col: recall(y_true[col], y_pred[col]) for col in y_true.columns
         }
-    elif isinstance(y_true, list):
+    elif isinstance(y_true, list) and isinstance(y_pred, list):
         y_true = validate_events(y_true)
         if not y_true:
             return float("nan")
@@ -118,7 +181,7 @@ def recall(y_true, y_pred, thresh=0.5):
                         n_hit += 1
                         break
         return n_hit / len(y_true)
-    elif isinstance(y_true, dict):
+    elif isinstance(y_true, dict) and isinstance(y_pred, dict):
         return {
             key: recall(y_true[key], y_pred[key], thresh=thresh)
             for key in y_true.keys()
@@ -130,7 +193,61 @@ def recall(y_true, y_pred, thresh=0.5):
         )
 
 
-def precision(y_true, y_pred, thresh=0.5):
+@overload
+def precision(  # type: ignore
+    y_true: pd.Series, y_pred: pd.Series, thresh: float = 0.5
+) -> float:
+    ...
+
+
+@overload
+def precision(  # type: ignore
+    y_true: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    y_pred: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    thresh: float = 0.5,
+) -> float:
+    ...
+
+
+@overload
+def precision(  # type: ignore
+    y_true: pd.DataFrame, y_pred: pd.DataFrame, thresh: float = 0.5
+) -> Dict[str, float]:
+    ...
+
+
+@overload
+def precision(  # type: ignore
+    y_true: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    y_pred: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    thresh: float = 0.5,
+) -> Dict[str, float]:
+    ...
+
+
+def precision(
+    y_true: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    y_pred: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    thresh: float = 0.5,
+) -> Union[float, Dict[str, float]]:
     """Precision score of prediction.
 
     Precision, a.k.a. positive predictive value (PPV), is the percentage of
@@ -143,7 +260,7 @@ def precision(y_true, y_pred, thresh=0.5):
     When the input is lists of anomalous time windows, metric calculation
     treats every anomalous time window as an independent event. A detected
     event is considered as a successfully detection if the percentage of this
-    time window included in the true anomaly list is greater or equal to
+    time window covered by the true anomaly list is greater or equal to
     `thresh`. Note that input time windows will be merged first if overlapped
     time windows exists in the list.
 
@@ -153,17 +270,25 @@ def precision(y_true, y_pred, thresh=0.5):
         Labels or lists of true anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     y_pred: pandas Series or DataFrame, list, or dict
         Labels or lists of predicted anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     thresh: float, optional
         Threshold of a hit. Only used if input is list or dict. Default: 0.5.
@@ -177,7 +302,70 @@ def precision(y_true, y_pred, thresh=0.5):
     return recall(y_pred, y_true, thresh=thresh)
 
 
-def f1_score(y_true, y_pred, recall_thresh=0.5, precision_thresh=0.5):
+@overload
+def f1_score(  # type: ignore
+    y_true: pd.Series,
+    y_pred: pd.Series,
+    recall_thresh: float = 0.5,
+    precision_thresh: float = 0.5,
+) -> float:
+    ...
+
+
+@overload
+def f1_score(  # type: ignore
+    y_true: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    y_pred: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    recall_thresh: float = 0.5,
+    precision_thresh: float = 0.5,
+) -> float:
+    ...
+
+
+@overload
+def f1_score(  # type: ignore
+    y_true: pd.DataFrame,
+    y_pred: pd.DataFrame,
+    recall_thresh: float = 0.5,
+    precision_thresh: float = 0.5,
+) -> Dict[str, float]:
+    ...
+
+
+@overload
+def f1_score(  # type: ignore
+    y_true: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    y_pred: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    recall_thresh: float = 0.5,
+    precision_thresh: float = 0.5,
+) -> Dict[str, float]:
+    ...
+
+
+def f1_score(
+    y_true: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    y_pred: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    recall_thresh: float = 0.5,
+    precision_thresh: float = 0.5,
+) -> Union[float, Dict[str, float]]:
     """F1 score of prediction.
 
     F1 score is the harmonic mean of precision and recall. For more details
@@ -190,17 +378,25 @@ def f1_score(y_true, y_pred, recall_thresh=0.5, precision_thresh=0.5):
         Labels or lists of true anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     y_pred: pandas Series or DataFrame, list, or dict
         Labels or lists of predicted anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     recall_thresh: float, optional
         Threshold of recall calculation. Only used if input is list or dict.
@@ -218,7 +414,7 @@ def f1_score(y_true, y_pred, recall_thresh=0.5, precision_thresh=0.5):
     """
     recall_score = recall(y_true, y_pred, recall_thresh)
     precision_score = precision(y_true, y_pred, precision_thresh)
-    if not isinstance(recall_score, dict):
+    if isinstance(recall_score, float) and isinstance(precision_score, float):
         if recall_score + precision_score != 0:
             return (
                 2
@@ -228,7 +424,7 @@ def f1_score(y_true, y_pred, recall_thresh=0.5, precision_thresh=0.5):
             )
         else:
             return float("nan")
-    else:
+    elif isinstance(recall_score, dict) and isinstance(precision_score, dict):
         return {
             key: (
                 (
@@ -242,9 +438,62 @@ def f1_score(y_true, y_pred, recall_thresh=0.5, precision_thresh=0.5):
             )
             for key in recall_score.keys()
         }
+    else:
+        raise RuntimeError("This error is not supposed to be hit.")
 
 
-def iou(y_true, y_pred):
+@overload
+def iou(  # type: ignore
+    y_true: pd.Series, y_pred: pd.Series
+) -> float:
+    ...
+
+
+@overload
+def iou(  # type: ignore
+    y_true: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+    y_pred: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+) -> float:
+    ...
+
+
+@overload
+def iou(  # type: ignore
+    y_true: pd.DataFrame, y_pred: pd.DataFrame
+) -> Dict[str, float]:
+    ...
+
+
+@overload
+def iou(  # type: ignore
+    y_true: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+    y_pred: Dict[
+        str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+    ],
+) -> Dict[str, float]:
+    ...
+
+
+def iou(
+    y_true: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+    y_pred: Union[
+        pd.Series,
+        pd.DataFrame,
+        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+        Dict[
+            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        ],
+    ],
+) -> Union[float, Dict[str, float]]:
     """IoU (Intersection over Union) score of prediction.
 
     Intersection over union is the length ratio between time segments that are
@@ -263,17 +512,25 @@ def iou(y_true, y_pred):
         Labels or lists of true anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     y_pred: pandas Series or DataFrame, list, or dict
         Labels or lists of predicted anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     Returns
     -------
@@ -284,7 +541,7 @@ def iou(y_true, y_pred):
     if type(y_true) != type(y_pred):
         raise TypeError("y_true and y_pred must have same type.")
 
-    if isinstance(y_true, pd.Series):
+    if isinstance(y_true, pd.Series) and isinstance(y_pred, pd.Series):
         try:
             pd.testing.assert_index_equal(y_true.index, y_pred.index)
         except AssertionError:
@@ -300,11 +557,11 @@ def iou(y_true, y_pred):
             )
         else:
             return float("nan")
-    elif isinstance(y_true, pd.DataFrame):
+    elif isinstance(y_true, pd.DataFrame) and isinstance(y_pred, pd.DataFrame):
         if set(y_true.columns) != set(y_pred.columns):
             raise ValueError("y_true and y_pred must have identical columns.")
         return {col: iou(y_true[col], y_pred[col]) for col in y_true.columns}
-    elif isinstance(y_true, list):
+    elif isinstance(y_true, list) and isinstance(y_pred, list):
         y_int = AndAggregator().aggregate({"y_true": y_true, "y_pred": y_pred})
         y_union = OrAggregator().aggregate(
             {"y_true": y_true, "y_pred": y_pred}
@@ -324,7 +581,7 @@ def iou(y_true, y_pred):
         if len_union == 0:
             return float("nan")
         return len_int / len_union
-    elif isinstance(y_true, dict):
+    elif isinstance(y_true, dict) and isinstance(y_pred, dict):
         return {key: iou(y_true[key], y_pred[key]) for key in y_true.keys()}
     else:
         raise TypeError(

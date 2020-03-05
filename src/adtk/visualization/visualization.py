@@ -10,21 +10,21 @@ from ..data import to_events, to_labels
 
 from pandas.plotting import register_matplotlib_converters
 
-register_matplotlib_converters()
+from typing import Any, List, Tuple, Union, Dict, Optional
 
-__all__ = ["plot"]
+register_matplotlib_converters()
 
 
 def _plot_anomaly_as_span(
-    ax,
-    anomaly,
-    min_datetime,
-    max_datetime,
-    anomaly_prefix,
-    alpha,
-    color,
-    freq_as_period,
-):
+    ax: Any,
+    anomaly: Any,
+    min_datetime: pd.DatetimeIndex,
+    max_datetime: pd.DatetimeIndex,
+    anomaly_prefix: Any,
+    alpha: float,
+    color: Any,
+    freq_as_period: Any,
+) -> None:
     if isinstance(anomaly, list):
         hasLegend = False
         for a in anomaly:
@@ -137,18 +137,18 @@ def _plot_anomaly_as_span(
 
 
 def _plot_anomaly_on_curve(
-    ax,
-    curve,
-    anomaly,
-    min_datetime,
-    max_datetime,
-    anomaly_prefix,
-    alpha,
-    color,
-    marker,
-    markersize,
-    freq_as_period,
-):
+    ax: Any,
+    curve: Any,
+    anomaly: Any,
+    min_datetime: pd.DatetimeIndex,
+    max_datetime: pd.DatetimeIndex,
+    anomaly_prefix: Any,
+    alpha: float,
+    color: Any,
+    marker: Any,
+    markersize: Any,
+    freq_as_period: Any,
+) -> None:
     if isinstance(anomaly, list) or (
         isinstance(anomaly, dict)
         and isinstance(next(iter(anomaly.values())), list)
@@ -197,31 +197,31 @@ def _plot_anomaly_on_curve(
 
 
 def plot(
-    ts,
-    anomaly_true=None,
-    anomaly_pred=None,
-    title=None,
-    axes=None,
-    figsize=None,
-    ts_linewidth=0.5,
-    ts_alpha=0.5,
-    ts_color=None,
-    ts_marker=".",
-    ts_markersize=1,
-    at_alpha=0.5,
-    at_color="red",
-    at_marker_on_curve=False,
-    at_marker="v",
-    at_markersize=3,
-    ap_alpha=0.5,
-    ap_color="green",
-    ap_marker_on_curve=False,
-    ap_marker="o",
-    ap_markersize=3,
-    freq_as_period=True,
-    curve_group="each",
-    legend=True,
-):
+    ts: Union[pd.Series, pd.DataFrame],
+    anomaly_true: Optional[Union[List, pd.Series, Dict]] = None,
+    anomaly_pred: Optional[Union[List, pd.Series, Dict]] = None,
+    title: Optional[str] = None,
+    axes: Any = None,
+    figsize: Optional[Tuple] = None,
+    ts_linewidth: float = 0.5,
+    ts_alpha: float = 0.5,
+    ts_color: Optional[Union[str, Dict]] = None,
+    ts_marker: str = ".",
+    ts_markersize: Union[float, Dict] = 1,
+    at_alpha: float = 0.5,
+    at_color: Optional[Union[str, Dict]] = "red",
+    at_marker_on_curve: bool = False,
+    at_marker: str = "v",
+    at_markersize: Union[float, Dict] = 3,
+    ap_alpha: float = 0.5,
+    ap_color: Optional[Union[str, Dict]] = "green",
+    ap_marker_on_curve: bool = False,
+    ap_marker: str = "o",
+    ap_markersize: Union[float, Dict] = 3,
+    freq_as_period: bool = True,
+    curve_group: Any = "each",
+    legend: bool = True,
+) -> Any:
     """Plot time series and anomalies.
 
     Parameters

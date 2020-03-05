@@ -2,8 +2,12 @@
 
 """
 
+from typing import Dict, Type, Optional
 
-def _get_all_subclasses_from_superclass(superclass):
+
+def _get_all_subclasses_from_superclass(
+    superclass: Type
+) -> Dict[str, Optional[str]]:
     result = dict()
     for sb in superclass.__subclasses__():
         if sb.__name__[0] != "_":
@@ -14,7 +18,7 @@ def _get_all_subclasses_from_superclass(superclass):
 
 
 class PandasBugError(Exception):
-    def __init__(self):
+    def __init__(self) -> None:
         msg = (
             """Pandas before v0.25 has a known bug in method `rolling` when """
             """parameter `window` is offset and `closed` is 'left'. Your """
