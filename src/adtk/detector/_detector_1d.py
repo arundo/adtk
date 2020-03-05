@@ -379,7 +379,7 @@ class PersistAD(_TrainableUnivariateDetector):
 
     Parameters
     ----------
-    window: int or str
+    window: int or str, optional
         Size of the preceding time window.
 
         - If int, it is the number of time point in this time window.
