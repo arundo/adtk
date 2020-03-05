@@ -1,4 +1,5 @@
 """Module of data processing."""
+
 from ._data import (
     validate_series,
     to_events,

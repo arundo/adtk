@@ -53,7 +53,7 @@ class Pipeline:
 
     Parameters
     ----------
-    steps: list of 2-tuples
+    steps: list of 2-tuples (str, object)
         Components of this pipeline. Each 2-tuple represents a step in the
         pipeline (step name, model object).
 
@@ -100,8 +100,8 @@ class Pipeline:
 
         skip_fit: list, optional
             Models to skip training. This could be used when pipeline contains
-            models that are already trained by the same time series, and
-            re-training would be time consuming. It must be a list of strings
+            models that are already trained by the same time series, and re-
+            training would be time consuming. It must be a list of strings
             where each element is a model name. Default: None.
 
         return_intermediate: bool, optional
@@ -109,7 +109,7 @@ class Pipeline:
 
         Returns
         -------
-        dict
+        dict, optional
             If return_intermediate=True, return intermediate results generated
             during training as a dictionary where keys are step names. If a
             step does not perform transformation or detection, the result of
@@ -163,20 +163,25 @@ class Pipeline:
             Whether to return intermediate results. Default: False.
 
         return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+            Whether to return a list of anomalous events, or a binary series
+            indicating normal/anomalous. Default: False.
 
         Returns
         -------
-        list, panda Series, or dict
-            If return_intermediate=False, return detected anomalies, i.e.
-            result from last detector;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipeline.
-            If return_list=True, result from a detector or an aggregators will
-            be a list of pandas Timestamps;
-            If return_list=False, result from a detector or an aggregators will
-            be a binary pandas Series indicating normal/anomalous.
+        pandas Series, pandas DataFrame, list, or dict
+            Detected anomalies.
+
+            - If return_intermediate=False, return detected anomalies, i.e.
+              result from last detector.
+            - If return_intermediate=True, return results of all models in
+              pipeline as a dict where each item represents the result of a
+              model.
+            - If return_list=False, result from a detector or an aggregator
+              will be a binary pandas Series indicating normal/anomalous.
+            - If return_list=True, result from a detector or an aggregator
+              will be a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
 
 
         """
@@ -207,11 +212,14 @@ class Pipeline:
 
         Returns
         -------
-        list or dict
-            If return_intermediate=False, return transformed dataframe, i.e.
-            result from last transformer;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipeline.
+        pandas Series, pandas DataFrame, or dict
+            Transformed time series.
+
+            - If return_intermediate=False, return transformed series, i.e.
+              result from last transformer;
+            - If return_intermediate=True, return results of all models in
+              pipeline as a dict where each item represents the result of a
+              model.
 
         """
         self._update_internal_pipenet()
@@ -260,28 +268,33 @@ class Pipeline:
 
         skip_fit: list, optional
             Models to skip training. This could be used when pipeline contains
-            models that are already trained by the same time series, and
-            re-training would be time consuming. It must be a list of strings
+            models that are already trained by the same time series, and re-
+            training would be time consuming. It must be a list of strings
             where each element is a model name. Default: None.
 
         return_intermediate: bool, optional
             Whether to return intermediate results. Default: False.
 
         return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+            Whether to return a list of anomalous events, or a binary series
+            indicating normal/anomalous. Default: False.
 
         Returns
         -------
-        list, panda Series, or dict
-            If return_intermediate=False, return detected anomalies, i.e.
-            result from last detector;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipeline.
-            If return_list=True, result from a detector or an aggregators will
-            be a list of pandas Timestamps;
-            If return_list=False, result from a detector or an aggregators will
-            be a binary pandas Series indicating normal/anomalous.
+        pandas Series, pandas DataFrame, list, or dict
+            Detected anomalies.
+
+            - If return_intermediate=False, return detected anomalies, i.e.
+              result from last detector.
+            - If return_intermediate=True, return results of all models in
+              pipeline as a dict where each item represents the result of a
+              model.
+            - If return_list=False, result from a detector or an aggregator
+              will be a binary pandas Series indicating normal/anomalous.
+            - If return_list=True, result from a detector or an aggregator
+              will be a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
 
 
         """
@@ -308,12 +321,12 @@ class Pipeline:
         Parameters
         ----------
         ts: pandas Series or DataFrame
-            Time series to be transformed
+            Time series to be transformed.
 
         skip_fit: list, optional
             Models to skip training. This could be used when pipeline contains
-            models that are already trained by the same time series, and
-            re-training would be time consuming. It must be a list of strings
+            models that are already trained by the same time series, and re-
+            training would be time consuming. It must be a list of strings
             where each element is a model name. Default: None.
 
         return_intermediate: bool, optional
@@ -321,11 +334,14 @@ class Pipeline:
 
         Returns
         -------
-        list or dict
-            If return_intermediate=False, return transformed dataframe, i.e.
-            result from last transformer;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipeline.
+        pandas Series, pandas DataFrame, or dict
+            Transformed time series.
+
+            - If return_intermediate=False, return transformed series, i.e.
+              result from last transformer;
+            - If return_intermediate=True, return results of all models in
+              pipeline as a dict where each item represents the result of a
+              model.
 
         """
         self._update_internal_pipenet()
@@ -354,13 +370,14 @@ class Pipeline:
         ----------
         ts: pandas Series or DataFrame
             Time series to detect anomalies from.
-            If a DataFrame with k columns, k univariate detectors will be
-            applied to them respectively.
 
-        anomaly_true: Series, or a list of Timestamps or Timestamp tuple
+        anomaly_true: pandas Series or list
             True anomalies.
-            If Series, it is a series binary labels indicating anomalous;
-            If list, it is a list of anomalous events in form of time windows.
+
+            - If pandas Series, it is treated as a series of binary labels.
+            - If list, a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
 
         scoring: str, optional
             Scoring function to use. Must be one of "recall", "precision",
@@ -818,8 +835,8 @@ class Pipenet:
 
         skip_fit: list, optional
             Models to skip training. This could be used when pipenet contains
-            models that are already trained by the same time series, and
-            re-training would be time consuming. It must be a list of strings
+            models that are already trained by the same time series, and re-
+            training would be time consuming. It must be a list of strings
             where each element is a model name. Default: None.
 
         return_intermediate: bool, optional
@@ -827,7 +844,7 @@ class Pipenet:
 
         Returns
         -------
-        dict
+        dict, optional
             If return_intermediate=True, return intermediate results generated
             during training as a dictionary where keys are step names. If a
             step does not perform transformation or detection, the result of
@@ -1064,20 +1081,25 @@ class Pipenet:
             Whether to return intermediate results. Default: False.
 
         return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+            Whether to return a list of anomalous events, or a binary series
+            indicating normal/anomalous. Default: False.
 
         Returns
         -------
-        list, panda Series, or dict
-            If return_intermediate=False, return detected anomalies, i.e.
-            result from last detector;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipenet.
-            If return_list=True, result from a detector or an aggregators will
-            be a list of pandas Timestamps;
-            If return_list=False, result from a detector or an aggregators will
-            be a binary pandas Series indicating normal/anomalous.
+        pandas Series, pandas DataFrame, list, or dict
+            Detected anomalies.
+
+            - If return_intermediate=False, return detected anomalies, i.e.
+              result from last detector.
+            - If return_intermediate=True, return results of all models in
+              pipenet as a dict where each item represents the result of a
+              model.
+            - If return_list=False, result from a detector or an aggregator
+              will be a binary pandas Series indicating normal/anomalous.
+            - If return_list=True, result from a detector or an aggregator
+              will be a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
 
         """
         return self._predict(
@@ -1109,11 +1131,14 @@ class Pipenet:
 
         Returns
         -------
-        list or dict
-            If return_intermediate=False, return transformed dataframe, i.e.
-            result from last transformer;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipenet.
+        pandas Series, pandas DataFrame, or dict
+            Transformed time series.
+
+            - If return_intermediate=False, return transformed series, i.e.
+              result from last transformer;
+            - If return_intermediate=True, return results of all models in
+              pipnet as a dict where each item represents the result of a
+              model.
 
         """
         return self._predict(
@@ -1164,28 +1189,33 @@ class Pipenet:
 
         skip_fit: list, optional
             Models to skip training. This could be used when pipenet contains
-            models that are already trained by the same time series, and
-            re-training would be time consuming. It must be a list of strings
+            models that are already trained by the same time series, and re-
+            training would be time consuming. It must be a list of strings
             where each element is a model name. Default: None.
 
         return_intermediate: bool, optional
             Whether to return intermediate results. Default: False.
 
         return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+            Whether to return a list of anomalous events, or a binary series
+            indicating normal/anomalous. Default: False.
 
         Returns
         -------
-        list, panda Series, or dict
-            If return_intermediate=False, return detected anomalies, i.e.
-            result from last detector;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipenet.
-            If return_list=True, result from a detector or an aggregators will
-            be a list of pandas Timestamps;
-            If return_list=False, result from a detector or an aggregators will
-            be a binary pandas Series indicating normal/anomalous.
+        pandas Series, pandas DataFrame, list, or dict
+            Detected anomalies.
+
+            - If return_intermediate=False, return detected anomalies, i.e.
+              result from last detector.
+            - If return_intermediate=True, return results of all models in
+              pipenet as a dict where each item represents the result of a
+              model.
+            - If return_list=False, result from a detector or an aggregator
+              will be a binary pandas Series indicating normal/anomalous.
+            - If return_list=True, result from a detector or an aggregator
+              will be a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
 
         """
         return self._predict(
@@ -1215,8 +1245,8 @@ class Pipenet:
 
         skip_fit: list, optional
             Models to skip training. This could be used when pipenet contains
-            models that are already trained by the same time series, and
-            re-training would be time consuming. It must be a list of strings
+            models that are already trained by the same time series, and re-
+            training would be time consuming. It must be a list of strings
             where each element is a model name. Default: None.
 
         return_intermediate: bool, optional
@@ -1224,11 +1254,15 @@ class Pipenet:
 
         Returns
         -------
-        list or dict
-            If return_intermediate=False, return transformed dataframe, i.e.
-            result from last transformer;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipenet.
+        pandas Series, pandas DataFrame, or dict
+            Transformed time series.
+
+            - If return_intermediate=False, return transformed series, i.e.
+              result from last transformer;
+            - If return_intermediate=True, return results of all models in
+              pipenet as a dict where each item represents the result of a
+              model.
+
 
         """
         return self._predict(
@@ -1260,13 +1294,14 @@ class Pipenet:
         ----------
         ts: pandas Series or DataFrame
             Time series to detect anomalies from.
-            If a DataFrame with k columns, k univariate detectors will be
-            applied to them respectively.
 
         anomaly_true: Series, or a list of Timestamps or Timestamp tuple
             True anomalies.
-            If Series, it is a series binary labels indicating anomalous;
-            If list, it is a list of anomalous events in form of time windows.
+
+            - If pandas Series, it is treated as a series of binary labels.
+            - If list, a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
 
         scoring: str, optional
             Scoring function to use. Must be one of "recall", "precision",

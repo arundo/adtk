@@ -18,13 +18,8 @@ class _NonTrainableUnivariateTransformer(_NonTrainableUnivariateModel):
         ----------
         ts: pandas.Series or pandas.DataFrame
             Time series to be transformed. If a DataFrame with k columns, it is
-            treated as k independent univariate time series.
-
-            - If the transformer was trained with a Series, the transformer
-              will be applied to each univariate series independently;
-            - If the transformer was trained with a DataFrame, i.e. the
-              transformer is essentially k transformers, those transformers
-              will be applied to each univariate series respectivley.
+            treated as k independent univariate time series and the transformer
+            will be applied to each univariate series independently.
 
         Returns
         -------
@@ -72,7 +67,7 @@ class _TrainableUnivariateTransformer(_TrainableUnivariateModel):
               will be applied to each univariate series independently;
             - If the transformer was trained with a DataFrame, i.e. the
               transformer is essentially k transformers, those transformers
-              will be applied to each univariate series respectivley.
+              will be applied to each univariate series respectively.
 
         Returns
         -------

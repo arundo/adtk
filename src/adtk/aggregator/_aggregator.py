@@ -36,6 +36,7 @@ class CustomizedAggregator(_Aggregator):
         `aggregate_func_params`.
 
         The output must be a list of pandas Timestamps.
+
         - If input is a pandas DataFrame or a dict of Series/DataFrame, return
           a single binary pandas Series;
         - If input is a dict of lists, return a single list of events.

@@ -22,32 +22,40 @@ from typing import Dict, Any, Tuple, Optional, Callable
 
 
 class CustomizedDetectorHD(_TrainableMultivariateDetector):
-    """Detector derived from a user-given function and parameters.
+    """Multivariate detector derived from a user-given function and parameters.
 
     Parameters
     ----------
     detect_func: function
-        A function detecting anomalies from given time series. The first input
-        argument must be a pandas Dataframe, optional input argument allows;
-        the output must be a binary pandas Series with the same index as input.
+        A function detecting anomalies from multivariate time series.
+
+        The first input argument must be a pandas DataFrame, optional input
+        argument may be accepted through parameter `detect_func_params` and the
+        output of `fit_func`, and the output must be a binary pandas Series
+        with the same index as input.
 
     detect_func_params: dict, optional
-        Parameters of detect_func. Default: None.
+        Parameters of `detect_func`. Default: None.
 
     fit_func: function, optional
-        A function learning from a list of time series and return parameters
-        dict that detect_func can used for future detection. Default: None.
+        A function training parameters of `detect_func` with multivariate time
+        series.
+
+        The first input argument must be a pandas Series, optional input
+        argument may be accepted through parameter `fit_func_params`, and the
+        output must be a dict that can be used by `detect_func` as parameters.
+        Default: None.
 
     fit_func_params: dict, optional
-        Parameters of fit_func. Default: None.
+        Parameters of `fit_func`. Default: None.
 
     """
 
     def __init__(
         self,
-        detect_func: Callable,
+        detect_func: Callable[[pd.DataFrame], pd.Series],
         detect_func_params: Optional[Dict[str, Any]] = None,
-        fit_func: Optional[Callable] = None,
+        fit_func: Optional[Callable[[pd.DataFrame], Dict[str, Any]]] = None,
         fit_func_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         self._fitted_detect_func_params = {}  # type: Dict
@@ -92,7 +100,7 @@ class CustomizedDetectorHD(_TrainableMultivariateDetector):
 
 
 class MinClusterDetector(_TrainableMultivariateDetector):
-    """Detector that detect anomaly based on clustering of historical data.
+    """Detector that detects anomaly based on clustering of historical data.
 
     This detector peforms clustering using a clustering model, and identifies
     a time points as anomalous if it belongs to the minimal cluster.
@@ -134,7 +142,7 @@ class MinClusterDetector(_TrainableMultivariateDetector):
 
 
 class OutlierDetector(_TrainableMultivariateDetector):
-    """Detector that detect anomaly based on a outlier detection model.
+    """Detector that detects anomaly based on a outlier detection model.
 
     This detector peforms time-independent outlier detection using given model,
     and identifies a time points as anomalous if it is labelled as an outlier.
@@ -191,17 +199,15 @@ class RegressionAD(_TrainableMultivariateDetector):
 
     This detector performs regression to build relationship between a target
     series and the rest of series, and identifies a time point as anomalous
-    when the residual of regression is beyond a threshold based on historical
-    interquartile range.
+    when the residual of regression is anomalously large.
 
     This detector is internally implemented as a `Pipenet` object. Advanced
     users may learn more details by checking attribute `pipe_`.
 
     Parameters
     ----------
-    target: str, optional
-        Name of the column to be regarded as target variable. If not specified,
-        the first column in input DataFrame will be used.
+    target: str
+        Name of the column to be regarded as target variable.
 
     regressor: object
         Regressor to be used. Same as a scikit-learn regressor, it should
@@ -212,9 +218,10 @@ class RegressionAD(_TrainableMultivariateDetector):
         interquartile range. Default: 3.0.
 
     side: str, optional
-        If "both", to detect anomalous positive and negative residuals;
-        If "positive", to only detect anomalous positive residuals;
-        If "negative", to only detect anomalous negative residuals.
+        - If "both", to detect anomalous positive and negative residuals;
+        - If "positive", to only detect anomalous positive residuals;
+        - If "negative", to only detect anomalous negative residuals.
+
         Default: "both".
 
     Attributes
@@ -328,7 +335,7 @@ class PcaAD(_TrainableMultivariateDetector):
     multivariate time series (every time point is treated as a point in high-
     dimensional space), measures reconstruction error at every time point, and
     identifies a time point as anomalous when the recontruction error is beyond
-    a threshold based on historical interquartile range.
+    anomalously large.
 
     This detector is internally implemented as a `Pipeline` object. Advanced
     users may learn more details by checking attribute `pipe_`.

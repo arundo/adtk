@@ -26,17 +26,13 @@ class _NonTrainableUnivariateDetector(_NonTrainableUnivariateModel):
         ----------
         ts: pandas.Series or pandas.DataFrame
             Time series to detect anomalies from. If a DataFrame with k
-            columns, it is treated as k independent univariate time series.
-
-            - If the detector was trained with a Series, the detector will be
-              applied to each univariate series independently;
-            - If the detector was trained with a DataFrame, i.e. the detector
-              is essentially k detectors, those detectors will be applied to
-              each univariate series respectivley.
+            columns, it is treated as k independent univariate time series, and
+            the detector will be applied to each univariate series
+            independently.
 
         return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+            Whether to return a list of anomalous events, or a binary series
+            indicating normal/anomalous. Default: False.
 
         Returns
         -------
@@ -95,19 +91,20 @@ class _NonTrainableUnivariateDetector(_NonTrainableUnivariateModel):
         ts: pandas Series or pandas.DataFrame
             Time series to detect anomalies from.
             If a DataFrame with k columns, it is treated as k independent
-            univariate time series, and k univariate detectors will be trained
-            and applied to each series independently.
+            univariate time series, and the detector will be applied to each
+            series independently.
 
         anomaly_true: pandas.Series, pandas.DataFrame, list, or dict
             True anomalies.
 
-            - If Series, it is a series binary labels indicating anomalous;
-            - If DataFrame, each column is considered as an independent type of
-              anomaly;
-            - If list, it is a list of anomalous events in form of time points
-              (pandas.Timestamp) or time windows (2-tuple of time stamps);
-            - If a dict of lists, each value is considered as an independent
-              type of anomaly.
+            - If pandas Series, it is treated as a series of binary labels.
+            - If pandas DataFrame, each column is a binary series and is
+              treated as an independent type of anomaly.
+            - If list, a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
+            - If dict, each key-value pair is a list of events and is treated
+              as an independent type of anomaly.
 
         scoring: str, optional
             Scoring function to use. Must be one of "recall", "precision",
@@ -187,11 +184,11 @@ class _TrainableUnivariateDetector(_TrainableUnivariateModel):
               applied to each univariate series independently;
             - If the detector was trained with a DataFrame, i.e. the detector
               is essentially k detectors, those detectors will be applied to
-              each univariate series respectivley.
+              each univariate series respectively.
 
         return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+            Whether to return a list of anomalous events, or a binary series
+            indicating normal/anomalous. Default: False.
 
         Returns
         -------
@@ -201,10 +198,13 @@ class _TrainableUnivariateDetector(_TrainableUnivariateModel):
             - If input is a Series and return_list=False, return a Series;
             - If input is a DataFrame and return_list=False, return a
               DataFrame, where each column corresponds a column in input;
-            - If input is a Series and return_list=True, return a list of time
-              stamps or time stamp tuples;
+            - If input is a Series and return_list=True, return a list of
+              events where an event is a pandas Timestamp if it is
+              instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+              time interval.
             - If input is a DataFrame and return_list=True, return a dict of
-              lists, where each key-value pair corresponds a column in input.
+              event lists, where each key-value pair corresponds a column in
+              input.
 
         """
         detected = self._predict(ts)
@@ -235,8 +235,8 @@ class _TrainableUnivariateDetector(_TrainableUnivariateModel):
             and applied to each series independently.
 
         return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+            Whether to return a list of anomalous events, or a binary series
+            indicating normal/anomalous. Default: False.
 
         Returns
         -------
@@ -246,10 +246,13 @@ class _TrainableUnivariateDetector(_TrainableUnivariateModel):
             - If input is a Series and return_list=False, return a Series;
             - If input is a DataFrame and return_list=False, return a
               DataFrame, where each column corresponds a column in input;
-            - If input is a Series and return_list=True, return a list of time
-              stamps or time stamp tuples;
+            - If input is a Series and return_list=True, return a list of
+              events where an event is a pandas Timestamp if it is
+              instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+              time interval.
             - If input is a DataFrame and return_list=True, return a dict of
-              lists, where each key-value pair corresponds a column in input.
+              event lists, where each key-value pair corresponds a column in
+              input.
 
         """
         self.fit(ts)
@@ -307,19 +310,20 @@ class _TrainableUnivariateDetector(_TrainableUnivariateModel):
         ts: pandas Series or pandas.DataFrame
             Time series to detect anomalies from.
             If a DataFrame with k columns, it is treated as k independent
-            univariate time series, and k univariate detectors will be trained
-            and applied to each series independently.
+            univariate time series, and k univariate detectors will be applied
+            to each series independently.
 
         anomaly_true: pandas.Series, pandas.DataFrame, list, or dict
             True anomalies.
 
-            - If Series, it is a series binary labels indicating anomalous;
-            - If DataFrame, each column is considered as an independent type of
-              anomaly;
-            - If list, it is a list of anomalous events in form of time points
-              (pandas.Timestamp) or time windows (2-tuple of time stamps);
-            - If a dict of lists, each value is considered as an independent
-              type of anomaly.
+            - If pandas Series, it is treated as a series of binary labels.
+            - If pandas DataFrame, each column is a binary series and is
+              treated as an independent type of anomaly.
+            - If list, a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
+            - If dict, each key-value pair is a list of events and is treated
+              as an independent type of anomaly.
 
         scoring: str, optional
             Scoring function to use. Must be one of "recall", "precision",
@@ -495,8 +499,8 @@ class _TrainableMultivariateDetector(_TrainableMultivariateModel):
             Time series to detect anomalies from.
 
         return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+            Whether to return a list of anomalous events, or a binary series
+            indicating normal/anomalous. Default: False.
 
         Returns
         -------
@@ -504,8 +508,9 @@ class _TrainableMultivariateDetector(_TrainableMultivariateModel):
             Detected anomalies.
 
             - If return_list=False, return a binary series;
-            - If return_list=True, return a list of time stamps or time stamp
-              tuples.
+            - If return_list=True, return a list of events where an event is a
+              pandas Timestamp if it is instantaneous or a 2-tuple of pandas
+              Timestamps if it is a closed time interval.
 
         """
         detected = self._predict(df)
@@ -528,8 +533,8 @@ class _TrainableMultivariateDetector(_TrainableMultivariateModel):
             Time series to be used for training and be detected for anomalies.
 
         return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+            Whether to return a list of anomalous events, or a binary series
+            indicating normal/anomalous. Default: False.
 
         Returns
         -------
@@ -537,8 +542,9 @@ class _TrainableMultivariateDetector(_TrainableMultivariateModel):
             Detected anomalies.
 
             - If return_list=False, return a binary series;
-            - If return_list=True, return a list of time stamps or time stamp
-              tuples.
+            - If return_list=True, return a list of events where an event is a
+              pandas Timestamp if it is instantaneous or a 2-tuple of pandas
+              Timestamps if it is a closed time interval.
 
         """
         self.fit(df)
@@ -580,11 +586,13 @@ class _TrainableMultivariateDetector(_TrainableMultivariateModel):
             If a DataFrame with k columns, k univariate detectors will be
             applied to them independently.
 
-        anomaly_true: Series, or a list of Timestamps or Timestamp tuple
+        anomaly_true: Series or list
             True anomalies.
 
-            - If Series, it is a series binary labels indicating anomalous;
-            - If list, it is a list of anomalous events in form of time windows.
+            - If pandas Series, it is treated as a series of binary labels.
+            - If list, a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
 
         scoring: str, optional
             Scoring function to use. Must be one of "recall", "precision",

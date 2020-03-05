@@ -29,32 +29,40 @@ from typing import Dict, Union, Any, Tuple, Optional, Callable
 
 
 class CustomizedDetector1D(_TrainableUnivariateDetector):
-    """Detector derived from a user-given function and parameters.
+    """Univariate detector derived from a user-given function and parameters.
 
     Parameters
     ----------
     detect_func: function
-        A function detecting anomalies from given time series. The first input
-        argument must be a pandas Series, optional input argument allows; the
-        output must be a binary pandas Series with the same index as input.
+        A function detecting anomalies from univariate time series.
+
+        The first input argument must be a pandas Series, optional input
+        argument may be accepted through parameter `detect_func_params` and the
+        output of `fit_func`, and the output must be a binary pandas Series
+        with the same index as input.
 
     detect_func_params: dict, optional
-        Parameters of detect_func. Default: None.
+        Parameters of `detect_func`. Default: None.
 
     fit_func: function, optional
-        A function learning from a list of time series and return parameters
-        dict that detect_func can used for future detection. Default: None.
+        A function training parameters of `detect_func` with univariate time
+        series.
+
+        The first input argument must be a pandas Series, optional input
+        argument may be accepted through parameter `fit_func_params`, and the
+        output must be a dict that can be used by `detect_func` as parameters.
+        Default: None.
 
     fit_func_params: dict, optional
-        Parameters of fit_func. Default: None.
+        Parameters of `fit_func`. Default: None.
 
     """
 
     def __init__(
         self,
-        detect_func: Callable,
+        detect_func: Callable[[pd.Series], pd.Series],
         detect_func_params: Optional[Dict[str, Any]] = None,
-        fit_func: Optional[Callable] = None,
+        fit_func: Optional[Callable[[pd.Series], Dict[str, Any]]] = None,
         fit_func_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         self._fitted_detect_func_params = {}  # type: Dict[str, Any]
@@ -112,7 +120,7 @@ class ThresholdAD(_NonTrainableUnivariateDetector):
 
     high: float, optional
         Threshold above which a value is regarded anomaly. Default: None, i.e.
-        no threshold on lower side.
+        no threshold on upper side.
 
     """
 
@@ -126,9 +134,6 @@ class ThresholdAD(_NonTrainableUnivariateDetector):
     @property
     def _param_names(self) -> Tuple[str, ...]:
         return ("low", "high")
-
-    def _fit_core(self, s: pd.Series) -> None:
-        pass
 
     def _predict_core(self, s: pd.Series) -> pd.Series:
         predicted = (
@@ -201,7 +206,7 @@ class InterQuartileRangeAD(_TrainableUnivariateDetector):
 
     This detector compares time series values with 1st and 3rd quartiles of
     historical data, and identifies time points as anomalous when differences
-    are beyond the inter-quartile range times a user-given factor c.
+    are beyond the inter-quartile range (IQR) times a user-given factor c.
 
     Parameters
     ----------
@@ -278,9 +283,9 @@ class GeneralizedESDTestAD(_TrainableUnivariateDetector):
     series, plus one value from testing series) to evaluate if this value of
     interest is an outlier.
 
-    Please note a key assumption of generalized ESD test is that normal values
-    follow an approximately normal distribution. Please only use this detector
-    when this assumption holds.
+    Please note a key assumption of generalized ESD test is that values follow
+    an approximately normal distribution. Please only use this detector when
+    this assumption holds.
 
     [1] Rosner, Bernard (May 1983), Percentage Points for a Generalized ESD
     Many-Outlier Procedure,Technometrics, 25(2), pp. 165-172.
@@ -367,8 +372,7 @@ class PersistAD(_TrainableUnivariateDetector):
 
     This detector compares time series values with the values of their
     preceding time windows, and identifies a time point as anomalous if the
-    change of value from its preceding average or median is beyond a threshold
-    based on historical interquartile range.
+    change of value from its preceding average or median is anomalously large.
 
     This detector is internally implemented as a `Pipenet` object. Advanced
     users may learn more details by checking attribute `pipe_`.
@@ -376,16 +380,23 @@ class PersistAD(_TrainableUnivariateDetector):
     Parameters
     ----------
     window: int or str
-        Number of time points in the time window. Default: 1.
+        Size of the preceding time window.
+
+        - If int, it is the number of time point in this time window.
+        - If str, it must be able to be converted into a pandas Timedelta
+          object.
+
+        Default: 1.
 
     c: float, optional
         Factor used to determine the bound of normal range based on historical
         interquartile range. Default: 3.0.
 
     side: str, optional
-        If "both", to detect anomalous positive and negative changes;
-        If "positive", to only detect anomalous positive changes;
-        If "negative", to only detect anomalous negative changes.
+        - If "both", to detect anomalous positive and negative changes;
+        - If "positive", to only detect anomalous positive changes;
+        - If "negative", to only detect anomalous negative changes.
+
         Default: "both".
 
     min_periods: int, optional
@@ -527,32 +538,38 @@ class PersistAD(_TrainableUnivariateDetector):
 class LevelShiftAD(_TrainableUnivariateDetector):
     """Detector that detects level shift of time series values.
 
-    This detector compares median values inside time windows next to each
-    others, and identifies a time point as a level shift point if difference
-    between time windows on its left-side and its right-side is beyond a
-    threshold based on historical interquartile range.
+    This detector compares values of two time windows next to each others, and
+    identifies the time point in between as an level-shift point if the
+    difference of the medians in the two time windows is anomalously large.
 
     This detector is internally implemented as a `Pipenet` object. Advanced
     users may learn more details by checking attribute `pipe_`.
 
     Parameters
     ----------
-    window: int or str
-        Number of time points in each time window. Default: 10.
+    window: int or str, or 2-tuple of int or str
+        Size of the time windows.
+
+        - If int, it is the number of time point in this time window.
+        - If str, it must be able to be converted into a pandas Timedelta
+          object.
+        - If 2-tuple, it defines the left and right window respectively.
 
     c: float, optional
         Factor used to determine the bound of normal range based on historical
         interquartile range. Default: 6.0.
 
     side: str, optional
-        If "both", to detect anomalous positive and negative changes;
-        If "positive", to only detect anomalous positive changes;
-        If "negative", to only detect anomalous negative changes.
+        - If "both", to detect anomalous positive and negative changes;
+        - If "positive", to only detect anomalous positive changes;
+        - If "negative", to only detect anomalous negative changes.
+
         Default: "both".
 
-    min_periods: int, optional
+    min_periods: int, or 2-tuple of int, optional
         Minimum number of observations in each window required to have a value
-        for that window. Default: None, i.e. all observations must have values.
+        for that window. If 2-tuple, it defines the left and right window
+        respectively. Default: None, i.e. all observations must have values.
 
     Attributes
     ----------
@@ -563,10 +580,14 @@ class LevelShiftAD(_TrainableUnivariateDetector):
 
     def __init__(
         self,
-        window: Union[int, str],
+        window: Union[
+            Union[int, str], Tuple[Union[int, str], Union[int, str]]
+        ],
         c: float = 6.0,
         side: str = "both",
-        min_periods: Optional[int] = None,
+        min_periods: Union[
+            Optional[int], Tuple[Optional[int], Optional[int]]
+        ] = None,
     ) -> None:
         self.pipe_ = Pipenet(
             {
@@ -673,37 +694,45 @@ class LevelShiftAD(_TrainableUnivariateDetector):
 
 
 class VolatilityShiftAD(_TrainableUnivariateDetector):
-    """Detector that detects level shift of time series volatility.
+    """Detector that detects shift of volatility in time series.
 
-    This detector compares standard deviations inside time windows next to each
-    others, and identifies a time point as a volatility shift point if change
-    over time windows from its left-side to its right-side is beyond a
-    threshold based on historical interquartile range.
+    This detector compares volatility of two time windows next to each others,
+    and identifies the time point in between as a volatility-shift point if the
+    difference of the volatility measurement in the two time windows is
+    anomalously large.
 
     This detector is internally implemented as a `Pipenet` object. Advanced
     users may learn more details by checking attribute `pipe_`.
 
     Parameters
     ----------
-    window: int, optional
-        Number of time points in each time window. Default: 10.
+    window: int or str, or 2-tuple of int or str
+        Size of the time windows.
+
+        - If int, it is the number of time point in this time window.
+        - If str, it must be able to be converted into a pandas Timedelta
+          object.
+        - If 2-tuple, it defines the left and right window respectively.
 
     c: float, optional
         Factor used to determine the bound of normal range based on historical
         interquartile range. Default: 6.0.
 
     side: str, optional
-        If "both", to detect anomalous positive and negative changes;
-        If "positive", to only detect anomalous positive changes;
-        If "negative", to only detect anomalous negative changes.
+        - If "both", to detect anomalous positive and negative changes;
+        - If "positive", to only detect anomalous positive changes;
+        - If "negative", to only detect anomalous negative changes.
+
         Default: "both".
 
     min_periods: int, optional
         Minimum number of observations in each window required to have a value
-        for that window. Default: None, i.e. all observations must have values.
+        for that window. If 2-tuple, it defines the left and right window
+        respectively. Default: None, i.e. all observations must have values.
 
     agg: str, optional
-        Aggregation operation of the time window, one of "std", "iqr" or "idr".
+        Measurement of volatility in a time window, one of "std" (standard
+        deviation), "iqr" (interquartile range), or "idr" (interdecile range).
         Default: "std".
 
     Attributes
@@ -715,10 +744,14 @@ class VolatilityShiftAD(_TrainableUnivariateDetector):
 
     def __init__(
         self,
-        window: Union[int, str],
+        window: Union[
+            Union[int, str], Tuple[Union[int, str], Union[int, str]]
+        ],
         c: float = 6.0,
         side: str = "both",
-        min_periods: Optional[int] = None,
+        min_periods: Union[
+            Optional[int], Tuple[Optional[int], Optional[int]]
+        ] = None,
         agg: str = "std",
     ) -> None:
         self.pipe_ = Pipenet(
@@ -831,15 +864,14 @@ class VolatilityShiftAD(_TrainableUnivariateDetector):
 class AutoregressionAD(_TrainableUnivariateDetector):
     """Detector that detects anomalous autoregression property in time series.
 
-    Many time series has autoregression behavior. For example, in a linear
-    autoregression time series, current value is a linear combination of
-    serveral previous values. Violation of usual autoregression behavior may
+    Many time series has autoregressive behavior. For example, in a linearly
+    autoregressive time series, current value is a linear combination of
+    serveral previous values. Violation of usual autoregressive behavior may
     indicate anomaly.
 
-    The detector applies a regressor to learn autoregression property of the
+    The detector applies a regressor to learn autoregressive property of the
     time series, and identifies a time point as anomalous when the residual of
-    autoregression is beyond a threshold based on historical interquartile
-    range.
+    autoregression is anomalously large.
 
     This detector is internally implemented aattribute `pipe_`.nced
     users may learn more details by checking attribute `pipe_`.
@@ -863,9 +895,10 @@ class AutoregressionAD(_TrainableUnivariateDetector):
         interquartile range. Default: 3.0.
 
     side: str, optional
-        If "both", to detect anomalous positive and negative residuals;
-        If "positive", to only detect anomalous positive residuals;
-        If "negative", to only detect anomalous negative residuals.
+        - If "both", to detect anomalous positive and negative residuals;
+        - If "positive", to only detect anomalous positive residuals;
+        - If "negative", to only detect anomalous negative residuals.
+
         Default: "both".
 
     Attributes
@@ -879,7 +912,7 @@ class AutoregressionAD(_TrainableUnivariateDetector):
         self,
         n_steps: int = 1,
         step_size: int = 1,
-        regressor: Optional[object] = None,
+        regressor: Optional[Any] = None,
         c: float = 3.0,
         side: str = "both",
     ) -> None:
@@ -953,6 +986,8 @@ class AutoregressionAD(_TrainableUnivariateDetector):
             raise ValueError(
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
             )
+        if self.regressor is None:
+            self.regressor = LinearRegression()
         self.pipe_.steps["retrospetive"]["model"].set_params(
             n_steps=self.n_steps + 1, step_size=self.step_size
         )
@@ -991,8 +1026,7 @@ class SeasonalAD(_TrainableUnivariateDetector):
 
     This detector uses a seasonal decomposition transformer to remove seasonal
     pattern (as well as trend optional), and identifies a time point as
-    anomalous when the residual of seasonal decomposition is beyond a threshold
-    based on historical interquartile range.
+    anomalous when the residual of seasonal decomposition is anomalously large.
 
     This detector is internally implemented as a `Pipenet` object. Advanced
     users may learn more details by checking attribute `pipe_`.
@@ -1000,29 +1034,30 @@ class SeasonalAD(_TrainableUnivariateDetector):
     Parameters
     ----------
     freq: int, optional
-        Length of a seasonal cycle. If not given, the model will determine
-        automatically based on autocorrelation of the training series. Default:
-        None.
+        Length of a seasonal cycle as the number of time points in a cycle. If
+        not specified, the model will try to determine it based on
+        autocorrelation of the training series. Default: None.
 
     c: float, optional
         Factor used to determine the bound of normal range based on historical
         interquartile range. Default: 3.0.
 
     side: str, optional
-        If "both", to detect anomalous positive and negative residuals;
-        If "positive", to only detect anomalous positive residuals;
-        If "negative", to only detect anomalous negative residuals.
+        - If "both", to detect anomalous positive and negative residuals;
+        - If "positive", to only detect anomalous positive residuals;
+        - If "negative", to only detect anomalous negative residuals.
+
         Default: "both".
 
     trend: bool, optional
-        Whether to extract trend during decomposition. Only used when classic
-        seasonal decomposition is applied. Default: False.
+        Whether to extract trend during decomposition. Default: False.
 
     Attributes
     ----------
     freq_: int
-        Length of seasonal cycle. Equal to parameter `freq` if it is given.
-        Otherwise, calculated based on autocorrelation of the training series.
+        Length of seasonal cycle as the number of time points in a cycle. Equal
+        to parameter `freq` if it is specified. Otherwise, calculated based on
+        autocorrelation of the training series.
 
     seasonal_: pandas.Series
         Seasonal pattern extracted from training series.

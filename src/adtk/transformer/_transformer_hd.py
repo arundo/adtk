@@ -19,34 +19,44 @@ from typing import Union, Dict, Any, Optional, Tuple, Callable
 
 
 class CustomizedTransformerHD(_TrainableMultivariateTransformer):
-    """Transformer derived from a user-given function and parameters.
+    """Multivariate transformer derived from a user-given function and parameters.
 
     Parameters
     ----------
+    Parameters
+    ----------
     transform_func: function
-        A function transforming given time serie into new one. The first input
-        argument must be a pandas Dataframe, optional input argument allows;
-        the output must be a pandas Series or DataFrame with the same index as
-        input.
+        A function transforming multivariate time series.
+
+        The first input argument must be a pandas DataFrame, optional input
+        argument may be accepted through parameter `transform_func_params` and
+        the output of `fit_func`, and the output must be a pandas Series or
+        DataFrame with the same index as input.
 
     transform_func_params: dict, optional
-        Parameters of transform_func. Default: None.
+        Parameters of `transform_func`. Default: None.
 
     fit_func: function, optional
-        A function learning from a list of time series and return parameters
-        dict that transform_func can used for future transformation. Default:
-        None.
+        A function training parameters of `transform_func` with multivariate
+        time series.
+
+        The first input argument must be a pandas DataFrame, optional input
+        argument may be accepted through parameter `fit_func_params`, and the
+        output must be a dict that can be used by `transform_func` as
+        parameters. Default: None.
 
     fit_func_params: dict, optional
-        Parameters of fit_func. Default: None.
+        Parameters of `fit_func`. Default: None.
 
     """
 
     def __init__(
         self,
-        transform_func: Callable,
+        transform_func: Callable[
+            [pd.DataFrame], Union[pd.Series, pd.DataFrame]
+        ],
         transform_func_params: Optional[Dict[str, Any]] = None,
-        fit_func: Optional[Callable] = None,
+        fit_func: Optional[Callable[[pd.Series], Dict[str, Any]]] = None,
         fit_func_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         self._fitted_transform_func_params = {}  # type: Dict
@@ -121,8 +131,7 @@ class RegressionResidual(_TrainableMultivariateTransformer):
         Regressor to be used. Same as a scikit-learn regressor, it should
         minimally have `fit` and `predict` methods.
     target: str, optional
-        Name of the column to be regarded as target variable. If not specified,
-        the first column in input DataFrame will be used.
+        Name of the column to be regarded as target variable.
 
     """
 
@@ -177,7 +186,7 @@ class RegressionResidual(_TrainableMultivariateTransformer):
 class PcaProjection(_TrainableMultivariateTransformer):
     """Transformer that performs principal component analysis (PCA) to the
     multivariate time series (every time point is treated as a point in high-
-    dimensional space), and represent those points with their projection on
+    dimensional space), and represents those points with their projection on
     the first k principal components.
 
     Parameters
@@ -220,8 +229,8 @@ class PcaProjection(_TrainableMultivariateTransformer):
 class PcaReconstruction(_TrainableMultivariateTransformer):
     """Transformer that performs principal component analysis (PCA) to the
     multivariate time series  (every time point is treated as a point in high-
-    dimensional space), and reconstruct those points with the first k principal
-    components.
+    dimensional space), and reconstructs those points with the first k
+    principal components.
 
     Parameters
     ----------
@@ -264,7 +273,7 @@ class PcaReconstructionError(_TrainableMultivariateTransformer):
     """Transformer that performs principal component analysis (PCA) to the
     multivariate time series  (every time point is treated as a point in high-
     dimensional space), reconstruct those points with the first k principal
-    components, and return the reconstruction error (i.e. squared distance
+    components, and returns the reconstruction error (i.e. squared distance
     bewteen the reconstructed point and original point).
 
     Parameters

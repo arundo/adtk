@@ -77,7 +77,7 @@ def recall(
     When the input is lists of anomalous time windows, metric calculation
     treats every anomalous time window as an independent event. A true event is
     considered as successfully detected if the percentage of this time window
-    included in the detected list is greater or equal to `thresh`. Note that
+    covered by the detected list is greater or equal to `thresh`. Note that
     input time windows will be merged first if overlapped time windows exists
     in the list.
 
@@ -87,17 +87,25 @@ def recall(
         Labels or lists of true anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     y_pred: pandas Series or DataFrame, list, or dict
         Labels or lists of predicted anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     thresh: float, optional
         Threshold of a hit. Only used if input is list or dict. Default: 0.5.
@@ -252,7 +260,7 @@ def precision(
     When the input is lists of anomalous time windows, metric calculation
     treats every anomalous time window as an independent event. A detected
     event is considered as a successfully detection if the percentage of this
-    time window included in the true anomaly list is greater or equal to
+    time window covered by the true anomaly list is greater or equal to
     `thresh`. Note that input time windows will be merged first if overlapped
     time windows exists in the list.
 
@@ -262,17 +270,25 @@ def precision(
         Labels or lists of true anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     y_pred: pandas Series or DataFrame, list, or dict
         Labels or lists of predicted anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     thresh: float, optional
         Threshold of a hit. Only used if input is list or dict. Default: 0.5.
@@ -362,17 +378,25 @@ def f1_score(
         Labels or lists of true anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     y_pred: pandas Series or DataFrame, list, or dict
         Labels or lists of predicted anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     recall_thresh: float, optional
         Threshold of recall calculation. Only used if input is list or dict.
@@ -488,17 +512,25 @@ def iou(
         Labels or lists of true anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     y_pred: pandas Series or DataFrame, list, or dict
         Labels or lists of predicted anomalies.
 
         - If pandas Series, it is treated as binary labels along time index.
-        - If pandas DataFrame, each column is treated as a type of anomaly.
-        - If list, it is treated as a list of anomalous time windows.
-        - If dict of lists, each item is treated as a type of anomaly.
+        - If pandas DataFrame, each column is a binary series and is treated as
+          an independent type of anomaly.
+        - If list, a list of events where an event is a pandas Timestamp if it
+          is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
+          time interval.
+        - If dict, each key-value pair is a list of events and is treated as an
+          independent type of anomaly.
 
     Returns
     -------

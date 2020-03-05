@@ -25,34 +25,40 @@ from typing import Dict, List, Any, Union, Optional, Tuple, Callable
 
 
 class CustomizedTransformer1D(_TrainableUnivariateTransformer):
-    """Transformer derived from a user-given function and parameters.
+    """Univariate transformer derived from a user-given function and parameters.
 
     Parameters
     ----------
     transform_func: function
-        A function transforming given time serie into new one. The first input
-        argument must be a pandas Series, optional input argument allows; the
-        output must be a pandas Series or DataFrame with the same index as
-        input.
+        A function transforming univariate time series.
+
+        The first input argument must be a pandas Series, optional input
+        argument may be accepted through parameter `transform_func_params` and
+        the output of `fit_func`, and the output must be a pandas Series or
+        DataFrame with the same index as input.
 
     transform_func_params: dict, optional
-        Parameters of transform_func. Default: None.
+        Parameters of `transform_func`. Default: None.
 
     fit_func: function, optional
-        A function learning from a list of time series and return parameters
-        dict that transform_func can used for future transformation. Default:
-        None.
+        A function training parameters of `transform_func` with univariate time
+        series.
+
+        The first input argument must be a pandas Series, optional input
+        argument may be accepted through parameter `fit_func_params`, and the
+        output must be a dict that can be used by `transform_func` as
+        parameters. Default: None.
 
     fit_func_params: dict, optional
-        Parameters of fit_func. Default: None.
+        Parameters of `fit_func`. Default: None.
 
     """
 
     def __init__(
         self,
-        transform_func: Callable,
+        transform_func: Callable[[pd.Series], Union[pd.Series, pd.DataFrame]],
         transform_func_params: Optional[Dict[str, Any]] = None,
-        fit_func: Optional[Callable] = None,
+        fit_func: Optional[Callable[[pd.Series], Dict[str, Any]]] = None,
         fit_func_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         self._fitted_transform_func_params = {}  # type: Dict
@@ -124,11 +130,18 @@ class StandardScale(_NonTrainableUnivariateTransformer):
 
 
 class RollingAggregate(_NonTrainableUnivariateTransformer):
-    """Transformer that roll a sliding window along a time series, and
+    """Transformer that rolls a sliding window along a time series, and
     aggregates using a user-selected operation.
 
     Parameters
     ----------
+    window: int or str
+        Size of the rolling time window.
+
+        - If int, it is the number of time point in this time window.
+        - If str, it must be able to be converted into a pandas Timedelta
+          object.
+
     agg: str or function
         Aggregation method applied to series.
         If str, must be one of supported built-in methods:
@@ -169,9 +182,6 @@ class RollingAggregate(_NonTrainableUnivariateTransformer):
     agg_params: dict, optional
         Parameters of aggregation function. Default: None.
 
-    window: int, optional
-        Width of rolling windows (number of data points). Default: 10.
-
     center: bool, optional
         Whether the calculation is at the center of time window or on the right
         edge. Default: False.
@@ -185,7 +195,9 @@ class RollingAggregate(_NonTrainableUnivariateTransformer):
     def __init__(
         self,
         window: Union[int, str],
-        agg: Union[str, Callable] = "mean",
+        agg: Union[
+            str, Callable[[pd.Series], Union[float, np.ndarray]]
+        ] = "mean",
         agg_params: Optional[Dict[str, Any]] = None,
         center: bool = False,
         min_periods: Optional[int] = None,
@@ -345,7 +357,15 @@ class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
 
     Parameters
     ----------
-    agg: str, function, or tuple
+    window: int or str, or 2-tuple of int or str
+        Size of the rolling time window.
+
+        - If int, it is the number of time point in this time window.
+        - If str, it must be able to be converted into a pandas Timedelta
+          object.
+        - If tuple, it defines the size of left and right window respectively.
+
+    agg: str or function, or 2-tuple of str or function
         Aggregation method applied to series.
         If str, must be one of supported built-in methods:
 
@@ -384,22 +404,19 @@ class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
 
         Default: 'mean'
 
-    agg_params: dict or tuple, optional
+    agg_params: dict or 2-tuple of dict, optional
         Parameters of aggregation function. If tuple, elements correspond left
         and right window respectively. Default: None.
-
-    window: int or tuple, optional
-        Width of rolling windows (number of data points). If tuple, elements
-        correspond left and right window respectively. Default: 10.
 
     center: bool, optional
         If True, the current point is the right edge of right window;
         Otherwise, it is the right edge of left window.
         Default: True.
 
-    min_periods: int or tuple, optional
-        Minimum number of observations in window required to have a value.
-        Default: None, i.e. all observations must have values.
+    min_periods: int or 2-tuple of int, optional
+        Minimum number of observations in window required to have a value. If
+        tuple, elements correspond left and right window respectively. Default:
+        None, i.e. all observations must have values.
 
     diff: str or function, optional
         Difference method applied between aggregated metrics from the two
@@ -430,7 +447,12 @@ class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
         self,
         window: Union[int, str, Tuple[Union[int, str], Union[int, str]]],
         agg: Union[
-            str, Callable, Tuple[Union[str, Callable], Union[str, Callable]]
+            str,
+            Callable[[pd.Series], Union[float, np.ndarray]],
+            Tuple[
+                Union[str, Callable[[pd.Series], Union[float, np.ndarray]]],
+                Union[str, Callable[[pd.Series], Union[float, np.ndarray]]],
+            ],
         ] = "mean",
         agg_params: Union[
             Optional[Dict[str, Any]],
@@ -440,7 +462,12 @@ class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
         min_periods: Union[
             Optional[int], Tuple[Optional[int], Optional[int]]
         ] = None,
-        diff: Union[str, Callable] = "l1",
+        diff: Union[
+            str,
+            Callable[
+                [Union[float, np.ndarray], Union[float, np.ndarray]], float
+            ],
+        ] = "l1",
     ) -> None:
         super().__init__()
         self.agg = agg
@@ -631,8 +658,9 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
     Parameters
     ----------
     freq: int, optional
-        Length of a seasonal cycle. If None, the model will determine based on
-        autocorrelation of the training series. Default: None.
+        Length of a seasonal cycle as the number of time points in a cycle. If
+        None, the model will determine based on autocorrelation of the training
+        series. Default: None.
 
     trend: bool, optional
         Whether to extract and remove trend of the series with moving average.

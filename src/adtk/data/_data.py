@@ -356,6 +356,7 @@ def to_labels(
     ----------
     lists: list or dict
         A list of events, or a dict of lists of events.
+
         - If list, a list of events where an event is a pandas Timestamp if it
           is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
           time interval.
@@ -384,6 +385,7 @@ def to_labels(
     -------
     pandas Series or DataFrame
         Series of binary labels.
+
         - If input is asingle list, the output is a Series.
         - If input is a dict of lists, the output is a DataFrame where each
           column corresponds a list in the dict.
@@ -479,6 +481,7 @@ def expand_events(
     ----------
     lists: list or dict
         A list of events, or a dict of lists of events.
+
         - If list, a list of events where an event is a pandas Timestamp if it
           is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
           time interval.
