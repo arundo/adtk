@@ -873,7 +873,7 @@ class AutoregressionAD(_TrainableUnivariateDetector):
     time series, and identifies a time point as anomalous when the residual of
     autoregression is anomalously large.
 
-    This detector is internally implemented aattribute `pipe_`.nced
+    This detector is internally implemented as a `Pipenet` object. Advanced
     users may learn more details by checking attribute `pipe_`.
 
     Parameters
