@@ -1,4 +1,3 @@
 """Module of visualization."""
-from .visualization import plot
-
-__all__ = ["plot"]
+from .visualization import *
+from .visualization import __all__

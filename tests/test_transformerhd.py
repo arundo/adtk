@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 import adtk.transformer as transformer
-from adtk._base import _TrainableModel
 
 nan = float("nan")
 
@@ -197,6 +196,16 @@ testCases = [
     },
     {
         "model": transformer.RegressionResidual,
+        "params": {"regressor": LinearRegression()},
+        "df": [
+            [0, 1, 2, 3, 4, 5, 6, 7, 7, 8, 9],
+            [9, 8, 7, 6, 5, 4, 3, 2, nan, 1, 0],
+            [9] * 11,
+        ],
+        "t": [0] * 8 + [nan] + [0] * 2,
+    },
+    {
+        "model": transformer.RegressionResidual,
         "params": {"regressor": LinearRegression(), "target": 1},
         "df": [
             [0, 1, 2, 3, 4, 5, 6, 7, 7, 8, 9],
@@ -257,10 +266,7 @@ def test_fit_transform(testCase):
         ),
     )
     model = testCase["model"](**testCase["params"])
-    if isinstance(model, _TrainableModel):
-        t = model.fit_transform(df)
-    else:
-        t = model.transform(df)
+    t = model.fit_transform(df)
     if not isinstance(testCase["t"], dict):
         t_true = pd.Series(testCase["t"], index=df.index)
         pd.testing.assert_series_equal(t, t_true, check_dtype=False)
@@ -279,8 +285,7 @@ def test_fit_and_transform(testCase):
         ),
     )
     model = testCase["model"](**testCase["params"])
-    if isinstance(model, _TrainableModel):
-        model.fit(df)
+    model.fit(df)
     t = model.transform(df)
     if not isinstance(testCase["t"], dict):
         t_true = pd.Series(testCase["t"], index=df.index)

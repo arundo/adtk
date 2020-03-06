@@ -6,24 +6,10 @@ import numpy as np
 import pytest
 import adtk.detector as detector
 import adtk.transformer as transformer
-from adtk._base import _TrainableModel
-from adtk._detector_base import (
-    _NonTrainableUnivariateDetector,
-    # _NonTrainableMultivariateDetector,
-    _TrainableUnivariateDetector,
-    _TrainableMultivariateDetector,
-)
 
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression
-
-_Detector = (
-    _NonTrainableUnivariateDetector,
-    # _NonTrainableMultivariateDetector,
-    _TrainableUnivariateDetector,
-    _TrainableMultivariateDetector,
-)
 
 # We have 4 types of models
 #   - one-to-one: input a univariate series, output a univariate series
@@ -36,21 +22,19 @@ one2one_models = [
     detector.QuantileAD(),
     detector.InterQuartileRangeAD(),
     detector.GeneralizedESDTestAD(),
-    detector.PersistAD(window=10),
-    detector.LevelShiftAD(window=10),
-    detector.VolatilityShiftAD(window=10),
+    detector.PersistAD(),
+    detector.LevelShiftAD(),
+    detector.VolatilityShiftAD(),
     detector.AutoregressionAD(),
     detector.SeasonalAD(freq=2),
-    transformer.RollingAggregate(window=10, agg="median"),
-    transformer.RollingAggregate(
-        window=10, agg="quantile", agg_params={"q": 0.5}
-    ),
-    transformer.DoubleRollingAggregate(window=10, agg="median"),
+    transformer.RollingAggregate(agg="median"),
+    transformer.RollingAggregate(agg="quantile", agg_params={"q": 0.5}),
+    transformer.DoubleRollingAggregate(agg="median"),
     transformer.DoubleRollingAggregate(
-        window=10, agg="quantile", agg_params={"q": [0.1, 0.5, 0.9]}
+        agg="quantile", agg_params={"q": [0.1, 0.5, 0.9]}
     ),
     transformer.DoubleRollingAggregate(
-        window=10, agg="hist", agg_params={"bins": [30, 50, 70]}
+        agg="hist", agg_params={"bins": [30, 50, 70]}
     ),
     transformer.StandardScale(),
     transformer.ClassicSeasonalDecomposition(freq=2),
@@ -58,10 +42,10 @@ one2one_models = [
 
 one2many_models = [
     transformer.RollingAggregate(
-        window=10, agg="quantile", agg_params={"q": [0.1, 0.5, 0.9]}
+        agg="quantile", agg_params={"q": [0.1, 0.5, 0.9]}
     ),
     transformer.RollingAggregate(
-        window=10, agg="hist", agg_params={"bins": [20, 50, 80]}
+        agg="hist", agg_params={"bins": [20, 50, 80]}
     ),
     transformer.Retrospect(n_steps=3),
 ]
@@ -71,10 +55,10 @@ many2one_models = [
     detector.OutlierDetector(
         LocalOutlierFactor(n_neighbors=20, contamination=0.1)
     ),
-    detector.RegressionAD(target="A", regressor=LinearRegression()),
+    detector.RegressionAD(regressor=LinearRegression()),
     detector.PcaAD(),
     transformer.SumAll(),
-    transformer.RegressionResidual(target="A", regressor=LinearRegression()),
+    transformer.RegressionResidual(LinearRegression()),
     transformer.PcaReconstructionError(),
 ]
 
@@ -90,10 +74,7 @@ def test_one2one_s2s_w_name(model):
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
         name="A",
     )
-    if isinstance(model, _TrainableModel):
-        result = model.fit_predict(s_name)
-    else:
-        result = model.predict(s_name)
+    result = model.fit_predict(s_name)
     assert result.name == "A"
 
 
@@ -107,10 +88,7 @@ def test_one2one_s2s_wo_name(model):
         np.arange(100),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
     )
-    if isinstance(model, _TrainableModel):
-        result = model.fit_predict(s_no_name)
-    else:
-        result = model.predict(s_no_name)
+    result = model.fit_predict(s_no_name)
     assert result.name is None
 
 
@@ -125,10 +103,7 @@ def test_one2one_df2df(model):
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
         columns=["A", "B", "C"],
     )
-    if isinstance(model, _TrainableModel):
-        result = model.fit_predict(df)
-    else:
-        result = model.predict(df)
+    result = model.fit_predict(df)
     assert list(result.columns) == ["A", "B", "C"]
 
 
@@ -138,16 +113,13 @@ def test_one2one_df2list(model):
     if a one-to-one model (detector) is applied to a DataFrame and returns a
     dict, the output dict keys should match the input column names
     """
-    if isinstance(model, _Detector):
+    if hasattr(model, "fit_detect"):
         df = pd.DataFrame(
             np.arange(300).reshape(100, 3),
             index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
             columns=["A", "B", "C"],
         )
-        if isinstance(model, _TrainableModel):
-            result = model.fit_detect(df, return_list=True)
-        else:
-            result = model.detect(df, return_list=True)
+        result = model.fit_detect(df, return_list=True)
         if sys.version_info[1] >= 6:
             assert list(result.keys()) == ["A", "B", "C"]
         else:
@@ -165,10 +137,7 @@ def test_one2many_s2df_w_name(model):
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
         name="A",
     )
-    if isinstance(model, _TrainableModel):
-        result = model.fit_predict(s_name)
-    else:
-        result = model.predict(s_name)
+    result = model.fit_predict(s_name)
     assert all([col[:2] != "A_" for col in result.columns])
 
 
@@ -182,10 +151,7 @@ def test_one2many_s2df_wo_name(model):
         np.arange(100),
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
     )
-    if isinstance(model, _TrainableModel):
-        result = model.fit_predict(s_no_name)
-    else:
-        result = model.predict(s_no_name)
+    result = model.fit_predict(s_no_name)
     assert all([col[:2] != "A_" for col in result.columns])
 
 
@@ -200,10 +166,7 @@ def test_one2many_df2df(model):
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
         columns=["A", "B", "C"],
     )
-    if isinstance(model, _TrainableModel):
-        result = model.fit_predict(df)
-    else:
-        result = model.predict(df)
+    result = model.fit_predict(df)
     n_cols = round(len(result.columns) / 3)
     assert all([col[:2] == "A_" for col in result.columns[:n_cols]])
     assert all([col[2:4] != "A_" for col in result.columns[:n_cols]])
@@ -227,10 +190,7 @@ def test_many2one(model):
         index=pd.date_range(start="2017-1-1", periods=100, freq="D"),
         columns=["A", "B", "C"],
     )
-    if isinstance(model, _TrainableModel):
-        result = model.fit_predict(df)
-    else:
-        result = model.predict(df)
+    result = model.fit_predict(df)
     assert result.name is None
 
 
