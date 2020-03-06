@@ -104,6 +104,11 @@ class _NonTrainableUnivariateModel(_NonTrainableModel):
     ) -> Union[pd.Series, pd.DataFrame]:
         if isinstance(ts, pd.Series):
             s = ts.copy()  # type: pd.Series
+            if not isinstance(s.index, pd.DatetimeIndex):
+                raise TypeError(
+                    "Index of the input time series must be a pandas "
+                    "DatetimeIndex object."
+                )
             predicted = self._predict_core(s)
             # if a Series-to-Series operation, make sure Series name keeps
             if isinstance(predicted, pd.Series):
@@ -148,6 +153,11 @@ class _TrainableUnivariateModel(_TrainableModel):
             self._fitted = 1
         elif isinstance(ts, pd.DataFrame):
             df = ts.copy()
+            if not isinstance(df.index, pd.DatetimeIndex):
+                raise TypeError(
+                    "Index of the input time series must be a pandas "
+                    "DatetimeIndex object."
+                )
             if df.columns.duplicated().any():
                 raise ValueError(
                     "Input DataFrame must have unique column names."
@@ -178,12 +188,22 @@ class _TrainableUnivariateModel(_TrainableModel):
                     "the same column names as the one used for training."
                 )
             s = ts.copy()
+            if not isinstance(s.index, pd.DatetimeIndex):
+                raise TypeError(
+                    "Index of the input time series must be a pandas "
+                    "DatetimeIndex object."
+                )
             predicted = self._predict_core(s)
             # if a Series-to-Series operation, make sure Series name keeps
             if isinstance(predicted, pd.Series):
                 predicted.name = ts.name
         elif isinstance(ts, pd.DataFrame):
             df = ts.copy()
+            if not isinstance(df.index, pd.DatetimeIndex):
+                raise TypeError(
+                    "Index of the input time series must be a pandas "
+                    "DatetimeIndex object."
+                )
             if df.columns.duplicated().any():
                 raise ValueError(
                     "Input DataFrame must have unique column names."
