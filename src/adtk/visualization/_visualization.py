@@ -1,3 +1,7 @@
+"""
+We don't typing the visualization module because there are a lot recursion on
+nested tree structure which would be messy if we type rigorously."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -6,62 +10,29 @@ from ..data import to_events, to_labels, validate_events
 
 from pandas.plotting import register_matplotlib_converters
 
-from typing import Optional, Union, Tuple, List, Dict, Any, Sequence, Set
-
 register_matplotlib_converters()
 
 
-class ColorGenerator:
-    def __init__(self) -> None:
-        self.latest_auto_color = -1  # type:int
-
-    def emit(self, color: Optional[str] = None) -> str:
-        if color is not None:
-            return color
-        else:
-            self.latest_auto_color += 1
-            return "C{}".format(self.latest_auto_color)
-
-
 def plot(
-    ts: Optional[Union[pd.Series, pd.DataFrame]] = None,
-    anomaly: Optional[
-        Union[
-            pd.Series,
-            pd.DataFrame,
-            List[Union[pd.Timestamp, Tuple[pd.Timestamp, pd.Timestamp]]],
-            Dict[
-                str,
-                Union[
-                    pd.Series,
-                    pd.DataFrame,
-                    List[
-                        Union[pd.Timestamp, Tuple[pd.Timestamp, pd.Timestamp]]
-                    ],
-                    Dict[str, Any],
-                ],
-            ],
-        ]
-    ] = None,
-    curve_group: Union[str, List[Union[str, Tuple[str, ...]]]] = "each",
-    ts_linewidth: Union[float, Dict[str, float]] = 0.5,
-    ts_color: Union[Optional[str], Dict[str, Optional[str]]] = None,
-    ts_alpha: Union[float, Dict[str, float]] = 1.0,
-    ts_marker: Union[str, Dict[str, str]] = ".",
-    ts_markersize: Union[int, Dict[str, int]] = 2,
-    match_curve_name: bool = True,
-    anomaly_tag: Union[str, Dict[str, Union[str, Dict[str, Any]]]] = "span",
-    anomaly_color: Union[
-        Optional[str], Dict[str, Union[Optional[str], Dict[str, Any]]]
-    ] = None,
-    anomaly_alpha: Union[float, Dict[str, Union[float, Dict[str, Any]]]] = 0.3,
-    anomaly_marker: Union[str, Dict[str, Union[str, Dict[str, Any]]]] = "o",
-    anomaly_markersize: Union[int, Dict[str, Union[int, Dict[str, Any]]]] = 4,
-    freq_as_period: bool = True,
-    axes: Optional[Union[plt.Axes, Sequence[plt.Axes]]] = None,
-    figsize: Optional[Tuple[float, float]] = None,
-    legend: bool = True,
-) -> Union[plt.Axes, Sequence[plt.Axes]]:
+    ts=None,
+    anomaly=None,
+    curve_group="each",
+    ts_linewidth=0.5,
+    ts_color=None,
+    ts_alpha=1.0,
+    ts_marker=".",
+    ts_markersize=2,
+    match_curve_name=True,
+    anomaly_tag="span",
+    anomaly_color=None,
+    anomaly_alpha=0.3,
+    anomaly_marker="o",
+    anomaly_markersize=4,
+    freq_as_period=True,
+    axes=None,
+    figsize=None,
+    legend=True,
+):
     """Plot time series and/or anomalies.
 
     Parameters
@@ -358,10 +329,7 @@ def plot(
     return axes
 
 
-def _validate_curve_group(
-    df: pd.DataFrame,
-    curve_group: Union[str, List[Union[str, Tuple[str, ...]]]],
-) -> Dict[str, Set[int]]:
+def _validate_curve_group(df, curve_group):
     "Validate curve group, and return inverse map."
     curve2group = {col: set() for col in df.columns}
     for ind, group in enumerate(curve_group):
@@ -386,16 +354,16 @@ def _validate_curve_group(
 
 
 def _plot_curve(
-    df: pd.DataFrame,
-    axes: Sequence[plt.Axes],
-    curve2axes: Dict[str, Set[int]],
-    ts_color: Union[Optional[str], Dict[str, Optional[str]]],
-    ts_linewidth: Union[float, Dict[str, float]],
-    ts_marker: Union[str, Dict[str, str]],
-    ts_markersize: Union[int, Dict[str, int]],
-    ts_alpha: Union[float, Dict[str, float]],
-    color_generator: ColorGenerator,
-) -> None:
+    df,
+    axes,
+    curve2axes,
+    ts_color,
+    ts_linewidth,
+    ts_marker,
+    ts_markersize,
+    ts_alpha,
+    color_generator,
+):
     "Plot all curves"
     for col, axes_inds in curve2axes.items():
         color = color_generator.emit(ts_color[col])
@@ -423,23 +391,10 @@ def _plot_curve(
 
 
 def _plot_anomaly(
-    anomaly: Union[
-        pd.Series,
-        pd.DataFrame,
-        List[Union[pd.Timestamp, Tuple[pd.Timestamp, pd.Timestamp]]],
-        Dict[
-            str,
-            Union[
-                pd.Series,
-                pd.DataFrame,
-                List[Union[pd.Timestamp, Tuple[pd.Timestamp, pd.Timestamp]]],
-                Dict[str, Any],
-            ],
-        ],
-    ],
-    axes: Sequence[plt.Axes],
-    df: pd.DataFrame,
-    curve2axes: Dict[str, Set(int)],
+    anomaly,
+    axes,
+    df,
+    curve2axes,
     anomaly_tag,
     anomaly_color,
     anomaly_marker,
@@ -689,3 +644,18 @@ def _assign_properties(prop, anomaly, default=None):
                 "Property dict and anomaly dict are inconsistent."
             )
 
+
+class ColorGenerator:
+    """
+    Generate color
+    """
+
+    def __init__(self):
+        self.latest_auto_color = -1
+
+    def emit(self, color=None):
+        if color is not None:
+            return color
+        else:
+            self.latest_auto_color += 1
+            return "C{}".format(self.latest_auto_color)
