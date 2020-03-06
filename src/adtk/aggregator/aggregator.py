@@ -9,7 +9,7 @@ import pandas as pd
 from .._aggregator_base import _Aggregator
 from ..data import validate_events
 
-from typing import List, Dict, Union, Callable, Optional, Tuple, Any
+__all__ = ["OrAggregator", "AndAggregator", "CustomizedAggregator"]
 
 
 class CustomizedAggregator(_Aggregator):
@@ -18,60 +18,32 @@ class CustomizedAggregator(_Aggregator):
     Parameters
     ----------
     aggregate_func: function
-        A function aggregating multiple types of anomaly.
-
-        The first input argument must be a pandas DataFrame, a dict of pandas
-        Series/DataFrame, or a dict of event lists.
-
-        - If a pandas DataFrame, every column is a binary Series representing a
-          type of anomaly.
-        - If a dict of pandas Series/DataFrame, every value of the dict is a
-          binary Series/DataFrame representing a type or some types of anomaly;
-        - If a dict of list, every value of the dict is a type of anomaly as a
-          list of events, where each event is represented as a pandas Timestamp
-          if it is instantaneous or a 2-tuple of pandas Timestamps if it is a
-          closed time interval.
-
-        Optional input argument may be accepted through parameter
-        `aggregate_func_params`.
-
-        The output must be a list of pandas Timestamps.
-
-        - If input is a pandas DataFrame or a dict of Series/DataFrame, return
-          a single binary pandas Series;
-        - If input is a dict of lists, return a single list of events.
+        A function aggregating multiple lists of anomalies. The first input
+        argument must be a dict, optional input argument allows (through
+        parameter `aggregate_func_params`). The output must be a list of pandas
+        Timestamps.
 
     aggregate_func_params: dict, optional
-        Parameters of `aggregate_func`. Default: None.
+        Parameters of aggregate_func. Default: None.
 
     """
 
+    _default_params = {
+        "aggregate_func": (lambda lists: []),
+        "aggregate_func_params": None,
+    }
+
     def __init__(
         self,
-        aggregate_func: Callable,
-        aggregate_func_params: Optional[Dict[str, Any]] = None,
-    ) -> None:
-        super().__init__()
-        self.aggregate_func = aggregate_func
-        self.aggregate_func_params = aggregate_func_params
+        aggregate_func=_default_params["aggregate_func"],
+        aggregate_func_params=_default_params["aggregate_func_params"],
+    ):
+        super().__init__(
+            aggregate_func=aggregate_func,
+            aggregate_func_params=aggregate_func_params,
+        )
 
-    @property
-    def _param_names(self) -> Tuple[str, ...]:
-        return ("aggregate_func", "aggregate_func_params")
-
-    def _predict_core(
-        self,
-        lists: Union[
-            pd.DataFrame,
-            Dict[str, Union[pd.Series, pd.DataFrame]],
-            Dict[
-                str,
-                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
-            ],
-        ],
-    ) -> Union[
-        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-    ]:
+    def _predict_core(self, lists):
         if self.aggregate_func_params is None:
             aggregate_func_params = {}
         else:
@@ -84,26 +56,12 @@ class OrAggregator(_Aggregator):
     included in one of the input anomaly lists.
     """
 
-    def __init__(self) -> None:
+    _need_fit = False
+
+    def __init__(self):
         super().__init__()
 
-    @property
-    def _param_names(self) -> Tuple[str, ...]:
-        return tuple()
-
-    def _predict_core(
-        self,
-        lists: Union[
-            pd.DataFrame,
-            Dict[str, Union[pd.Series, pd.DataFrame]],
-            Dict[
-                str,
-                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
-            ],
-        ],
-    ) -> Union[
-        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-    ]:
+    def _predict_core(self, lists):
         if isinstance(lists, dict):
             if isinstance(next(iter(lists.values())), list):
                 clean_lists = {
@@ -131,26 +89,12 @@ class AndAggregator(_Aggregator):
     included in all the input anomaly lists.
     """
 
-    def __init__(self) -> None:
+    _need_fit = False
+
+    def __init__(self):
         super().__init__()
 
-    @property
-    def _param_names(self) -> Tuple[str, ...]:
-        return tuple()
-
-    def _predict_core(
-        self,
-        lists: Union[
-            pd.DataFrame,
-            Dict[str, Union[pd.Series, pd.DataFrame]],
-            Dict[
-                str,
-                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
-            ],
-        ],
-    ) -> Union[
-        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-    ]:
+    def _predict_core(self, lists):
         if isinstance(lists, dict):
             if isinstance(next(iter(lists.values())), list):
                 clean_lists = {
@@ -177,7 +121,7 @@ class AndAggregator(_Aggregator):
                         dtype=int,
                     ).sort_index()
                     for key, clean_predict in clean_lists.items()
-                }  # type: Union[Dict, pd.Series]
+                }
                 time_window_stats = {
                     key: value[~value.index.duplicated()]
                     for key, value in time_window_stats.items()

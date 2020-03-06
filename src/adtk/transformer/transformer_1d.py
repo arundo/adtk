@@ -15,71 +15,67 @@ import statsmodels
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import acf
 
-from .._transformer_base import (
-    _NonTrainableUnivariateTransformer,
-    _TrainableUnivariateTransformer,
-)
+from .._transformer_base import _Transformer1D
 from .._utils import PandasBugError
 
-from typing import Dict, List, Any, Union, Optional, Tuple, Callable
+__all__ = [
+    "RollingAggregate",
+    "DoubleRollingAggregate",
+    "ClassicSeasonalDecomposition",
+    "Retrospect",
+    "StandardScale",
+    "CustomizedTransformer1D",
+]
 
 
-class CustomizedTransformer1D(_TrainableUnivariateTransformer):
-    """Univariate transformer derived from a user-given function and parameters.
+class CustomizedTransformer1D(_Transformer1D):
+    """Transformer derived from a user-given function and parameters.
 
     Parameters
     ----------
     transform_func: function
-        A function transforming univariate time series.
-
-        The first input argument must be a pandas Series, optional input
-        argument may be accepted through parameter `transform_func_params` and
-        the output of `fit_func`, and the output must be a pandas Series or
-        DataFrame with the same index as input.
+        A function transforming given time serie into new one. The first input
+        argument must be a pandas Series, optional input argument allows; the
+        output must be a pandas Series or DataFrame with the same index as
+        input.
 
     transform_func_params: dict, optional
-        Parameters of `transform_func`. Default: None.
+        Parameters of transform_func. Default: None.
 
     fit_func: function, optional
-        A function training parameters of `transform_func` with univariate time
-        series.
-
-        The first input argument must be a pandas Series, optional input
-        argument may be accepted through parameter `fit_func_params`, and the
-        output must be a dict that can be used by `transform_func` as
-        parameters. Default: None.
+        A function learning from a list of time series and return parameters
+        dict that transform_func can used for future transformation. Default:
+        None.
 
     fit_func_params: dict, optional
-        Parameters of `fit_func`. Default: None.
+        Parameters of fit_func. Default: None.
 
     """
 
+    _need_fit = False
+    _default_params = {
+        "transform_func": None,
+        "transform_func_params": None,
+        "fit_func": None,
+        "fit_func_params": None,
+    }
+
     def __init__(
         self,
-        transform_func: Callable,
-        transform_func_params: Optional[Dict[str, Any]] = None,
-        fit_func: Optional[Callable] = None,
-        fit_func_params: Optional[Dict[str, Any]] = None,
-    ) -> None:
-        self._fitted_transform_func_params = {}  # type: Dict
-        super().__init__()
-        self.transform_func = transform_func
-        self.transform_func_params = transform_func_params
-        self.fit_func = fit_func
-        self.fit_func_params = fit_func_params
-        if self.fit_func is None:
-            self._fitted = 1
-
-    @property
-    def _param_names(self) -> Tuple[str, ...]:
-        return (
-            "transform_func",
-            "transform_func_params",
-            "fit_func",
-            "fit_func_params",
+        transform_func=_default_params["transform_func"],
+        transform_func_params=_default_params["transform_func_params"],
+        fit_func=_default_params["fit_func"],
+        fit_func_params=_default_params["fit_func_params"],
+    ):
+        self._fitted_transform_func_params = {}
+        super().__init__(
+            transform_func=transform_func,
+            transform_func_params=transform_func_params,
+            fit_func=fit_func,
+            fit_func_params=fit_func_params,
         )
 
-    def _fit_core(self, s: pd.Series) -> None:
+    def _fit_core(self, s):
         if self.fit_func is not None:
             if self.fit_func_params is not None:
                 fit_func_params = self.fit_func_params
@@ -89,7 +85,7 @@ class CustomizedTransformer1D(_TrainableUnivariateTransformer):
                 s, **fit_func_params
             )
 
-    def _predict_core(self, s: pd.Series) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s):
         if self.transform_func_params is not None:
             transform_func_params = self.transform_func_params
         else:
@@ -105,21 +101,34 @@ class CustomizedTransformer1D(_TrainableUnivariateTransformer):
         else:
             return self.transform_func(s, **transform_func_params)
 
+    @property
+    def fit_func(self):
+        return self._fit_func
 
-class StandardScale(_NonTrainableUnivariateTransformer):
+    @fit_func.setter
+    def fit_func(self, value):
+        self._fit_func = value
+        if value is None:
+            self._need_fit = False
+        else:
+            self._need_fit = True
+
+
+class StandardScale(_Transformer1D):
     """Transformer that scales time series such that mean is equal to 0 and
     standard deviation is equal to 1.
 
     """
 
-    def __init__(self) -> None:
+    _need_fit = False
+
+    def __init__(self):
         super().__init__()
 
-    @property
-    def _param_names(self) -> Tuple[str, ...]:
-        return tuple()
+    def _fit_core(self, s):
+        pass
 
-    def _predict_core(self, s: pd.Series) -> pd.Series:
+    def _predict_core(self, s):
         mean = s.mean()
         std = s.std()
 
@@ -129,19 +138,12 @@ class StandardScale(_NonTrainableUnivariateTransformer):
         return (s - mean) / std
 
 
-class RollingAggregate(_NonTrainableUnivariateTransformer):
-    """Transformer that rolls a sliding window along a time series, and
+class RollingAggregate(_Transformer1D):
+    """Transformer that roll a sliding window along a time series, and
     aggregates using a user-selected operation.
 
     Parameters
     ----------
-    window: int or str
-        Size of the rolling time window.
-
-        - If int, it is the number of time point in this time window.
-        - If str, it must be able to be converted into a pandas Timedelta
-          object.
-
     agg: str or function
         Aggregation method applied to series.
         If str, must be one of supported built-in methods:
@@ -182,6 +184,9 @@ class RollingAggregate(_NonTrainableUnivariateTransformer):
     agg_params: dict, optional
         Parameters of aggregation function. Default: None.
 
+    window: int, optional
+        Width of rolling windows (number of data points). Default: 10.
+
     center: bool, optional
         Whether the calculation is at the center of time window or on the right
         edge. Default: False.
@@ -192,29 +197,36 @@ class RollingAggregate(_NonTrainableUnivariateTransformer):
 
     """
 
+    _need_fit = False
+    _default_params = {
+        "agg": "mean",
+        "agg_params": None,
+        "window": 10,
+        "center": False,
+        "min_periods": None,
+    }
+
     def __init__(
         self,
-        window: Union[int, str],
-        agg: Union[
-            str, Callable[[pd.Series], Union[float, np.ndarray]]
-        ] = "mean",
-        agg_params: Optional[Dict[str, Any]] = None,
-        center: bool = False,
-        min_periods: Optional[int] = None,
-    ) -> None:
-        super().__init__()
-        self.agg = agg
-        self.agg_params = agg_params
-        self.window = window
-        self.center = center
-        self.min_periods = min_periods
-        self._closed = None  # type: Any
+        agg=_default_params["agg"],
+        agg_params=_default_params["agg_params"],
+        window=_default_params["window"],
+        center=_default_params["center"],
+        min_periods=_default_params["min_periods"],
+    ):
+        super().__init__(
+            agg=agg,
+            agg_params=agg_params,
+            window=window,
+            center=center,
+            min_periods=min_periods,
+        )
+        self._closed = None
 
-    @property
-    def _param_names(self) -> Tuple[str, ...]:
-        return ("window", "agg", "agg_params", "center", "min_periods")
+    def _fit_core(self, s):
+        pass
 
-    def _predict_core(self, s: pd.Series) -> Union[pd.Series, pd.DataFrame]:
+    def _predict_core(self, s):
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
@@ -236,17 +248,13 @@ class RollingAggregate(_NonTrainableUnivariateTransformer):
             center=center,
             min_periods=min_periods,
             closed=closed,
-        )  # type: Union[pd.Series, pd.DataFrame]
+        )
 
-        def getRollingVector(
-            rolling: Union[pd.Series, pd.DataFrame],
-            aggFunc: Any,
-            output_names: List[str],
-        ) -> Union[pd.Series, pd.DataFrame]:
+        def getRollingVector(rolling, aggFunc, output_names):
             # we use this function to trick pandas to get vector rolling agg
-            s_rolling_raw = []  # type: Union[List, np.array]
+            s_rolling_raw = []
 
-            def agg_wrapped(x: Any) -> int:
+            def agg_wrapped(x):
                 s_rolling_raw.append(aggFunc(x))
                 return 0
 
@@ -350,22 +358,14 @@ class RollingAggregate(_NonTrainableUnivariateTransformer):
         return s_rolling
 
 
-class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
+class DoubleRollingAggregate(_Transformer1D):
     """Transformer that rolls two sliding windows side-by-side along a time
     series, aggregates using a user-given operation, and calcuates the
     difference of aggregated metrics between two sliding windows.
 
     Parameters
     ----------
-    window: int or str, or 2-tuple of int or str
-        Size of the rolling time window.
-
-        - If int, it is the number of time point in this time window.
-        - If str, it must be able to be converted into a pandas Timedelta
-          object.
-        - If tuple, it defines the size of left and right window respectively.
-
-    agg: str or function, or 2-tuple of str or function
+    agg: str, function, or tuple
         Aggregation method applied to series.
         If str, must be one of supported built-in methods:
 
@@ -404,19 +404,22 @@ class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
 
         Default: 'mean'
 
-    agg_params: dict or 2-tuple of dict, optional
+    agg_params: dict or tuple, optional
         Parameters of aggregation function. If tuple, elements correspond left
         and right window respectively. Default: None.
+
+    window: int or tuple, optional
+        Width of rolling windows (number of data points). If tuple, elements
+        correspond left and right window respectively. Default: 10.
 
     center: bool, optional
         If True, the current point is the right edge of right window;
         Otherwise, it is the right edge of left window.
         Default: True.
 
-    min_periods: int or 2-tuple of int, optional
-        Minimum number of observations in window required to have a value. If
-        tuple, elements correspond left and right window respectively. Default:
-        None, i.e. all observations must have values.
+    min_periods: int or tuple, optional
+        Minimum number of observations in window required to have a value.
+        Default: None, i.e. all observations must have values.
 
     diff: str or function, optional
         Difference method applied between aggregated metrics from the two
@@ -443,45 +446,38 @@ class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
 
     """
 
+    _need_fit = False
+    _default_params = {
+        "agg": "mean",
+        "agg_params": None,
+        "window": 10,
+        "center": True,
+        "min_periods": None,
+        "diff": "l1",
+    }
+
     def __init__(
         self,
-        window: Union[int, str, Tuple[Union[int, str], Union[int, str]]],
-        agg: Union[
-            str,
-            Callable[[pd.Series], Union[float, np.ndarray]],
-            Tuple[
-                Union[str, Callable[[pd.Series], Union[float, np.ndarray]]],
-                Union[str, Callable[[pd.Series], Union[float, np.ndarray]]],
-            ],
-        ] = "mean",
-        agg_params: Union[
-            Optional[Dict[str, Any]],
-            Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]],
-        ] = None,
-        center: bool = True,
-        min_periods: Union[
-            Optional[int], Tuple[Optional[int], Optional[int]]
-        ] = None,
-        diff: Union[
-            str,
-            Callable[
-                [Union[float, np.ndarray], Union[float, np.ndarray]], float
-            ],
-        ] = "l1",
-    ) -> None:
-        super().__init__()
-        self.agg = agg
-        self.agg_params = agg_params
-        self.window = window
-        self.min_periods = min_periods
-        self.center = center
-        self.diff = diff
+        agg=_default_params["agg"],
+        agg_params=_default_params["agg_params"],
+        window=_default_params["window"],
+        center=_default_params["center"],
+        min_periods=_default_params["min_periods"],
+        diff=_default_params["diff"],
+    ):
+        super().__init__(
+            agg=agg,
+            agg_params=agg_params,
+            window=window,
+            min_periods=min_periods,
+            center=center,
+            diff=diff,
+        )
 
-    @property
-    def _param_names(self) -> Tuple[str, ...]:
-        return ("window", "agg", "agg_params", "center", "min_periods")
+    def _fit_core(self, s):
+        pass
 
-    def _predict_core(self, s: pd.Series) -> pd.Series:
+    def _predict_core(self, s):
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
@@ -638,7 +634,7 @@ class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
         raise ValueError("Invalid value of diff")
 
 
-class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
+class ClassicSeasonalDecomposition(_Transformer1D):
     """Transformer that performs classic seasonal decomposition to the time
     series, and returns residual series.
 
@@ -658,9 +654,8 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
     Parameters
     ----------
     freq: int, optional
-        Length of a seasonal cycle as the number of time points in a cycle. If
-        None, the model will determine based on autocorrelation of the training
-        series. Default: None.
+        Length of a seasonal cycle. If None, the model will determine based on
+        autocorrelation of the training series. Default: None.
 
     trend: bool, optional
         Whether to extract and remove trend of the series with moving average.
@@ -678,18 +673,14 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
 
     """
 
+    _default_params = {"freq": None, "trend": False}
+
     def __init__(
-        self, freq: Optional[int] = None, trend: bool = False
-    ) -> None:
-        super().__init__()
-        self.freq = freq
-        self.trend = trend
+        self, freq=_default_params["freq"], trend=_default_params["trend"]
+    ):
+        super().__init__(freq=freq, trend=trend)
 
-    @property
-    def _param_names(self) -> Tuple[str, ...]:
-        return ("freq", "trend")
-
-    def _fit_core(self, s: pd.Series) -> None:
+    def _fit_core(self, s):
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
@@ -722,11 +713,9 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
         self._dT = pd.Series(s.index).diff().mean()
         # get seasonal freq
         if self.freq is None:
-            identified_freq = _identify_seasonal_period(s)
-            if identified_freq is None:
+            self.freq_ = _identify_seasonal_period(s)
+            if self.freq_ is None:
                 raise Exception("Could not find significant seasonality.")
-            else:
-                self.freq_ = identified_freq
         else:
             self.freq_ = self.freq
         # get seasonal pattern
@@ -746,7 +735,7 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
                     i :: len(self.seasonal_)
                 ].mean()
 
-    def _predict_core(self, s: pd.Series) -> pd.Series:
+    def _predict_core(self, s):
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
@@ -842,9 +831,7 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
         return s_residual
 
 
-def _identify_seasonal_period(
-    s: pd.Series, low_autocorr: float = 0.1, high_autocorr: float = 0.3
-) -> Optional[int]:
+def _identify_seasonal_period(s, low_autocorr=0.1, high_autocorr=0.3):
     """Identify seasonal period of a time series based on autocorrelation.
 
     Parameters
@@ -895,7 +882,7 @@ def _identify_seasonal_period(
         return None
 
 
-class Retrospect(_NonTrainableUnivariateTransformer):
+class Retrospect(_Transformer1D):
     """Transformer that returns dataframe with retrospective values, i.e. a row
     at time t includes value at (t-k)'s where k's are specified by user.
 
@@ -913,7 +900,7 @@ class Retrospect(_NonTrainableUnivariateTransformer):
     step_size: int, optional
         Length of a retrospective step. Default: 1.
     till: int, optional
-        Nearest retrospective step. Default: 0, i.e. the current time step.
+        Nearest retrospective step. Default: 0.
 
     Examples
     --------
@@ -948,19 +935,21 @@ class Retrospect(_NonTrainableUnivariateTransformer):
 
     """
 
+    _need_fit = False
+    _default_params = {"n_steps": 1, "step_size": 1, "till": 0}
+
     def __init__(
-        self, n_steps: int = 1, step_size: int = 1, till: int = 0
-    ) -> None:
-        super().__init__()
-        self.n_steps = n_steps
-        self.step_size = step_size
-        self.till = till
+        self,
+        n_steps=_default_params["n_steps"],
+        step_size=_default_params["step_size"],
+        till=_default_params["till"],
+    ):
+        super().__init__(n_steps=n_steps, step_size=step_size, till=till)
 
-    @property
-    def _param_names(self) -> Tuple[str, ...]:
-        return ("n_steps", "step_size", "till")
+    def _fit_core(self, s):
+        pass
 
-    def _predict_core(self, s: pd.Series) -> pd.DataFrame:
+    def _predict_core(self, s):
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):

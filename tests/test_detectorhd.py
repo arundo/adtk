@@ -3,7 +3,6 @@ import pytest
 from math import isnan
 import numpy as np
 import pandas as pd
-from adtk._base import _TrainableModel
 import adtk.detector as detector
 from sklearn.cluster import KMeans
 from sklearn.neighbors import LocalOutlierFactor
@@ -192,10 +191,7 @@ def test_fit_detect(testCase):
     )
     model = testCase["model"](**testCase["params"])
     a_true = pd.Series(testCase["a"], index=df.index)
-    if isinstance(model, _TrainableModel):
-        a = model.fit_detect(df)
-    else:
-        a = model.detect(df)
+    a = model.fit_detect(df)
     pd.testing.assert_series_equal(a, a_true, check_dtype=False)
     if a_true.sum() == 0:
         assert isnan(model.score(df, a_true, scoring="recall"))
@@ -214,8 +210,7 @@ def test_fit_and_detect(testCase):
     )
     model = testCase["model"](**testCase["params"])
     a_true = pd.Series(testCase["a"], index=df.index)
-    if isinstance(model, _TrainableModel):
-        model.fit(df)
+    model.fit(df)
     a = model.detect(df)
     pd.testing.assert_series_equal(a, a_true, check_dtype=False)
     if a_true.sum() == 0:
@@ -236,8 +231,5 @@ def test_series(testCase):
         )
         model = testCase["model"](**testCase["params"])
         a_true = pd.Series(testCase["a"], index=s.index)
-        if isinstance(model, _TrainableModel):
-            a = model.fit_detect(s)
-        else:
-            a = model.detect(s)
+        a = model.fit_detect(s)
         pd.testing.assert_series_equal(a, a_true, check_dtype=False)
