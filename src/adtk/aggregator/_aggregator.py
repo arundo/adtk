@@ -4,12 +4,12 @@ An aggregator combines multiple lists of anomalies into one.
 
 """
 
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
 import pandas as pd
 
 from .._aggregator_base import _Aggregator
 from ..data import validate_events
-
-from typing import List, Dict, Union, Callable, Optional, Tuple, Any
 
 
 class CustomizedAggregator(_Aggregator):

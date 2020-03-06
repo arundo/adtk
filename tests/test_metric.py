@@ -1,8 +1,10 @@
-import pytest
-import pandas as pd
 from math import isnan
+
+import pandas as pd
+import pytest
 from pandas import Timestamp
-from adtk.metrics import recall, precision, f1_score, iou
+
+from adtk.metrics import f1_score, iou, precision, recall
 
 n = float("nan")
 

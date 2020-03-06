@@ -1,22 +1,22 @@
 "Check if the series name or column name is correctly kept."
 
 import sys
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 import pytest
+from sklearn.cluster import KMeans
+from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import LocalOutlierFactor
+
 import adtk.detector as detector
 import adtk.transformer as transformer
 from adtk._base import _TrainableModel
-from adtk._detector_base import (
+from adtk._detector_base import (  # _NonTrainableMultivariateDetector,
     _NonTrainableUnivariateDetector,
-    # _NonTrainableMultivariateDetector,
-    _TrainableUnivariateDetector,
     _TrainableMultivariateDetector,
+    _TrainableUnivariateDetector,
 )
-
-from sklearn.neighbors import LocalOutlierFactor
-from sklearn.cluster import KMeans
-from sklearn.linear_model import LinearRegression
 
 _Detector = (
     _NonTrainableUnivariateDetector,

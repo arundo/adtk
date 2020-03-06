@@ -1,4 +1,5 @@
 import pytest
+
 import adtk.aggregator as aggt
 import adtk.detector as detector
 import adtk.transformer as transformer

@@ -2,14 +2,15 @@
 
 We do not test graph plot because it is covered by test_visualization."""
 
-import pytest
-import pandas as pd
 import numpy as np
-import adtk.detector as detector
+import pandas as pd
+import pytest
+from sklearn.linear_model import LinearRegression
+
 import adtk.aggregator as aggregator
+import adtk.detector as detector
 import adtk.transformer as transformer
 from adtk.pipe import Pipeline, Pipenet
-from sklearn.linear_model import LinearRegression
 
 
 def test_pipenet_default():
@@ -693,4 +694,3 @@ def test_pipe_summary():
         }
     )
     my_pipe.summary()
-

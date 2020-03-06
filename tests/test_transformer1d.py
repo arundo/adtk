@@ -1,11 +1,13 @@
 """Test 1D transformors on some simple cases."""
 import sys
-from packaging.version import parse
-import pytest
+
 import pandas as pd
+import pytest
+from packaging.version import parse
+
 import adtk.transformer as transformer
-from adtk._utils import PandasBugError
 from adtk._base import _TrainableModel
+from adtk._utils import PandasBugError
 
 nan = float("nan")
 
@@ -694,4 +696,3 @@ def test_seasonal_transformer_shift():
         ),
         check_dtype=False,
     )
-

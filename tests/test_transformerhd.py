@@ -1,8 +1,9 @@
 """Test HD transformers."""
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.linear_model import LinearRegression
+
 import adtk.transformer as transformer
 from adtk._base import _TrainableModel
 

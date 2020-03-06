@@ -6,12 +6,13 @@ original time series.
 
 """
 
-from packaging.version import parse
 import warnings
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import statsmodels
+from packaging.version import parse
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import acf
 
@@ -20,8 +21,6 @@ from .._transformer_base import (
     _TrainableUnivariateTransformer,
 )
 from .._utils import PandasBugError
-
-from typing import Dict, List, Any, Union, Optional, Tuple, Callable
 
 
 class CustomizedTransformer1D(_TrainableUnivariateTransformer):

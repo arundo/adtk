@@ -1,12 +1,14 @@
-from typing import Union, List, Dict, Tuple, Any, Callable
+from typing import Any, Callable, Dict, List, Tuple, Union
+
 import pandas as pd
+
 from ._base import (
     _NonTrainableUnivariateModel,
-    _TrainableUnivariateModel,
     _TrainableMultivariateModel,
+    _TrainableUnivariateModel,
 )
 from .data import to_events
-from .metrics import recall, precision, f1_score, iou
+from .metrics import f1_score, iou, precision, recall
 
 
 class _NonTrainableUnivariateDetector(_NonTrainableUnivariateModel):

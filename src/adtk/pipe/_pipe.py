@@ -6,33 +6,29 @@ process.
 
 """
 from collections import OrderedDict
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.collections import PatchCollection
 from matplotlib.lines import Line2D
 from matplotlib.patches import Circle
-
 from tabulate import tabulate
 
+from .._aggregator_base import _Aggregator
 from .._base import _Model, _TrainableModel
-from .._detector_base import (
+from .._detector_base import (  # _NonTrainableMultivariateDetector,
     _NonTrainableUnivariateDetector,
-    # _NonTrainableMultivariateDetector,
-    _TrainableUnivariateDetector,
     _TrainableMultivariateDetector,
+    _TrainableUnivariateDetector,
 )
 from .._transformer_base import (
-    _NonTrainableUnivariateTransformer,
     _NonTrainableMultivariateTransformer,
-    _TrainableUnivariateTransformer,
+    _NonTrainableUnivariateTransformer,
     _TrainableMultivariateTransformer,
+    _TrainableUnivariateTransformer,
 )
-from .._aggregator_base import _Aggregator
-from ..metrics import recall, precision, f1_score, iou
-
-from typing import Tuple, Union, List, Dict, Any, Optional, Callable
-
+from ..metrics import f1_score, iou, precision, recall
 
 _Detector = (
     _NonTrainableUnivariateDetector,
