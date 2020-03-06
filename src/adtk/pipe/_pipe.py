@@ -15,14 +15,37 @@ from matplotlib.patches import Circle
 
 from tabulate import tabulate
 
-from .._base import _Model
-from .._detector_base import _Detector1D, _DetectorHD
-from .._transformer_base import _Transformer1D, _TransformerHD
+from .._base import _Model, _TrainableModel
+from .._detector_base import (
+    _NonTrainableUnivariateDetector,
+    # _NonTrainableMultivariateDetector,
+    _TrainableUnivariateDetector,
+    _TrainableMultivariateDetector,
+)
+from .._transformer_base import (
+    _NonTrainableUnivariateTransformer,
+    _NonTrainableMultivariateTransformer,
+    _TrainableUnivariateTransformer,
+    _TrainableMultivariateTransformer,
+)
 from .._aggregator_base import _Aggregator
 from ..metrics import recall, precision, f1_score, iou
 
+from typing import Tuple, Union, List, Dict, Any, Optional, Callable
 
-__all__ = ["Pipeline", "Pipenet"]
+
+_Detector = (
+    _NonTrainableUnivariateDetector,
+    # _NonTrainableMultivariateDetector,
+    _TrainableUnivariateDetector,
+    _TrainableMultivariateDetector,
+)
+_Transformer = (
+    _NonTrainableUnivariateTransformer,
+    _NonTrainableMultivariateTransformer,
+    _TrainableUnivariateTransformer,
+    _TrainableMultivariateTransformer,
+)
 
 
 class Pipeline:
@@ -30,7 +53,7 @@ class Pipeline:
 
     Parameters
     ----------
-    steps: list of 2-tuples
+    steps: list of 2-tuples (str, object)
         Components of this pipeline. Each 2-tuple represents a step in the
         pipeline (step name, model object).
 
@@ -42,15 +65,12 @@ class Pipeline:
 
     """
 
-    def __init__(self, steps=None):
-        if steps is None:
-            self.steps = []
-        else:
-            self.steps = steps
+    def __init__(self, steps: List[Tuple[str, _Model]]) -> None:
+        self.steps = steps
         self._pipenet = Pipenet()
         self._update_internal_pipenet()
 
-    def _update_internal_pipenet(self):
+    def _update_internal_pipenet(self) -> None:
         pipenet_steps = dict()
         last_name = "original"
         for pipeline_step in self.steps:
@@ -65,7 +85,12 @@ class Pipeline:
             last_name = pipeline_step[0]
         self._pipenet.steps = pipenet_steps
 
-    def fit(self, ts, skip_fit=None, return_intermediate=False):
+    def fit(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        skip_fit: Optional[List[str]] = None,
+        return_intermediate: bool = False,
+    ) -> Optional[Dict[str, Optional[Union[pd.Series, pd.DataFrame]]]]:
         """Train all models in the pipeline sequentially.
 
         Parameters
@@ -75,8 +100,8 @@ class Pipeline:
 
         skip_fit: list, optional
             Models to skip training. This could be used when pipeline contains
-            models that are already trained by the same time series, and
-            re-training would be time consuming. It must be a list of strings
+            models that are already trained by the same time series, and re-
+            training would be time consuming. It must be a list of strings
             where each element is a model name. Default: None.
 
         return_intermediate: bool, optional
@@ -84,7 +109,7 @@ class Pipeline:
 
         Returns
         -------
-        dict
+        dict, optional
             If return_intermediate=True, return intermediate results generated
             during training as a dictionary where keys are step names. If a
             step does not perform transformation or detection, the result of
@@ -96,7 +121,36 @@ class Pipeline:
             ts=ts, skip_fit=skip_fit, return_intermediate=return_intermediate
         )
 
-    def detect(self, ts, return_intermediate=False, return_list=False):
+    def detect(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        return_intermediate: bool = False,
+        return_list: bool = False,
+    ) -> Union[
+        Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+        Dict[
+            str,
+            Union[
+                pd.Series,
+                pd.DataFrame,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+                Dict[
+                    str,
+                    List[
+                        Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]
+                    ],
+                ],
+            ],
+        ],
+    ]:
         """Transform time series sequentially along pipeline, and detect
         anomalies with the last detector.
 
@@ -109,20 +163,25 @@ class Pipeline:
             Whether to return intermediate results. Default: False.
 
         return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+            Whether to return a list of anomalous events, or a binary series
+            indicating normal/anomalous. Default: False.
 
         Returns
         -------
-        list, panda Series, or dict
-            If return_intermediate=False, return detected anomalies, i.e.
-            result from last detector;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipeline.
-            If return_list=True, result from a detector or an aggregators will
-            be a list of pandas Timestamps;
-            If return_list=False, result from a detector or an aggregators will
-            be a binary pandas Series indicating normal/anomalous.
+        pandas Series, pandas DataFrame, list, or dict
+            Detected anomalies.
+
+            - If return_intermediate=False, return detected anomalies, i.e.
+              result from last detector.
+            - If return_intermediate=True, return results of all models in
+              pipeline as a dict where each item represents the result of a
+              model.
+            - If return_list=False, result from a detector or an aggregator
+              will be a binary pandas Series indicating normal/anomalous.
+            - If return_list=True, result from a detector or an aggregator
+              will be a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
 
 
         """
@@ -133,7 +192,14 @@ class Pipeline:
             return_list=return_list,
         )
 
-    def transform(self, ts, return_intermediate=False):
+    def transform(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        return_intermediate: bool = False,
+    ) -> Union[
+        Union[pd.Series, pd.DataFrame],
+        Dict[str, Union[pd.Series, pd.DataFrame]],
+    ]:
         """Transform time series sequentially along pipeline.
 
         Parameters
@@ -146,11 +212,14 @@ class Pipeline:
 
         Returns
         -------
-        list or dict
-            If return_intermediate=False, return transformed dataframe, i.e.
-            result from last transformer;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipeline.
+        pandas Series, pandas DataFrame, or dict
+            Transformed time series.
+
+            - If return_intermediate=False, return transformed series, i.e.
+              result from last transformer;
+            - If return_intermediate=True, return results of all models in
+              pipeline as a dict where each item represents the result of a
+              model.
 
         """
         self._update_internal_pipenet()
@@ -159,8 +228,36 @@ class Pipeline:
         )
 
     def fit_detect(
-        self, ts, skip_fit=None, return_intermediate=False, return_list=False
-    ):
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        skip_fit: Optional[List[str]] = None,
+        return_intermediate: bool = False,
+        return_list: bool = False,
+    ) -> Union[
+        Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+        Dict[
+            str,
+            Union[
+                pd.Series,
+                pd.DataFrame,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+                Dict[
+                    str,
+                    List[
+                        Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]
+                    ],
+                ],
+            ],
+        ],
+    ]:
         """Train models in pipeline sequentially, transform time series along
         pipeline, and use the last detector to detect anomalies.
 
@@ -171,28 +268,33 @@ class Pipeline:
 
         skip_fit: list, optional
             Models to skip training. This could be used when pipeline contains
-            models that are already trained by the same time series, and
-            re-training would be time consuming. It must be a list of strings
+            models that are already trained by the same time series, and re-
+            training would be time consuming. It must be a list of strings
             where each element is a model name. Default: None.
 
         return_intermediate: bool, optional
             Whether to return intermediate results. Default: False.
 
         return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+            Whether to return a list of anomalous events, or a binary series
+            indicating normal/anomalous. Default: False.
 
         Returns
         -------
-        list, panda Series, or dict
-            If return_intermediate=False, return detected anomalies, i.e.
-            result from last detector;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipeline.
-            If return_list=True, result from a detector or an aggregators will
-            be a list of pandas Timestamps;
-            If return_list=False, result from a detector or an aggregators will
-            be a binary pandas Series indicating normal/anomalous.
+        pandas Series, pandas DataFrame, list, or dict
+            Detected anomalies.
+
+            - If return_intermediate=False, return detected anomalies, i.e.
+              result from last detector.
+            - If return_intermediate=True, return results of all models in
+              pipeline as a dict where each item represents the result of a
+              model.
+            - If return_list=False, result from a detector or an aggregator
+              will be a binary pandas Series indicating normal/anomalous.
+            - If return_list=True, result from a detector or an aggregator
+              will be a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
 
 
         """
@@ -204,19 +306,27 @@ class Pipeline:
             return_list=return_list,
         )
 
-    def fit_transform(self, ts, skip_fit=None, return_intermediate=False):
+    def fit_transform(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        skip_fit: Optional[List[str]] = None,
+        return_intermediate: bool = False,
+    ) -> Union[
+        Union[pd.Series, pd.DataFrame],
+        Dict[str, Union[pd.Series, pd.DataFrame]],
+    ]:
         """Train models in pipeline sequentially, and transform time series
         along pipeline.
 
         Parameters
         ----------
         ts: pandas Series or DataFrame
-            Time series to be transformed
+            Time series to be transformed.
 
         skip_fit: list, optional
             Models to skip training. This could be used when pipeline contains
-            models that are already trained by the same time series, and
-            re-training would be time consuming. It must be a list of strings
+            models that are already trained by the same time series, and re-
+            training would be time consuming. It must be a list of strings
             where each element is a model name. Default: None.
 
         return_intermediate: bool, optional
@@ -224,11 +334,14 @@ class Pipeline:
 
         Returns
         -------
-        list or dict
-            If return_intermediate=False, return transformed dataframe, i.e.
-            result from last transformer;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipeline.
+        pandas Series, pandas DataFrame, or dict
+            Transformed time series.
+
+            - If return_intermediate=False, return transformed series, i.e.
+              result from last transformer;
+            - If return_intermediate=True, return results of all models in
+              pipeline as a dict where each item represents the result of a
+              model.
 
         """
         self._update_internal_pipenet()
@@ -236,20 +349,35 @@ class Pipeline:
             ts=ts, skip_fit=skip_fit, return_intermediate=return_intermediate
         )
 
-    def score(self, ts, anomaly_true, scoring="recall", **kwargs):
+    def score(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        anomaly_true: Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+        scoring: str = "recall",
+        **kwargs: Any
+    ) -> Union[float, Dict[str, float]]:
         """Detect anomalies and score the results against true anomalies.
 
         Parameters
         ----------
         ts: pandas Series or DataFrame
             Time series to detect anomalies from.
-            If a DataFrame with k columns, k univariate detectors will be
-            applied to them respectively.
 
-        anomaly_true: Series, or a list of Timestamps or Timestamp tuple
+        anomaly_true: pandas Series or list
             True anomalies.
-            If Series, it is a series binary labels indicating anomalous;
-            If list, it is a list of anomalous events in form of time windows.
+
+            - If pandas Series, it is treated as a series of binary labels.
+            - If list, a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
 
         scoring: str, optional
             Scoring function to use. Must be one of "recall", "precision",
@@ -267,7 +395,7 @@ class Pipeline:
 
         """
         if scoring == "recall":
-            scoring_func = recall
+            scoring_func = recall  # type: Callable
         elif scoring == "precision":
             scoring_func = precision
         elif scoring == "f1":
@@ -292,7 +420,7 @@ class Pipeline:
                 **kwargs
             )
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Dict[str, Any]]:
         """Get parameters of models in pipeline.
 
         Returns
@@ -380,14 +508,16 @@ class Pipenet:
 
     """
 
-    def __init__(self, steps=None):
+    def __init__(
+        self, steps: Optional[Dict[str, Dict[str, Any]]] = None
+    ) -> None:
         if steps is None:
             self.steps = dict()
         else:
             self.steps = steps
         self._validate()
 
-    def _validate(self):
+    def _validate(self) -> None:
         """
         Check the following issues and raise error if found
         - steps is not a list of dict
@@ -445,7 +575,7 @@ class Pipenet:
             )
 
         # check if each step has valid input
-        def islistofstr(li):
+        def islistofstr(li: Any) -> bool:
             if not isinstance(li, list):
                 return False
             if not all([isinstance(x, str) for x in li]):
@@ -565,16 +695,12 @@ class Pipenet:
         # 1. upstream of transformer and detector must be transformer, or input
         # 2. upstream of aggregator must be detector or aggregator
         for step_name, step in self.steps.items():
-            if isinstance(
-                step["model"],
-                (_Detector1D, _DetectorHD, _Transformer1D, _TransformerHD),
-            ):
+            if isinstance(step["model"], (_Detector, _Transformer)):
                 if isinstance(step["input"], str):
                     if step["input"] == "original":
                         pass
                     elif not isinstance(
-                        self.steps[step["input"]]["model"],
-                        (_Transformer1D, _TransformerHD),
+                        self.steps[step["input"]]["model"], _Transformer
                     ):
                         raise TypeError(
                             "Model in step '{}' cannot accept output from "
@@ -585,8 +711,7 @@ class Pipenet:
                         if input == "original":
                             pass
                         elif not isinstance(
-                            self.steps[input]["model"],
-                            (_Transformer1D, _TransformerHD),
+                            self.steps[input]["model"], _Transformer
                         ):
                             raise TypeError(
                                 "Model in step '{}' cannot accept output from "
@@ -597,7 +722,7 @@ class Pipenet:
                     if (step["input"] == "original") or (
                         not isinstance(
                             self.steps[step["input"]]["model"],
-                            (_Detector1D, _DetectorHD, _Aggregator),
+                            (_Detector, _Aggregator),
                         )
                     ):
                         raise TypeError(
@@ -609,7 +734,7 @@ class Pipenet:
                         if (input == "original") or (
                             not isinstance(
                                 self.steps[input]["model"],
-                                (_Detector1D, _DetectorHD, _Aggregator),
+                                (_Detector, _Aggregator),
                             )
                         ):
                             raise TypeError(
@@ -647,15 +772,14 @@ class Pipenet:
         self.final_step_ = list(self.steps_graph_.keys())[-1]
 
     @staticmethod
-    def _get_input(step, results):
+    def _get_input(
+        step: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Given a step block and an intermediate results dict, get the input of
         this step based on fields `input` and `subset`.
         """
-        if isinstance(
-            step["model"],
-            (_Detector1D, _DetectorHD, _Transformer1D, _TransformerHD),
-        ):
+        if isinstance(step["model"], (_Detector, _Transformer)):
             if isinstance(step["input"], str):
                 if ("subset" not in step.keys()) or (step["subset"] == "all"):
                     input = results[step["input"]]
@@ -696,7 +820,12 @@ class Pipenet:
                 }
         return input
 
-    def fit(self, ts, skip_fit=None, return_intermediate=False):
+    def fit(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        skip_fit: Optional[List[str]] = None,
+        return_intermediate: bool = False,
+    ) -> Optional[Dict[str, Optional[Union[pd.Series, pd.DataFrame]]]]:
         """Train models in the pipenet.
 
         Parameters
@@ -706,8 +835,8 @@ class Pipenet:
 
         skip_fit: list, optional
             Models to skip training. This could be used when pipenet contains
-            models that are already trained by the same time series, and
-            re-training would be time consuming. It must be a list of strings
+            models that are already trained by the same time series, and re-
+            training would be time consuming. It must be a list of strings
             where each element is a model name. Default: None.
 
         return_intermediate: bool, optional
@@ -715,7 +844,7 @@ class Pipenet:
 
         Returns
         -------
-        dict
+        dict, optional
             If return_intermediate=True, return intermediate results generated
             during training as a dictionary where keys are step names. If a
             step does not perform transformation or detection, the result of
@@ -734,7 +863,8 @@ class Pipenet:
         # determine the step needing fit and/or predict
         need_fit = {
             step_name: (
-                (step["model"]._need_fit) & (step_name not in skip_fit)
+                isinstance(step["model"], _TrainableModel)
+                & (step_name not in skip_fit)
             )
             for step_name, step in self.steps.items()
         }
@@ -769,12 +899,62 @@ class Pipenet:
         # return intermediate results
         if return_intermediate:
             return results
+        else:
+            return None
 
     def _predict(
-        self, ts, fit, detect, skip_fit, return_intermediate, return_list
-    ):
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        fit: bool,
+        detect: bool,
+        skip_fit: Optional[List[str]],
+        return_intermediate: bool,
+        return_list: bool = False,
+    ) -> Union[
+        Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+        Dict[
+            str,
+            Union[
+                pd.Series,
+                pd.DataFrame,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+                Dict[
+                    str,
+                    List[
+                        Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]
+                    ],
+                ],
+            ],
+        ],
+    ]:
         """
         Private method for detect, transform, fit_detect, fit_transform
+
+        Parameters
+        ----------
+        fit: bool
+            Whether this call is for fit_detect/fit_transform or
+            detect/transform.
+
+        detect: bool
+            Whether this call is for detect/fit_detect or
+            transform/fit_transform.
+
+        Others:
+            Same as higher-level calls
+
+        Returns
+        -------
+            Same as higher-level calls
+
         """
         self._validate()
 
@@ -788,10 +968,7 @@ class Pipenet:
         last_step_name = list(self.steps_graph_.keys())[-1]
 
         if detect:
-            if isinstance(
-                self.steps[last_step_name]["model"],
-                (_Transformer1D, _TransformerHD),
-            ):
+            if isinstance(self.steps[last_step_name]["model"], _Transformer):
                 raise RuntimeError(
                     "This seems a transformation pipenet, "
                     "because model at the final step '{}' is a transformer. "
@@ -801,8 +978,7 @@ class Pipenet:
                 )
         else:
             if isinstance(
-                self.steps[last_step_name]["model"],
-                (_Detector1D, _DetectorHD, _Aggregator),
+                self.steps[last_step_name]["model"], (_Detector, _Aggregator)
             ):
                 raise RuntimeError(
                     "This seems a detection pipenet, "
@@ -813,17 +989,49 @@ class Pipenet:
                     )
                 )
 
-        results = {"original": ts.copy()}
+        results = {
+            "original": ts.copy()
+        }  # type: Dict[str,Union[pd.Series,pd.DataFrame,List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]], Dict[str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]]]]
         for step_name in list(self.steps_graph_.keys())[1:]:
             step = self.steps[step_name]
             input = self._get_input(step, results)
             results.update(
                 {
-                    step_name: step["model"].fit_predict(
-                        input, return_list=return_list
+                    step_name: (
+                        (
+                            step["model"].fit_predict(
+                                input, return_list=return_list
+                            )
+                            if isinstance(
+                                step["model"],
+                                (
+                                    _TrainableUnivariateDetector,
+                                    _TrainableMultivariateDetector,
+                                ),
+                            )
+                            else step["model"].predict(
+                                input, return_list=return_list
+                            )
+                        )
+                        if isinstance(step["model"], _Detector)
+                        else (
+                            step["model"].fit_predict(input)
+                            if isinstance(
+                                step["model"],
+                                (
+                                    _TrainableUnivariateTransformer,
+                                    _TrainableMultivariateTransformer,
+                                ),
+                            )
+                            else step["model"].predict(input)
+                        )
                     )
                     if fit and (step_name not in skip_fit)
-                    else step["model"].predict(input, return_list=return_list)
+                    else (
+                        step["model"].predict(input, return_list=return_list)
+                        if isinstance(step["model"], _Detector)
+                        else step["model"].predict(input)
+                    )
                 }
             )
 
@@ -832,7 +1040,36 @@ class Pipenet:
         else:
             return results[last_step_name]
 
-    def detect(self, ts, return_intermediate=False, return_list=False):
+    def detect(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        return_intermediate: bool = False,
+        return_list: bool = False,
+    ) -> Union[
+        Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+        Dict[
+            str,
+            Union[
+                pd.Series,
+                pd.DataFrame,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+                Dict[
+                    str,
+                    List[
+                        Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]
+                    ],
+                ],
+            ],
+        ],
+    ]:
         """Detect anomaly from time series using the pipenet.
 
         Parameters
@@ -844,20 +1081,25 @@ class Pipenet:
             Whether to return intermediate results. Default: False.
 
         return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+            Whether to return a list of anomalous events, or a binary series
+            indicating normal/anomalous. Default: False.
 
         Returns
         -------
-        list, panda Series, or dict
-            If return_intermediate=False, return detected anomalies, i.e.
-            result from last detector;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipenet.
-            If return_list=True, result from a detector or an aggregators will
-            be a list of pandas Timestamps;
-            If return_list=False, result from a detector or an aggregators will
-            be a binary pandas Series indicating normal/anomalous.
+        pandas Series, pandas DataFrame, list, or dict
+            Detected anomalies.
+
+            - If return_intermediate=False, return detected anomalies, i.e.
+              result from last detector.
+            - If return_intermediate=True, return results of all models in
+              pipenet as a dict where each item represents the result of a
+              model.
+            - If return_list=False, result from a detector or an aggregator
+              will be a binary pandas Series indicating normal/anomalous.
+            - If return_list=True, result from a detector or an aggregator
+              will be a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
 
         """
         return self._predict(
@@ -869,7 +1111,14 @@ class Pipenet:
             return_list=return_list,
         )
 
-    def transform(self, ts, return_intermediate=False):
+    def transform(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        return_intermediate: bool = False,
+    ) -> Union[
+        Union[pd.Series, pd.DataFrame],
+        Dict[str, Union[pd.Series, pd.DataFrame]],
+    ]:
         """Transform time series using the pipenet.
 
         Parameters
@@ -882,11 +1131,14 @@ class Pipenet:
 
         Returns
         -------
-        list or dict
-            If return_intermediate=False, return transformed dataframe, i.e.
-            result from last transformer;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipenet.
+        pandas Series, pandas DataFrame, or dict
+            Transformed time series.
+
+            - If return_intermediate=False, return transformed series, i.e.
+              result from last transformer;
+            - If return_intermediate=True, return results of all models in
+              pipnet as a dict where each item represents the result of a
+              model.
 
         """
         return self._predict(
@@ -895,12 +1147,39 @@ class Pipenet:
             detect=False,
             skip_fit=None,
             return_intermediate=return_intermediate,
-            return_list=None,
         )
 
     def fit_detect(
-        self, ts, skip_fit=None, return_intermediate=False, return_list=False
-    ):
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        skip_fit: Optional[List[str]] = None,
+        return_intermediate: bool = False,
+        return_list: bool = False,
+    ) -> Union[
+        Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+        Dict[
+            str,
+            Union[
+                pd.Series,
+                pd.DataFrame,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+                Dict[
+                    str,
+                    List[
+                        Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]
+                    ],
+                ],
+            ],
+        ],
+    ]:
         """Train models in the pipenet and detect anomaly with it.
 
         Parameters
@@ -910,28 +1189,33 @@ class Pipenet:
 
         skip_fit: list, optional
             Models to skip training. This could be used when pipenet contains
-            models that are already trained by the same time series, and
-            re-training would be time consuming. It must be a list of strings
+            models that are already trained by the same time series, and re-
+            training would be time consuming. It must be a list of strings
             where each element is a model name. Default: None.
 
         return_intermediate: bool, optional
             Whether to return intermediate results. Default: False.
 
         return_list: bool, optional
-            Whether to return a list of anomalous time stamps, or a binary
-            series indicating normal/anomalous. Default: False.
+            Whether to return a list of anomalous events, or a binary series
+            indicating normal/anomalous. Default: False.
 
         Returns
         -------
-        list, panda Series, or dict
-            If return_intermediate=False, return detected anomalies, i.e.
-            result from last detector;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipenet.
-            If return_list=True, result from a detector or an aggregators will
-            be a list of pandas Timestamps;
-            If return_list=False, result from a detector or an aggregators will
-            be a binary pandas Series indicating normal/anomalous.
+        pandas Series, pandas DataFrame, list, or dict
+            Detected anomalies.
+
+            - If return_intermediate=False, return detected anomalies, i.e.
+              result from last detector.
+            - If return_intermediate=True, return results of all models in
+              pipenet as a dict where each item represents the result of a
+              model.
+            - If return_list=False, result from a detector or an aggregator
+              will be a binary pandas Series indicating normal/anomalous.
+            - If return_list=True, result from a detector or an aggregator
+              will be a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
 
         """
         return self._predict(
@@ -943,7 +1227,15 @@ class Pipenet:
             return_list=return_list,
         )
 
-    def fit_transform(self, ts, skip_fit=None, return_intermediate=False):
+    def fit_transform(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        skip_fit: Optional[List[str]] = None,
+        return_intermediate: bool = False,
+    ) -> Union[
+        Union[pd.Series, pd.DataFrame],
+        Dict[str, Union[pd.Series, pd.DataFrame]],
+    ]:
         """Train models in the pipenet and transform time series with it.
 
         Parameters
@@ -953,8 +1245,8 @@ class Pipenet:
 
         skip_fit: list, optional
             Models to skip training. This could be used when pipenet contains
-            models that are already trained by the same time series, and
-            re-training would be time consuming. It must be a list of strings
+            models that are already trained by the same time series, and re-
+            training would be time consuming. It must be a list of strings
             where each element is a model name. Default: None.
 
         return_intermediate: bool, optional
@@ -962,11 +1254,15 @@ class Pipenet:
 
         Returns
         -------
-        list or dict
-            If return_intermediate=False, return transformed dataframe, i.e.
-            result from last transformer;
-            If return_intermediate=True, return a dictionary of model results
-            for all models in pipenet.
+        pandas Series, pandas DataFrame, or dict
+            Transformed time series.
+
+            - If return_intermediate=False, return transformed series, i.e.
+              result from last transformer;
+            - If return_intermediate=True, return results of all models in
+              pipenet as a dict where each item represents the result of a
+              model.
+
 
         """
         return self._predict(
@@ -975,23 +1271,37 @@ class Pipenet:
             detect=False,
             skip_fit=skip_fit,
             return_intermediate=return_intermediate,
-            return_list=None,
         )
 
-    def score(self, ts, anomaly_true, scoring="recall", **kwargs):
+    def score(
+        self,
+        ts: Union[pd.Series, pd.DataFrame],
+        anomaly_true: Union[
+            pd.Series,
+            pd.DataFrame,
+            List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            Dict[
+                str,
+                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
+            ],
+        ],
+        scoring: str = "recall",
+        **kwargs: Any
+    ) -> Union[float, Dict[str, float]]:
         """Detect anomalies and score the results against true anomalies.
 
         Parameters
         ----------
         ts: pandas Series or DataFrame
             Time series to detect anomalies from.
-            If a DataFrame with k columns, k univariate detectors will be
-            applied to them respectively.
 
         anomaly_true: Series, or a list of Timestamps or Timestamp tuple
             True anomalies.
-            If Series, it is a series binary labels indicating anomalous;
-            If list, it is a list of anomalous events in form of time windows.
+
+            - If pandas Series, it is treated as a series of binary labels.
+            - If list, a list of events where an event is a pandas Timestamp if
+              it is instantaneous or a 2-tuple of pandas Timestamps if it is a
+              closed time interval.
 
         scoring: str, optional
             Scoring function to use. Must be one of "recall", "precision",
@@ -1009,7 +1319,7 @@ class Pipenet:
 
         """
         if scoring == "recall":
-            scoring_func = recall
+            scoring_func = recall  # type: Callable
         elif scoring == "precision":
             scoring_func = precision
         elif scoring == "f1":
@@ -1034,7 +1344,7 @@ class Pipenet:
                 **kwargs
             )
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Dict[str, Any]]:
         """Get parameters of models in pipenet.
 
         Returns
@@ -1048,7 +1358,7 @@ class Pipenet:
             for step_name, step in self.steps.items()
         }
 
-    def summary(self):
+    def summary(self) -> None:
         """Print a summary of the pipenet."""
         df = pd.DataFrame(columns=["name", "model", "input", "subset"])
         for step_name in self.steps_graph_.keys():
@@ -1069,7 +1379,12 @@ class Pipenet:
             )
         print(tabulate(df, headers="keys", tablefmt="simple", showindex=False))
 
-    def plot_flowchart(self, ax=None, figsize=None, radius=1.0):
+    def plot_flowchart(
+        self,
+        ax: Optional[plt.Axes] = None,
+        figsize: Optional[Tuple[float, float]] = None,
+        radius: float = 1.0,
+    ) -> plt.Axes:  # pragma: no cover
         """Plot flowchart of this pipenet.
 
         Parameters
@@ -1102,11 +1417,11 @@ class Pipenet:
             _, ax = plt.subplots(figsize=figsize)
 
         # get coordinate of components
-        layers = []
-        for step, values in self.steps_graph_.items():
+        layers = []  # type: List
+        for graph_step, values in self.steps_graph_.items():
             if values[1] == 0:
                 layers.append([])
-            layers[-1].append(step)
+            layers[-1].append(graph_step)
         n_layer = len(layers)
         max_n_comp = 0
         coord = dict()
@@ -1119,15 +1434,15 @@ class Pipenet:
                 coord[comp] = (x, y)
 
         # plot connection lines, and gather patches
-        io_patches = []
-        detector_patches = []
-        transformer_patches = []
-        aggregator_patches = []
+        io_patches = []  # type: List
+        detector_patches = []  # type: List
+        transformer_patches = []  # type: List
+        aggregator_patches = []  # type: List
         for step_name, step in self.steps.items():
             end_coord = coord[step_name]
-            if isinstance(step["model"], (_Detector1D, _DetectorHD)):
+            if isinstance(step["model"], _Detector):
                 detector_patches.append(Circle(xy=end_coord, radius=radius))
-            elif isinstance(step["model"], (_Transformer1D, _TransformerHD)):
+            elif isinstance(step["model"], _Transformer):
                 transformer_patches.append(Circle(xy=end_coord, radius=radius))
             elif isinstance(step["model"], _Aggregator):
                 aggregator_patches.append(Circle(xy=end_coord, radius=radius))
@@ -1217,3 +1532,5 @@ class Pipenet:
         )
         ax.set_axis_off()
         ax.set_aspect(1)
+
+        return ax
