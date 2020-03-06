@@ -1,5 +1,5 @@
-sphinx
-sphinx_rtd_theme
-nbsphinx
+sphinx>=2.0
+sphinx_rtd_theme<0.5
+nbsphinx>=0.4
 python-dateutil>=2.5
-jupyter
+jupyter>=1

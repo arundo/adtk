@@ -49,7 +49,7 @@ daily) traffic pattern. The data used here is the NYC taxi traffic dataset from
                 >>> from adtk.detector import SeasonalAD
                 >>> seasonal_ad = SeasonalAD()
                 >>> anomalies = seasonal_ad.fit_detect(s_train)
-                >>> plot(s_train, anomaly_pred=anomalies, ap_color='red', ap_marker_on_curve=True)
+                >>> plot(s_train, anomaly=anomalies, anomaly_color="red", anomaly_tag="marker")
 
         .. figure:: images/quickstart1.png
                 :width: 800px
@@ -77,7 +77,10 @@ daily) traffic pattern. The data used here is the NYC taxi traffic dataset from
                   Timestamp('2014-12-28 13:59:59.999999999', freq='30T')),
                  (Timestamp('2014-12-28 19:30:00', freq='30T'),
                   Timestamp('2015-01-02 21:29:59.999999999', freq='30T'))]
-                >>> plot(s_train, anomaly_true=known_anomalies, anomaly_pred=anomalies, ap_color='red', ap_marker_on_curve=True, at_color="orange")
+                >>> plot(s_train,
+                         anomaly={"Known": known_anomalies, "Model": anomalies},
+                         anomaly_tag={"Known": "span", "Model": "marker"},
+                         anomaly_color={"Known": "orange", "Model": "red"})
 
         .. figure:: images/quickstart2.png
                 :width: 800px
@@ -107,7 +110,8 @@ daily) traffic pattern. The data used here is the NYC taxi traffic dataset from
                 2015-01-31 23:30:00    26288
                 Freq: 30T, Name: Traffic, Length: 1320, dtype: int64
                 >>> anomalies_pred = seasonal_ad.detect(s_test)
-                >>> plot(s_test, anomaly_pred=anomalies_pred, ts_linewidth=1, ap_color='red', ap_marker_on_curve=True);
+                >>> plot(s_test, anomaly=anomalies_pred,
+                         ts_linewidth=1, anomaly_color='red', anomaly_tag="marker")
 
         .. figure:: images/quickstart3.png
                 :width: 800px
