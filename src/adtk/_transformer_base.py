@@ -29,13 +29,7 @@ class _NonTrainableUnivariateTransformer(_NonTrainableUnivariateModel):
         """
         return self._predict(ts)
 
-    def predict(
-        self, ts: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
-        """
-        Alias of `transform`.
-        """
-        return self.transform(ts)
+    predict = transform
 
 
 class _TrainableUnivariateTransformer(_TrainableUnivariateModel):
@@ -100,21 +94,8 @@ class _TrainableUnivariateTransformer(_TrainableUnivariateModel):
         self.fit(ts)
         return self.predict(ts)
 
-    def predict(
-        self, ts: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
-        """
-        Alias of `transform`.
-        """
-        return self.transform(ts)
-
-    def fit_predict(
-        self, ts: Union[pd.Series, pd.DataFrame]
-    ) -> Union[pd.Series, pd.DataFrame]:
-        """
-        Alias of `fit_transform`.
-        """
-        return self.fit_transform(ts)
+    predict = transform
+    fit_predict = fit_transform
 
 
 class _NonTrainableMultivariateTransformer(_NonTrainableMultivariateModel):
@@ -134,11 +115,7 @@ class _NonTrainableMultivariateTransformer(_NonTrainableMultivariateModel):
         """
         return self._predict(df)
 
-    def predict(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
-        """
-        Alias of `transform`.
-        """
-        return self.transform(df)
+    predict = transform
 
 
 class _TrainableMultivariateTransformer(_TrainableMultivariateModel):
@@ -189,14 +166,5 @@ class _TrainableMultivariateTransformer(_TrainableMultivariateModel):
         self.fit(df)
         return self.predict(df)
 
-    def predict(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
-        """
-        Alias of `transform`.
-        """
-        return self.transform(df)
-
-    def fit_predict(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
-        """
-        Alias of `fit_transform`.
-        """
-        return self.fit_transform(df)
+    predict = transform
+    fit_predict = fit_transform

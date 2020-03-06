@@ -54,20 +54,7 @@ class _NonTrainableUnivariateDetector(_NonTrainableUnivariateModel):
         else:
             return detected
 
-    def predict(
-        self, ts: Union[pd.Series, pd.DataFrame], return_list: bool = False
-    ) -> Union[
-        pd.Series,
-        pd.DataFrame,
-        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
-        Dict[
-            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-        ],
-    ]:
-        """
-        Alias of `detect`.
-        """
-        return self.detect(ts, return_list=return_list)
+    predict = detect
 
     def score(
         self,
@@ -258,35 +245,8 @@ class _TrainableUnivariateDetector(_TrainableUnivariateModel):
         self.fit(ts)
         return self.detect(ts, return_list=return_list)
 
-    def predict(
-        self, ts: Union[pd.Series, pd.DataFrame], return_list: bool = False
-    ) -> Union[
-        pd.Series,
-        pd.DataFrame,
-        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
-        Dict[
-            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-        ],
-    ]:
-        """
-        Alias of `detect`.
-        """
-        return self.detect(ts, return_list=return_list)
-
-    def fit_predict(
-        self, ts: Union[pd.Series, pd.DataFrame], return_list: bool = False
-    ) -> Union[
-        pd.Series,
-        pd.DataFrame,
-        List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
-        Dict[
-            str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-        ],
-    ]:
-        """
-        Alias of `fit_detect`.
-        """
-        return self.fit_detect(ts, return_list=return_list)
+    predict = detect
+    fit_predict = fit_detect
 
     def score(
         self,
@@ -550,25 +510,8 @@ class _TrainableMultivariateDetector(_TrainableMultivariateModel):
         self.fit(df)
         return self.detect(df, return_list=return_list)
 
-    def predict(
-        self, df: pd.DataFrame, return_list: bool = False
-    ) -> Union[
-        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-    ]:
-        """
-        Alias of `detect`.
-        """
-        return self.detect(df, return_list=return_list)
-
-    def fit_predict(
-        self, df: pd.DataFrame, return_list: bool = False
-    ) -> Union[
-        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-    ]:
-        """
-        Alias of `fit_detect`.
-        """
-        return self.fit_detect(df, return_list=return_list)
+    predict = detect
+    fit_predict = fit_detect
 
     def score(
         self,
