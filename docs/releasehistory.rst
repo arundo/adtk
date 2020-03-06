@@ -98,6 +98,8 @@ Version 0.6.0-dev
     - `transform_func` in `adtk.detector.CustomizedTransformer1D`
     - `steps` in `adtk.pipe.Pipeline`
 
+- Re-designed the API of `adtk.visualization.plot` (0.6.0-dev.20-pr.80)
+
 Version 0.5.5 (Feb 24, 2020)
 ===================================
 - Fixed a bug that empty lists were ignored by AndAggregator
