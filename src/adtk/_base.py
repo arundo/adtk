@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import pandas as pd
 
@@ -270,7 +270,7 @@ class _NonTrainableMultivariateModel(_NonTrainableModel):
 class _TrainableMultivariateModel(_TrainableModel):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self._cols = []
+        self._cols = []  # type: List[str]
 
     def _fit(self, df: pd.DataFrame) -> None:
         if isinstance(df, pd.DataFrame):
