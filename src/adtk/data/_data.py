@@ -609,8 +609,8 @@ def split_train_test(
     mode: int = 1,
     n_splits: int = 1,
     train_ratio: float = 0.7,
-) -> Tuple[
-    List[Union[pd.Series, pd.DataFrame]], List[Union[pd.Series, pd.DataFrame]]
+) -> List[
+    Tuple[Union[pd.Series, pd.DataFrame], Union[pd.Series, pd.DataFrame]]
 ]:
     """Split time series into training and testing set for cross validation.
 
@@ -650,9 +650,8 @@ def split_train_test(
 
     Returns
     -------
-        tuple (list, list)
-            - list of pandas Series or DataFrame: Training time series
-            - list of pandas Series or DataFrame: Testing time series
+        list of 2-tuples (train, test)
+            Splitted training and testing series.
 
     Examples
     --------
@@ -695,87 +694,78 @@ def split_train_test(
     if not isinstance(ts, (pd.DataFrame, pd.Series)):
         raise ValueError("Argument `ts` must be a pandas Series or DataFrame.")
 
+    splits = []
     if mode == 1:
         fold_len = round(len(ts) / n_splits)
-        ts_train = []
-        ts_test = []
         fold_pos = 0
         for _ in range(n_splits - 1):
-            ts_train.append(
-                ts.iloc[fold_pos : (fold_pos + round(fold_len * train_ratio))]
-            )
-            ts_test.append(
-                ts.iloc[
-                    (fold_pos + round(fold_len * train_ratio)) : (
-                        fold_pos + fold_len
-                    )
-                ]
+            splits.append(
+                (
+                    ts.iloc[
+                        fold_pos : (fold_pos + round(fold_len * train_ratio))
+                    ],
+                    ts.iloc[
+                        (fold_pos + round(fold_len * train_ratio)) : (
+                            fold_pos + fold_len
+                        )
+                    ],
+                )
             )
             fold_pos = fold_pos + fold_len
-        ts_train.append(
-            ts.iloc[
-                fold_pos : (
-                    fold_pos + round((len(ts) - fold_pos) * train_ratio)
-                )
-            ]
-        )
-        ts_test.append(
-            ts.iloc[(fold_pos + round((len(ts) - fold_pos) * train_ratio)) :]
+        splits.append(
+            (
+                ts.iloc[
+                    fold_pos : (
+                        fold_pos + round((len(ts) - fold_pos) * train_ratio)
+                    )
+                ],
+                ts.iloc[
+                    (fold_pos + round((len(ts) - fold_pos) * train_ratio)) :
+                ],
+            )
         )
     elif mode == 2:
-        ts_train = []
-        ts_test = []
         for k_fold in range(n_splits - 1):
             fold_len = round(len(ts) / n_splits) * (k_fold + 1)
-            ts_train.append(ts.iloc[: round(fold_len * train_ratio)])
-            ts_test.append(ts.iloc[round(fold_len * train_ratio) : fold_len])
-        ts_train.append(ts.iloc[: round(len(ts) * train_ratio)])
-        ts_test.append(ts.iloc[round(len(ts) * train_ratio) : len(ts)])
+            splits.append(
+                (
+                    ts.iloc[: round(fold_len * train_ratio)],
+                    ts.iloc[round(fold_len * train_ratio) : fold_len],
+                )
+            )
+        splits.append(
+            (
+                ts.iloc[: round(len(ts) * train_ratio)],
+                ts.iloc[round(len(ts) * train_ratio) : len(ts)],
+            )
+        )
     elif mode == 3:
-        ts_train = []
-        ts_test = []
         fold_len = round(len(ts) / (n_splits + 1))
         for k_fold in range(n_splits - 1):
-            ts_train.append(ts.iloc[: ((k_fold + 1) * fold_len)])
-            ts_test.append(
-                ts.iloc[((k_fold + 1) * fold_len) : ((k_fold + 2) * fold_len)]
+            splits.append(
+                (
+                    ts.iloc[: ((k_fold + 1) * fold_len)],
+                    ts.iloc[
+                        ((k_fold + 1) * fold_len) : ((k_fold + 2) * fold_len)
+                    ],
+                )
             )
-        ts_train.append(ts.iloc[: (n_splits * fold_len)])
-        ts_test.append(ts.iloc[(n_splits * fold_len) :])
+        splits.append(
+            (
+                ts.iloc[: (n_splits * fold_len)],
+                ts.iloc[(n_splits * fold_len) :],
+            )
+        )
     elif mode == 4:
-        ts_train = []
-        ts_test = []
         fold_len = round(len(ts) / (n_splits + 1))
         for k_fold in range(n_splits):
-            ts_train.append(ts.iloc[: ((k_fold + 1) * fold_len)])
-            ts_test.append(ts.iloc[((k_fold + 1) * fold_len) :])
+            splits.append(
+                (
+                    ts.iloc[: ((k_fold + 1) * fold_len)],
+                    ts.iloc[((k_fold + 1) * fold_len) :],
+                )
+            )
     else:
         raise ValueError("Argument `mode` must be one of 1, 2, 3, and 4.")
-    # rename series
-    if isinstance(ts, pd.Series):
-        if ts.name is None:
-            ts_train = [
-                s.rename("train_{}".format(i)) for i, s in enumerate(ts_train)
-            ]
-            ts_test = [
-                s.rename("test_{}".format(i)) for i, s in enumerate(ts_test)
-            ]
-        else:
-            ts_train = [
-                s.rename("{}_train_{}".format(ts.name, i))
-                for i, s in enumerate(ts_train)
-            ]
-            ts_test = [
-                s.rename("{}_test_{}".format(ts.name, i))
-                for i, s in enumerate(ts_test)
-            ]
-    else:
-        for i, df in enumerate(ts_train):
-            ts_train[i].columns = [
-                "{}_train_{}".format(col, i) for col in ts_train[i].columns
-            ]
-        for i, df in enumerate(ts_test):
-            ts_test[i].columns = [
-                "{}_test_{}".format(col, i) for col in ts_test[i].columns
-            ]
-    return ts_train, ts_test
+
+    return splits
