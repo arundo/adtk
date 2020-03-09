@@ -12,9 +12,13 @@ script:
     - tox
 
 after_success:
-    - pip install -e .[test]
+    - pip install -e .[test,dev]
     - pytest --cov=adtk --cov-config=.coveragerc
     - coveralls
+    - black --check ./src/adtk
+    - black --check ./tests
+    - isort --check-only -rc ./src/adtk
+    - isort --check-only -rc ./tests
 
 branches:
     only:

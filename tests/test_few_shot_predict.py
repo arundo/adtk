@@ -5,10 +5,10 @@ import numpy as np
 import pandas as pd
 
 from adtk.detector import (
-    PersistAD,
-    LevelShiftAD,
-    VolatilityShiftAD,
     AutoregressionAD,
+    LevelShiftAD,
+    PersistAD,
+    VolatilityShiftAD,
 )
 
 s = pd.Series(

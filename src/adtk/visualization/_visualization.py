@@ -5,10 +5,9 @@ nested tree structure which would be messy if we type rigorously."""
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from pandas.plotting import register_matplotlib_converters
 
 from ..data import to_events, to_labels, validate_events
-
-from pandas.plotting import register_matplotlib_converters
 
 register_matplotlib_converters()
 

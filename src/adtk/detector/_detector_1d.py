@@ -5,27 +5,26 @@ from pandas Series.
 
 """
 
+from typing import Any, Callable, Dict, Optional, Tuple, Union
+
 import numpy as np
 import pandas as pd
 from scipy.stats import t
-
 from sklearn.linear_model import LinearRegression
 
-from ..aggregator import AndAggregator
 from .._detector_base import (
     _NonTrainableUnivariateDetector,
     _TrainableUnivariateDetector,
 )
+from ..aggregator import AndAggregator
 from ..pipe import Pipenet
 from ..transformer import (
+    ClassicSeasonalDecomposition,
     CustomizedTransformer1D,
     DoubleRollingAggregate,
-    ClassicSeasonalDecomposition,
     RegressionResidual,
     Retrospect,
 )
-
-from typing import Dict, Union, Any, Tuple, Optional, Callable
 
 
 class CustomizedDetector1D(_TrainableUnivariateDetector):

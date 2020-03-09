@@ -1,4 +1,5 @@
 import pandas as pd
+
 from adtk.data import expand_events
 
 events = [

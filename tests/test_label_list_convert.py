@@ -4,6 +4,7 @@
 import numpy as np
 import pandas as pd
 from pandas import Timestamp
+
 from adtk.data import to_events, to_labels
 
 

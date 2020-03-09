@@ -20,4 +20,4 @@ See https://arundo-adtk.readthedocs-hosted.com for complete documentation.
 
 """
 
-__version__ = "0.6.0-dev.21+pr.87"
+__version__ = "0.6.0-dev.22+pr.87"

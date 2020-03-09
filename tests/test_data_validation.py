@@ -1,11 +1,11 @@
 """
 Unit tests on data
 """
-import pytest
 import numpy as np
 import pandas as pd
-from adtk.data import validate_series
+import pytest
 
+from adtk.data import validate_series
 
 rand = np.random.RandomState(123)
 

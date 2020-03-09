@@ -5,20 +5,19 @@ i.e. from pandas DataFrame.
 """
 
 from collections import Counter
+from typing import Any, Callable, Dict, Optional, Tuple
 
 import pandas as pd
 
-from ..aggregator import AndAggregator
 from .._detector_base import _TrainableMultivariateDetector
+from ..aggregator import AndAggregator
 from ..detector import InterQuartileRangeAD, ThresholdAD
-from ..pipe import Pipenet, Pipeline
+from ..pipe import Pipeline, Pipenet
 from ..transformer import (
     CustomizedTransformer1D,
-    RegressionResidual,
     PcaReconstructionError,
+    RegressionResidual,
 )
-
-from typing import Dict, Any, Tuple, Optional, Callable
 
 
 class CustomizedDetectorHD(_TrainableMultivariateDetector):

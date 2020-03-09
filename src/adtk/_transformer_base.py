@@ -1,10 +1,12 @@
 from typing import Union
+
 import pandas as pd
+
 from ._base import (
-    _NonTrainableUnivariateModel,
-    _TrainableUnivariateModel,
     _NonTrainableMultivariateModel,
+    _NonTrainableUnivariateModel,
     _TrainableMultivariateModel,
+    _TrainableUnivariateModel,
 )
 
 

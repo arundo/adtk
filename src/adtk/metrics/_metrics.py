@@ -1,13 +1,12 @@
 """Module for metrics that scores predicted anomaly list against ground truth.
 """
 
+from typing import Dict, List, Tuple, Union, overload
+
 import pandas as pd
 
 from ..aggregator import AndAggregator, OrAggregator
 from ..data import validate_events
-
-
-from typing import Dict, List, Tuple, Union, overload
 
 
 @overload

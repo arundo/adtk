@@ -3,15 +3,17 @@
 We only test detectors with return_list=False, because return_list=True is
 effectively tested by test_list_label_convert.py
 """
-from packaging.version import parse
 from math import isnan
-import pytest
+
 import numpy as np
 import pandas as pd
+import pytest
+from packaging.version import parse
 from sklearn.svm import SVR
+
 import adtk.detector as detector
-from adtk._utils import PandasBugError
 from adtk._base import _TrainableModel
+from adtk._utils import PandasBugError
 
 nan = float("nan")
 
@@ -449,4 +451,3 @@ def test_autoregressive_ad_dataframe():
 
     a = model.fit_detect(df)
     pd.testing.assert_frame_equal(a, a_true, check_dtype=False)
-
