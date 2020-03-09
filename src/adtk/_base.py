@@ -65,6 +65,7 @@ class _TrainableModel(_Model):
     "Base class of models that need training."
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
         # 0 for not fitted, 1 for fitted, 2 for univariate model fitted by DF
         self._fitted = 0  # type: int
 
@@ -144,7 +145,7 @@ class _NonTrainableUnivariateModel(_NonTrainableModel):
 
 class _TrainableUnivariateModel(_TrainableModel):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self._models = dict()  # type: Dict[str, _TrainableUnivariateModel]
 
     def _fit(self, ts: Union[pd.Series, pd.DataFrame]) -> None:
@@ -267,6 +268,10 @@ class _NonTrainableMultivariateModel(_NonTrainableModel):
 
 
 class _TrainableMultivariateModel(_TrainableModel):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._cols = []
+
     def _fit(self, df: pd.DataFrame) -> None:
         if isinstance(df, pd.DataFrame):
             if df.columns.duplicated().any():
@@ -277,6 +282,7 @@ class _TrainableMultivariateModel(_TrainableModel):
             self._fit_core(df_copy)
         else:
             raise TypeError("Input must be a pandas DataFrame.")
+        self._cols = list(df.columns)
         self._fitted = 1
 
     def _predict(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
@@ -287,7 +293,14 @@ class _TrainableMultivariateModel(_TrainableModel):
                 raise ValueError(
                     "Input DataFrame must have unique column names."
                 )
-            df_copy = df.copy()
+            if not (set(df.columns) >= set(self._cols)):
+                raise ValueError(
+                    "The model was trained by a pandas DataFrame with columns "
+                    "{}, but the input DataFrame does not contain columns {}.".format(
+                        self._cols, list(set(self._cols) - set(df.columns))
+                    )
+                )
+            df_copy = df.loc[:, self._cols].copy()
             predicted = self._predict_core(df_copy)
         else:
             raise TypeError("Input must be a pandas DataFrame.")
