@@ -2,7 +2,6 @@
 
 from ._data import (
     expand_events,
-    resample,
     split_train_test,
     to_events,
     to_labels,
@@ -16,6 +15,5 @@ __all__ = [
     "to_labels",
     "expand_events",
     "validate_events",
-    "resample",
     "split_train_test",
 ]
