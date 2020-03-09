@@ -35,13 +35,17 @@ Please open a new issue. For questions, please use label **question**. For sugge
 Formatter and linter
 ====================
 `Black <https://black.readthedocs.io/en/stable/>`_ v19.3b0 is the required formatter of ADTK.
-You may install it along with ADTK using extra **dev**.
+We required **79** characters as maximal line length in ADTK, which is different to the default value in Black.
+A configuration file `pyproject.toml` is included with this setting.
+
+`isort <https://timothycrosley.github.io/isort/>`_ v4.3.21 is also required to sort imports in ADTK.
+A black-compatible configuration is included in `.isort.cfg`.
+
+You may install the required version of `Black` and `isort` along with ADTK using extra **dev**.
 
 .. code-block:: console
 
     $ pip install adtk[dev]
-
-We required **79** characters as maximal line length in ADTK, which is different to the default value in Black. Please make sure to set it up using Black option ``--line-length``.
 
 We recommend `Pylint <https://www.pylint.org/>`_ and/or `flask8 <http://flake8.pycqa.org/en/latest/>`_ as the Python linter.
 
