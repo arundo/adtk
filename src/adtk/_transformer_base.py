@@ -9,7 +9,7 @@ from ._base import (
 
 
 class _NonTrainableUnivariateTransformer(_NonTrainableUnivariateModel):
-    def transform(
+    def predict(
         self, ts: Union[pd.Series, pd.DataFrame]
     ) -> Union[pd.Series, pd.DataFrame]:
         """Transform time series.
@@ -29,7 +29,7 @@ class _NonTrainableUnivariateTransformer(_NonTrainableUnivariateModel):
         """
         return self._predict(ts)
 
-    predict = transform
+    transform = predict
 
 
 class _TrainableUnivariateTransformer(_TrainableUnivariateModel):
@@ -46,7 +46,7 @@ class _TrainableUnivariateTransformer(_TrainableUnivariateModel):
         """
         self._fit(ts)
 
-    def transform(
+    def predict(
         self, ts: Union[pd.Series, pd.DataFrame]
     ) -> Union[pd.Series, pd.DataFrame]:
         """Transform time series.
@@ -71,7 +71,7 @@ class _TrainableUnivariateTransformer(_TrainableUnivariateModel):
         """
         return self._predict(ts)
 
-    def fit_transform(
+    def fit_predict(
         self, ts: Union[pd.Series, pd.DataFrame]
     ) -> Union[pd.Series, pd.DataFrame]:
         """Train the transformer, and tranform the time series used for
@@ -94,12 +94,12 @@ class _TrainableUnivariateTransformer(_TrainableUnivariateModel):
         self.fit(ts)
         return self.predict(ts)
 
-    predict = transform
-    fit_predict = fit_transform
+    transform = predict
+    fit_transform = fit_predict
 
 
 class _NonTrainableMultivariateTransformer(_NonTrainableMultivariateModel):
-    def transform(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
+    def predict(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
         """Transform time series.
 
         Parameters
@@ -115,7 +115,7 @@ class _NonTrainableMultivariateTransformer(_NonTrainableMultivariateModel):
         """
         return self._predict(df)
 
-    predict = transform
+    transform = predict
 
 
 class _TrainableMultivariateTransformer(_TrainableMultivariateModel):
@@ -130,7 +130,7 @@ class _TrainableMultivariateTransformer(_TrainableMultivariateModel):
         """
         self._fit(df)
 
-    def transform(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
+    def predict(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
         """Transform time series.
 
         Parameters
@@ -146,9 +146,7 @@ class _TrainableMultivariateTransformer(_TrainableMultivariateModel):
         """
         return self._predict(df)
 
-    def fit_transform(
-        self, df: pd.DataFrame
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def fit_predict(self, df: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
         """Train the transformer, and tranform the time series used for
         training.
 
@@ -166,5 +164,5 @@ class _TrainableMultivariateTransformer(_TrainableMultivariateModel):
         self.fit(df)
         return self.predict(df)
 
-    predict = transform
-    fit_predict = fit_transform
+    transform = predict
+    fit_transform = fit_predict

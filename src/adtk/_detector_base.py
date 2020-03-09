@@ -10,7 +10,7 @@ from .metrics import recall, precision, f1_score, iou
 
 
 class _NonTrainableUnivariateDetector(_NonTrainableUnivariateModel):
-    def detect(
+    def predict(
         self, ts: Union[pd.Series, pd.DataFrame], return_list: bool = False
     ) -> Union[
         pd.Series,
@@ -54,7 +54,7 @@ class _NonTrainableUnivariateDetector(_NonTrainableUnivariateModel):
         else:
             return detected
 
-    predict = detect
+    detect = predict
 
     def score(
         self,
@@ -149,7 +149,7 @@ class _TrainableUnivariateDetector(_TrainableUnivariateModel):
         """
         self._fit(ts)
 
-    def detect(
+    def predict(
         self, ts: Union[pd.Series, pd.DataFrame], return_list: bool = False
     ) -> Union[
         pd.Series,
@@ -200,7 +200,7 @@ class _TrainableUnivariateDetector(_TrainableUnivariateModel):
         else:
             return detected
 
-    def fit_detect(
+    def fit_predict(
         self, ts: Union[pd.Series, pd.DataFrame], return_list: bool = False
     ) -> Union[
         pd.Series,
@@ -245,8 +245,8 @@ class _TrainableUnivariateDetector(_TrainableUnivariateModel):
         self.fit(ts)
         return self.detect(ts, return_list=return_list)
 
-    predict = detect
-    fit_predict = fit_detect
+    detect = predict
+    fit_detect = fit_predict
 
     def score(
         self,
@@ -446,7 +446,7 @@ class _TrainableMultivariateDetector(_TrainableMultivariateModel):
         """
         self._fit(df)
 
-    def detect(
+    def predict(
         self, df: pd.DataFrame, return_list: bool = False
     ) -> Union[
         pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
@@ -479,7 +479,7 @@ class _TrainableMultivariateDetector(_TrainableMultivariateModel):
         else:
             return detected
 
-    def fit_detect(
+    def fit_predict(
         self, df: pd.DataFrame, return_list: bool = False
     ) -> Union[
         pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
@@ -510,8 +510,8 @@ class _TrainableMultivariateDetector(_TrainableMultivariateModel):
         self.fit(df)
         return self.detect(df, return_list=return_list)
 
-    predict = detect
-    fit_predict = fit_detect
+    detect = predict
+    fit_detect = fit_predict
 
     def score(
         self,
