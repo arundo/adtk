@@ -13,9 +13,8 @@ def test_split_series():
     """
     s = pd.Series(range(100))
 
-    ts_train, ts_test = split_train_test(
-        s, mode=1, n_splits=4, train_ratio=0.8
-    )
+    splits = split_train_test(s, mode=1, n_splits=4, train_ratio=0.8)
+    ts_train, ts_test = zip(*splits)
     assert all(
         x.equals(y)
         for x, y in zip(
@@ -30,9 +29,8 @@ def test_split_series():
         )
     )
 
-    ts_train, ts_test = split_train_test(
-        s, mode=2, n_splits=4, train_ratio=0.8
-    )
+    splits = split_train_test(s, mode=2, n_splits=4, train_ratio=0.8)
+    ts_train, ts_test = zip(*splits)
     assert all(
         x.equals(y)
         for x, y in zip(
@@ -46,9 +44,8 @@ def test_split_series():
         )
     )
 
-    ts_train, ts_test = split_train_test(
-        s, mode=3, n_splits=4, train_ratio=0.8
-    )
+    splits = split_train_test(s, mode=3, n_splits=4, train_ratio=0.8)
+    ts_train, ts_test = zip(*splits)
     assert all(
         x.equals(y)
         for x, y in zip(
@@ -62,9 +59,8 @@ def test_split_series():
         )
     )
 
-    ts_train, ts_test = split_train_test(
-        s, mode=4, n_splits=4, train_ratio=0.8
-    )
+    splits = split_train_test(s, mode=4, n_splits=4, train_ratio=0.8)
+    ts_train, ts_test = zip(*splits)
     assert all(
         x.equals(y)
         for x, y in zip(
@@ -86,9 +82,8 @@ def test_split_dataframe():
     s = pd.Series(range(100))
     df = pd.DataFrame({"A": s, "B": s})
 
-    ts_train, ts_test = split_train_test(
-        df, mode=1, n_splits=4, train_ratio=0.8
-    )
+    splits = split_train_test(df, mode=1, n_splits=4, train_ratio=0.8)
+    ts_train, ts_test = zip(*splits)
     assert all(
         np.array_equal(x.values, y.values)
         for x, y in zip(
@@ -104,9 +99,8 @@ def test_split_dataframe():
         )
     )
 
-    ts_train, ts_test = split_train_test(
-        df, mode=2, n_splits=4, train_ratio=0.8
-    )
+    splits = split_train_test(df, mode=2, n_splits=4, train_ratio=0.8)
+    ts_train, ts_test = zip(*splits)
     assert all(
         np.array_equal(x.values, y.values)
         for x, y in zip(
@@ -121,9 +115,8 @@ def test_split_dataframe():
         )
     )
 
-    ts_train, ts_test = split_train_test(
-        df, mode=3, n_splits=4, train_ratio=0.8
-    )
+    splits = split_train_test(df, mode=3, n_splits=4, train_ratio=0.8)
+    ts_train, ts_test = zip(*splits)
     assert all(
         np.array_equal(x.values, y.values)
         for x, y in zip(
@@ -138,9 +131,8 @@ def test_split_dataframe():
         )
     )
 
-    ts_train, ts_test = split_train_test(
-        df, mode=4, n_splits=4, train_ratio=0.8
-    )
+    splits = split_train_test(df, mode=4, n_splits=4, train_ratio=0.8)
+    ts_train, ts_test = zip(*splits)
     assert all(
         np.array_equal(x.values, y.values)
         for x, y in zip(
@@ -152,65 +144,4 @@ def test_split_dataframe():
         for x, y in zip(
             ts_test, [df.iloc[20:], df.iloc[40:], df.iloc[60:], df.iloc[80:]]
         )
-    )
-
-
-def test_split_train_test_names():
-    """
-    test output series names or column names
-    """
-    s = pd.Series(range(100))
-
-    ts_train, ts_test = split_train_test(
-        s, mode=1, n_splits=4, train_ratio=0.8
-    )
-    assert all(
-        [
-            s_train.name == "train_{}".format(i)
-            for i, s_train in enumerate(ts_train)
-        ]
-    )
-    assert all(
-        [
-            s_test.name == "test_{}".format(i)
-            for i, s_test in enumerate(ts_test)
-        ]
-    )
-
-    ts_train, ts_test = split_train_test(
-        s.rename("C"), mode=1, n_splits=4, train_ratio=0.8
-    )
-    assert all(
-        [
-            s_train.name == "C_train_{}".format(i)
-            for i, s_train in enumerate(ts_train)
-        ]
-    )
-    assert all(
-        [
-            s_test.name == "C_test_{}".format(i)
-            for i, s_test in enumerate(ts_test)
-        ]
-    )
-
-    ts_train, ts_test = split_train_test(
-        pd.DataFrame({"A": s, "B": s}), mode=1, n_splits=4, train_ratio=0.8
-    )
-    assert all(
-        [
-            all(
-                df_train.columns
-                == ["A_train_{}".format(i), "B_train_{}".format(i)]
-            )
-            for i, df_train in enumerate(ts_train)
-        ]
-    )
-    assert all(
-        [
-            all(
-                df_test.columns
-                == ["A_test_{}".format(i), "B_test_{}".format(i)]
-            )
-            for i, df_test in enumerate(ts_test)
-        ]
     )
