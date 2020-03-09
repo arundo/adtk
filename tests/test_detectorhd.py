@@ -1,14 +1,16 @@
 """Test HD detectors on some simple cases."""
-import pytest
 from math import isnan
+
 import numpy as np
 import pandas as pd
-from adtk._base import _TrainableModel
-import adtk.detector as detector
+import pytest
 from sklearn.cluster import KMeans
-from sklearn.neighbors import LocalOutlierFactor
 from sklearn.ensemble import IsolationForest
 from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import LocalOutlierFactor
+
+import adtk.detector as detector
+from adtk._base import _TrainableModel
 
 nan = float("nan")
 

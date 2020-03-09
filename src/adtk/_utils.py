@@ -2,7 +2,7 @@
 
 """
 
-from typing import Dict, Type, Optional
+from typing import Dict, Optional, Type
 
 
 def _get_all_subclasses_from_superclass(

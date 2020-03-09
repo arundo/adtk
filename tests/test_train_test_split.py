@@ -1,8 +1,9 @@
 """
 Unit tests on train-test split
 """
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 from adtk.data import split_train_test
 
 
@@ -213,4 +214,3 @@ def test_split_train_test_names():
             for i, df_test in enumerate(ts_test)
         ]
     )
-

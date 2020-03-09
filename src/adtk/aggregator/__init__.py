@@ -3,13 +3,11 @@
 An aggregator combines multiple lists of anomalies into one.
 
 """
-from ._aggregator import OrAggregator, AndAggregator, CustomizedAggregator
-
-
-from .._utils import _get_all_subclasses_from_superclass
-from .._aggregator_base import _Aggregator
-
 from typing import Dict, Optional
+
+from .._aggregator_base import _Aggregator
+from .._utils import _get_all_subclasses_from_superclass
+from ._aggregator import AndAggregator, CustomizedAggregator, OrAggregator
 
 
 def print_all_models() -> None:

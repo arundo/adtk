@@ -1,5 +1,7 @@
-from typing import Union, List, Dict, Tuple
+from typing import Dict, List, Tuple, Union
+
 import pandas as pd
+
 from ._base import _NonTrainableModel
 
 

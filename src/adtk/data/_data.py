@@ -3,11 +3,10 @@
 
 from functools import reduce
 from math import gcd
+from typing import Dict, List, Optional, Tuple, Union, overload
 
 import numpy as np
 import pandas as pd
-
-from typing import List, Union, Tuple, Dict, Optional, overload
 
 
 def validate_series(

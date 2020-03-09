@@ -6,6 +6,8 @@ the original time series.
 
 """
 
+from typing import Any, Callable, Dict, Optional, Tuple, Union
+
 import pandas as pd
 from sklearn.decomposition import PCA
 
@@ -13,9 +15,6 @@ from .._transformer_base import (
     _NonTrainableMultivariateTransformer,
     _TrainableMultivariateTransformer,
 )
-
-
-from typing import Union, Dict, Any, Optional, Tuple, Callable
 
 
 class CustomizedTransformerHD(_TrainableMultivariateTransformer):

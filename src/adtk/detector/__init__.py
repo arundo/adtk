@@ -3,34 +3,31 @@
 A detector detects anomalous time points from time series.
 
 """
+from .._detector_base import (  # _NonTrainableMultivariateDetector,
+    _NonTrainableUnivariateDetector,
+    _TrainableMultivariateDetector,
+    _TrainableUnivariateDetector,
+)
+from .._utils import _get_all_subclasses_from_superclass
 from ._detector_1d import (
-    ThresholdAD,
-    QuantileAD,
-    InterQuartileRangeAD,
-    GeneralizedESDTestAD,
-    PersistAD,
-    LevelShiftAD,
-    VolatilityShiftAD,
     AutoregressionAD,
-    SeasonalAD,
     CustomizedDetector1D,
+    GeneralizedESDTestAD,
+    InterQuartileRangeAD,
+    LevelShiftAD,
+    PersistAD,
+    QuantileAD,
+    SeasonalAD,
+    ThresholdAD,
+    VolatilityShiftAD,
 )
 from ._detector_hd import (
+    CustomizedDetectorHD,
     MinClusterDetector,
     OutlierDetector,
-    RegressionAD,
     PcaAD,
-    CustomizedDetectorHD,
+    RegressionAD,
 )
-from .._detector_base import (
-    _NonTrainableUnivariateDetector,
-    # _NonTrainableMultivariateDetector,
-    _TrainableUnivariateDetector,
-    _TrainableMultivariateDetector,
-)
-
-
-from .._utils import _get_all_subclasses_from_superclass
 
 
 def print_all_models() -> None:
