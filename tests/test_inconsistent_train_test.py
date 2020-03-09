@@ -20,7 +20,6 @@ models = [
     ),
     detector.RegressionAD(target="A", regressor=LinearRegression()),
     detector.PcaAD(),
-    transformer.SumAll(),
     transformer.RegressionResidual(target="A", regressor=LinearRegression()),
     transformer.PcaReconstructionError(),
     transformer.PcaProjection(),
@@ -53,6 +52,7 @@ def test_inconsistent_train_test(model):
     model.predict(df_test_ok)
 
     with pytest.raises(
-        ValueError, "The model was trained by a pandas DataFrame with columns"
+        ValueError,
+        match="The model was trained by a pandas DataFrame with columns",
     ):
         model.predict(df_test_not_ok)
