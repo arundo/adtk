@@ -99,6 +99,7 @@ Version 0.6.0-dev
     - `steps` in `adtk.pipe.Pipeline`
 
 - Re-designed the API of `adtk.visualization.plot` (0.6.0-dev.20-pr.80)
+- Added `Black` and `isort` to developer requirement and CI/CD check (0.6.0-dev.21-pr.88)
 
 Version 0.5.5 (Feb 24, 2020)
 ===================================
