@@ -300,7 +300,9 @@ class _TrainableMultivariateModel(_TrainableModel):
                         self._cols, list(set(self._cols) - set(df.columns))
                     )
                 )
-            df_copy = df.loc[:, self._cols].copy()
+            df_copy = (
+                df.loc[:, self._cols].copy() if self._cols else df.copy()
+            )  # in a customized hd model that doesn't need fit, self._cols is empty
             predicted = self._predict_core(df_copy)
         else:
             raise TypeError("Input must be a pandas DataFrame.")
