@@ -109,6 +109,7 @@ Version 0.5.5 (Feb 24, 2020)
 Version 0.5.4 (Feb 18, 2020)
 ===================================
 - Optimized the workflow of how a univariate model is applied to pandas DataFrame
+
     - Added more informative error messages
     - Fixed some bugs resulting in model-column matching error due to inconsistency between output Series names and DataFrame columns
     - Clarified the workflow in the documentation
