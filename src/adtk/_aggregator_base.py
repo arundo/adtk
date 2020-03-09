@@ -42,7 +42,7 @@ class _Aggregator(_NonTrainableModel):
             )
         return self._predict_core(lists)
 
-    def aggregate(
+    def predict(
         self,
         lists: Union[
             pd.DataFrame,
@@ -84,20 +84,4 @@ class _Aggregator(_NonTrainableModel):
         """
         return self._predict(lists)
 
-    def predict(
-        self,
-        lists: Union[
-            pd.DataFrame,
-            Dict[str, Union[pd.Series, pd.DataFrame]],
-            Dict[
-                str,
-                List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
-            ],
-        ],
-    ) -> Union[
-        pd.Series, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-    ]:
-        """
-        Alias of `aggregate`.
-        """
-        return self.aggregate(lists)
+    aggregate = predict
