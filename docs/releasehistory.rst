@@ -101,6 +101,7 @@ Version 0.6.0-dev
 - Re-designed the API of `adtk.visualization.plot` (0.6.0-dev.20-pr.80)
 - Added `Black` and `isort` to developer requirement and CI/CD check (0.6.0-dev.21-pr.88)
 - Added consistency check between training and testing inputs in multivariate models (0.6.0-dev.23+pr.89)
+- Improved time index check in time-dependent models (0.6.0-dev.24+pr.90)
 
 Version 0.5.5 (Feb 24, 2020)
 ===================================

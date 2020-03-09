@@ -6,7 +6,6 @@ original time series.
 
 """
 
-import warnings
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -217,11 +216,7 @@ class RollingAggregate(_NonTrainableUnivariateTransformer):
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
-            warnings.warn(
-                "Time series does not have a monotonic increasing time index. "
-                "Results from this model may be unreliable.",
-                UserWarning,
-            )
+            raise ValueError("Time series must have a monotonic time index. ")
 
         agg = self.agg
         agg_params = self.agg_params if (self.agg_params is not None) else {}
@@ -484,11 +479,7 @@ class DoubleRollingAggregate(_NonTrainableUnivariateTransformer):
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
-            warnings.warn(
-                "Time series does not have a monotonic increasing time index. "
-                "Results from this model may be unreliable.",
-                UserWarning,
-            )
+            raise ValueError("Time series must have a monotonic time index. ")
 
         agg = self.agg
         agg_params = self.agg_params if (self.agg_params is not None) else {}
@@ -692,11 +683,7 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
-            warnings.warn(
-                "Time series does not have a monotonic increasing time index. "
-                "Results from this model may be unreliable.",
-                UserWarning,
-            )
+            raise ValueError("Time series must have a monotonic time index. ")
         # remove starting and ending nans
         s = s.loc[s.first_valid_index() : s[::-1].first_valid_index()].copy()
         if pd.isna(s).any():
@@ -749,11 +736,7 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
-            warnings.warn(
-                "Time series does not have a monotonic increasing time index. "
-                "Results from this model may be unreliable.",
-                UserWarning,
-            )
+            raise ValueError("Time series must have a monotonic time index. ")
         # check if series freq is same
         if self._series_freq not in {s.index.freqstr, s.index.inferred_freq}:
             raise RuntimeError(
@@ -963,10 +946,11 @@ class Retrospect(_NonTrainableUnivariateTransformer):
         if not (
             s.index.is_monotonic_increasing or s.index.is_monotonic_decreasing
         ):
-            warnings.warn(
-                "Time series does not have a monotonic increasing time index. "
-                "Results from this model may be unreliable.",
-                UserWarning,
+            raise ValueError("Time series must have a monotonic time index. ")
+        if (s.index.freq is None) and (s.index.inferred_freq):
+            raise RuntimeError(
+                "Series does not follow any known frequency "
+                "(e.g. second, minute, hour, day, week, month, year, etc."
             )
         n_steps = self.n_steps
         till = self.till
