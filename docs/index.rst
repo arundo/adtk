@@ -16,9 +16,15 @@ with unified APIs, as well as pipe classes that connect them together into a
 model. It also provides some functions to process and visualize time series and
 anomaly events.
 
+.. include::
+   install.rst
+
+.. include::
+   quickstart.rst
+
 .. toctree::
    :caption: Table of Contents
-   :maxdepth: 2
+   :maxdepth: 1
 
    install
    quickstart

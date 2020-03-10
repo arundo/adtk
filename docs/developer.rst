@@ -4,9 +4,10 @@
 Contributing
 ************
 
+- `I have a question/suggestion`_
 - `I found a bug`_
 - `I want to develop a new detector/transformer/aggregator`_
-- `I have a question/suggestion`_
+- `The inheritance relationship between model classes is confusing`_
 - `Formatter and linter`_
 - `Unit test`_
 - `Documentation`_
@@ -14,6 +15,10 @@ Contributing
 - `How are branches and releases managed?`_
 
 ----------
+
+I have a question/suggestion
+============================
+Please open a new issue. For questions, please use label **question**. For suggestions, please use label **enhancement**.
 
 I found a bug
 =============
@@ -28,9 +33,11 @@ I want to develop a new detector/transformer/aggregator
 =======================================================
 Adding a new detector/transformer/aggregator is usually a task requiring a significant time commitment. Therefore, we want to discuss with you about the necessity of the proposed new component first. Please open a new issue with label **enhancement**. Please do NOT open a PR until the plan of implementation is discussed thoroughly.
 
-I have a question/suggestion
-============================
-Please open a new issue. For questions, please use label **question**. For suggestions, please use label **enhancement**.
+
+The inheritance relationship between model classes is confusing
+===============================================================
+Yes, it is somehow confusing, but we think it is logical and minimizes duplication of reusable code.
+You may see :ref:`inheritance` for the full relationship.
 
 Formatter and linter
 ====================
@@ -94,12 +101,15 @@ This is a guideline of managing branches and releases of ADTK.
 - ADTK is in major version zero currently (0.Y.Z), which indicates that the public API is unstable.
 - ADTK only supports one stable version. If the most recent release is 0.Y.Z, the previous versions (0.y.z | y < Y) are **NOT** supported.
 - Release versions
+
     - An increment of minor version Y (0.[Y+1].Z) introduces modifications that change the API, for example adding new features to existing models, adding new models, etc.
     - An increment of patch version Z (0.Y.[Z+1]) introduces modifications that do not change the API, for example bug fix, minor changes to documentation, etc.
     - A new version is released when a set of modifications are accumulated, depending on the importance of the new functionalities and urgency of the bug fix.
     - A release is published to `PyPI <https://pypi.org/project/adtk/>`_ and `GitHub <https://github.com/arundo/adtk/releases>`_.
     - The `stable documentation <https://arundo-adtk.readthedocs-hosted.com/en/stable/>`_ corresponds to the most recent release.
+
 - Pre-release versions
+
     - Every time a pull request is merged into branch **master** or **develop**, a new pre-release version is defined.
     - A pull request that changes the public API is versioned as (0.[Y+1].0-dev.N+pr.M), where N is a monotonic increasing index and M is the index of the pull request.
 
