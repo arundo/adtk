@@ -47,6 +47,47 @@ def test_expand_event_series_no_freq():
     )
 
 
+def test_expand_event_df_freq():
+    expanded_events = expand_events(
+        pd.concat(
+            [event_labels.rename("A"), event_labels.rename("B")], axis=1
+        ),
+        left_expand="1hour",
+        right_expand="1hour",
+        freq_as_period=True,
+    )
+    true_expanded_events = pd.Series(
+        [0, 1, 1, 1, 1, 1, 1, 1, nan, 0, 1, 1],
+        index=pd.date_range(start="2017-1-1", periods=12, freq="D"),
+    )
+    true_expanded_events = pd.concat(
+        [true_expanded_events.rename("A"), true_expanded_events.rename("B")],
+        axis=1,
+    )
+    pd.testing.assert_frame_equal(
+        true_expanded_events, expanded_events, check_dtype=False
+    )
+
+
+def test_expand_event_df_no_freq():
+    expanded_events = expand_events(
+        pd.concat(
+            [event_labels.rename("A"), event_labels.rename("B")], axis=1
+        ),
+        left_expand="1hour",
+        right_expand="1hour",
+        freq_as_period=False,
+    )
+
+    pd.testing.assert_frame_equal(
+        pd.concat(
+            [event_labels.rename("A"), event_labels.rename("B")], axis=1
+        ),
+        expanded_events,
+        check_dtype=False,
+    )
+
+
 def test_expand_event_list():
     expanded_events = expand_events(
         event_list, left_expand="1min", right_expand="3min"
