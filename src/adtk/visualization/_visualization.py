@@ -167,12 +167,16 @@ def plot(
         Default: 4.
 
     freq_as_period: bool, optional
-        Whether to treat time stamps following regular frequency as time
-        spans. E.g. time index [2010-01-01, 2010-02-01, 2010-03-01, 2010-04-01,
-        2010-05-01] follows monthly frequency, and each time stamp represents
-        that month if freq_as_period is True. Otherwsie, each time stamp
-        represents the time point 00:00:00 on the first day of that month. This
-        is only used when anomaly given as binary series.
+        Whether to regard time index with regular frequency (i.e. attribute
+        `freq` of time index is not None) as time intervals. Only used when
+        anomaly is given as binary series.
+
+        For example, DatetimeIndex(['2017-01-01', '2017-01-02', '2017-01-03',
+        '2017-01-04', '2017-01-05'], dtype='datetime64[ns]', freq='D') has
+        daily frequency. If freq_as_period=True, each time point in the index
+        represents that day (24 hours). Otherwsie, each time point represents
+        the instantaneous time instance of 00:00:00 on that day.
+
         Default: True.
 
     axes: matplotlib Axes object, or array of Axes objects, optional

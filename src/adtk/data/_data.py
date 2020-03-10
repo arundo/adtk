@@ -1,8 +1,6 @@
 """Module is for data (time series and anomaly list) processing.
 """
 
-from functools import reduce
-from math import gcd
 from typing import Dict, List, Optional, Tuple, Union, overload
 
 import numpy as np
@@ -228,8 +226,8 @@ def to_events(
         For example, DatetimeIndex(['2017-01-01', '2017-01-02', '2017-01-03',
         '2017-01-04', '2017-01-05'], dtype='datetime64[ns]', freq='D') has
         daily frequency. If freq_as_period=True, each time point in the index
-        represents that day. Otherwsie, each time point represents the
-        instantaneous time instance of 00:00:00 on that day.
+        represents that day (24 hours). Otherwsie, each time point represents
+        the instantaneous time instance of 00:00:00 on that day.
 
         Default: True.
 
@@ -313,6 +311,8 @@ def to_events(
                     for start, end in zip(starts[:, 0], ends[:, 0])
                 ]
     else:
+        if labels.columns.duplicated().any():
+            raise ValueError("Input DataFrame must have unique column names.")
         return {
             col: to_events(labels[col], freq_as_period, merge_consecutive)
             for col in labels.columns
@@ -373,10 +373,10 @@ def to_labels(
         '2017-01-04', '2017-01-05'], dtype='datetime64[ns]', freq='D') has
         daily frequency. If freq_as_period=True, each time piont represents
         that day, and that day will be marked positive if an event in the event
-        list overlaps with the period of that day. Otherwsie, each time point
-        represents the instantaneous time instance of 00:00:00 on that day, and
-        that time point will be marked positive if an event in the event list
-        covers it.
+        list overlaps with the period of that day (24 hours). Otherwsie, each
+        time point represents the instantaneous time instance of 00:00:00 on
+        that day, and that time point will be marked positive if an event in
+        the event list covers it.
 
         Default: True.
 
@@ -446,6 +446,7 @@ def expand_events(
     lists: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
     left_expand: Union[pd.Timedelta, str, int] = 0,
     right_expand: Union[pd.Timedelta, str, int] = 0,
+    freq_as_period: bool = True,
 ) -> List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]:
     ...
 
@@ -457,35 +458,64 @@ def expand_events(
     ],
     left_expand: Union[pd.Timedelta, str, int] = 0,
     right_expand: Union[pd.Timedelta, str, int] = 0,
+    freq_as_period: bool = True,
 ) -> Dict[str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]]:
     ...
 
 
+@overload
 def expand_events(
-    lists: Union[
+    lists: pd.Series,
+    left_expand: Union[pd.Timedelta, str, int] = 0,
+    right_expand: Union[pd.Timedelta, str, int] = 0,
+    freq_as_period: bool = True,
+) -> pd.Series:
+    ...
+
+
+@overload
+def expand_events(  # type:ignore
+    lists: pd.DataFrame,
+    left_expand: Union[pd.Timedelta, str, int] = 0,
+    right_expand: Union[pd.Timedelta, str, int] = 0,
+    freq_as_period: bool = True,
+) -> pd.DataFrame:
+    ...
+
+
+def expand_events(  # type:ignore
+    events: Union[
         List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
         Dict[
             str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
         ],
+        pd.Series,
+        pd.DataFrame,
     ],
     left_expand: Union[pd.Timedelta, str, int] = 0,
     right_expand: Union[pd.Timedelta, str, int] = 0,
+    freq_as_period: bool = True,
 ) -> Union[
     List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]],
     Dict[str, List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]],
+    pd.Series,
+    pd.DataFrame,
 ]:
-    """Expand time windows in an event list.
+    """Expand duration of events.
 
     Parameters
     ----------
-    lists: list or dict
-        A list of events, or a dict of lists of events.
+    events: list, dict, pandas Series, or pandas DataFrame
+        Events to be expanded.
 
         - If list, a list of events where an event is a pandas Timestamp if it
           is instantaneous or a 2-tuple of pandas Timestamps if it is a closed
           time interval.
         - If dict, each key-value pair represents an independent list of
           events.
+        - If pandas Series, it is binary where 1 represents events cover this
+          time point.
+        - If pandas DataFrame, each column is treated as an independent Series.
 
     left_expand: pandas Timedelta, str, or int, optional
         Time range to expand backward.
@@ -505,9 +535,22 @@ def expand_events(
 
         Default: 0.
 
+    freq_as_period: bool, optional
+        Whether to regard time index with regular frequency (i.e. attribute
+        `freq` of time index is not None) as time intervals. Only used when
+        input events is pandas Series or DataFrame.
+
+        For example, DatetimeIndex(['2017-01-01', '2017-01-02', '2017-01-03',
+        '2017-01-04', '2017-01-05'], dtype='datetime64[ns]', freq='D') has
+        daily frequency. If freq_as_period=True, each time point in the index
+        represents that day (24 hours). Otherwsie, each time point represents
+        the instantaneous time instance of 00:00:00 on that day.
+
+        Default: True.
+
     Returns
     -------
-    list or dict
+    list, dict, pandas Series, or pandas DataFrame
         Expanded events.
 
     """
@@ -517,24 +560,59 @@ def expand_events(
     if not isinstance(right_expand, pd.Timedelta):
         right_expand = pd.Timedelta(right_expand)
 
-    if isinstance(lists, list):
-        expanded = (
+    if isinstance(events, pd.Series):
+        labels = validate_series(events)  # type: pd.Series
+        lists = to_events(
+            labels, freq_as_period=freq_as_period
+        )  # type:List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        expanded_lists = expand_events(  # type:ignore
+            events=lists, left_expand=left_expand, right_expand=right_expand
+        )  # type:List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
+        expanded_labels = to_labels(
+            lists=expanded_lists,
+            time_index=labels.index,
+            freq_as_period=freq_as_period,
+        )  # type: pd.Series
+        expanded_labels.loc[
+            (expanded_labels == False) & (labels.isna())
+        ] = float("nan")
+        expanded_labels = expanded_labels.rename(labels.name)
+        expanded_labels.index = labels.index
+        return expanded_labels
+    elif isinstance(events, pd.DataFrame):
+        expanded_df = pd.concat(
+            [
+                expand_events(
+                    s,
+                    left_expand=left_expand,
+                    right_expand=right_expand,
+                    freq_as_period=freq_as_period,
+                )
+                for _, s in events.iteritems()
+            ],
+            axis=1,
+        )  # type: pd.DataFrame
+        return expanded_df
+    elif isinstance(events, list):
+        expanded_list = (
             []
         )  # type: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-        for ano in lists:
+        for ano in events:
             if isinstance(ano, tuple):
-                expanded.append((ano[0] - left_expand, ano[1] + right_expand))
+                expanded_list.append(
+                    (ano[0] - left_expand, ano[1] + right_expand)
+                )
             else:
-                expanded.append((ano - left_expand, ano + right_expand))
-        expanded = validate_events(expanded)
-        return expanded
-    elif isinstance(lists, dict):
+                expanded_list.append((ano - left_expand, ano + right_expand))
+        expanded_list = validate_events(expanded_list)
+        return expanded_list
+    elif isinstance(events, dict):
         return {
             key: expand_events(value, left_expand, right_expand)
-            for key, value in lists.items()
+            for key, value in events.items()
         }
     else:
-        raise TypeError("Arugment `lists` must be a list or a dict of lists.")
+        raise TypeError("Arugment `events` must be a list or a dict of lists.")
 
 
 def split_train_test(

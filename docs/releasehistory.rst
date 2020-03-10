@@ -104,6 +104,7 @@ Version 0.6.0-dev
 - Improved time index check in time-dependent models (0.6.0-dev.24+pr.90, 0.6.0-dev.25+pr.91)
 - Changed the output type of `adtk.data.split_train_test` from a 2-tuple of lists to a list of 2-tuples (0.6.0-dev.26+pr.92)
 - Removed `adtk.data.resample` because its functionality is highly overlapped with pandas resampler module (0.6.0-dev.27+pr.93)
+- Made `adtk.data.expand_event` accept events as pandas Series/DataFrame (0.6.0-dev.28-pr.94)
 
 Version 0.5.5 (Feb 24, 2020)
 ===================================
