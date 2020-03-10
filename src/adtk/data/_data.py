@@ -568,19 +568,22 @@ def expand_events(  # type:ignore
             labels, freq_as_period=freq_as_period
         )  # type:List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
         expanded_lists = expand_events(
-            lists=lists, left_expand=left_expand, right_expand=right_expand
+            events=lists, left_expand=left_expand, right_expand=right_expand
         )  # type:List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
         expanded_labels = to_labels(
             lists=expanded_lists,
             time_index=labels.index,
             freq_as_period=freq_as_period,
         )  # type: pd.Series
+        expanded_labels.loc[
+            (expanded_labels == False) & (labels.isna())
+        ] = float("nan")
+        expanded_labels.index = labels.index
         return expanded_labels
     elif isinstance(events, pd.DataFrame):
         expanded_df = pd.concat(
             [expand_events(s) for _, s in events.iteritems()], axis=1
         )  # type: pd.DataFrame
-        expanded_df.index = events.index
         return expanded_df
     elif isinstance(events, list):
         expanded_list = (
