@@ -2,6 +2,10 @@
 Release History
 ***************
 
+Version 0.6.1-dev
+===================================
+- Fixed some dead links in the documentation (0.6.1-dev.1+pr.97)
+
 Version 0.6.0 (Mar 10, 2020)
 ===================================
 - Re-designed the API of :py:mod:`adtk.visualization.plot`
