@@ -2,109 +2,52 @@
 Release History
 ***************
 
-Version 0.6.0-dev
+Version 0.6.0 (Mar 10, 2020)
 ===================================
-- Support `str` and `int` as time delta for the input arguments in functions `expand_events` and `resample` in the data module (0.6.0-dev.1+pr.39)
-- Added an example of DoubleRollingAggregate with different window sizes to the documentation (0.6.0-dev.5+pr.43)
-- Optimized release process by publishing package to PyPI through GitHub Actions (0.6.0-dev.7+pr.54, 0.6.0-dev.8+pr.56, 0.6.0-dev.9+pr.57, 0.6.0-dev.10+pr.58)
-- Created an interactive demo notebook in Binder (0.6.0-dev.12+pr.64)
-- Fixed compatibility issues with statsmodels v0.11 (0.6.0-dev.15+pr.72)
-- Fixed compatibility issues with pandas v1.0 (0.6.0-dev.16+pr.73)
-- Added Python 3.8 support (0.6.0-dev.17+pr.74)
-- Added type hints, and added type checking in CI/CD test (0.6.0-dev.19+pr.79)
-- Refactored the inheritance structure (0.6.0-dev.19-pr.79)
+- Re-designed the API of :py:mod:`adtk.visualization.plot`
+- Removed :py:mod:`adtk.data.resample` because its functionality is highly overlapped with pandas resampler module
+- Made :py:mod:`adtk.data.expand_event` accept events in the form of pandas Series/DataFrame
+- Made :py:mod:`adtk.data.expand_event` accept time delta in the form of `str` or `int`
+- Changed the output type of :py:mod:`adtk.data.split_train_test` from a 2-tuple of lists to a list of 2-tuples
+- Turned the following model parameters required from optional
 
-    .. code-block:: console
+    - `window` in :py:mod:`adtk.detector.LevelShiftAD`
+    - `window` in :py:mod:`adtk.detector.VolatilityShiftAD`
+    - `window` in :py:mod:`adtk.transformer.RollingAggregate`
+    - `window` in :py:mod:`adtk.transformer.DoubleRollingAggregate`
+    - `model` in :py:mod:`adtk.detector.MinClusterDetector`
+    - `model` in :py:mod:`adtk.detector.OutlierDetector`
+    - `target` and `regressor` in :py:mod:`adtk.detector.RegressionAD`
+    - `target` and `regressor` in :py:mod:`adtk.transformer.RegressionResidual`
+    - `aggregate_func` in :py:mod:`adtk.aggregator.CustomizedAggregator`
+    - `detect_func` in :py:mod:`adtk.detector.CustomizedDetector1D`
+    - `detect_func` in :py:mod:`adtk.detector.CustomizedDetectorHD`
+    - `transform_func` in :py:mod:`adtk.transformer.CustomizedTransformer1D`
+    - `transform_func` in :py:mod:`adtk.detector.CustomizedTransformer1D`
+    - `steps` in :py:mod:`adtk.pipe.Pipeline`
 
-        _Model
-            |-- _NonTrainableModel
-            |       |-- _NonTrainableUnivariateModel
-            |       |       |-- _NonTrainableUnivariateDetector
-            |       |       |       |-- ThresholdAD
-            |       |       |
-            |       |       |-- _NonTrainableUnivariateTransformer
-            |       |               |-- RollingAggregate
-            |       |               |-- DoubleRollingAggregate
-            |       |               |-- Retrospect
-            |       |               |-- StandardScale
-            |       |
-            |       |-- _NonTrainableMultivariateModel
-            |               |-- _NonTrainableMultivariateTransformer
-            |                       |-- SumAll
-            |
-            |-- _TrainableModel
-            |       |-- _TrainableUnivariateModel
-            |       |       |-- _TrainableUnivariateDetector
-            |       |       |       |-- QuantileAD
-            |       |       |       |-- InterQuartileRangeAD
-            |       |       |       |-- GeneralizedESDTestAD
-            |       |       |       |-- PersistAD
-            |       |       |       |-- LevelShiftAD
-            |       |       |       |-- VolatilityShiftAD
-            |       |       |       |-- SeasonalAD
-            |       |       |       |-- AutoregressionAD
-            |       |       |       |-- CustomizedDetector1D
-            |       |       |
-            |       |       |-- _TrainableUnivariateTransformer
-            |       |               |-- ClassicSeasonalDecomposition
-            |       |               |-- CustomizedTransformer1D
-            |       |
-            |       |-- _TrainableMultivariateModel
-            |               |-- _TrainableMultivariateDetector
-            |               |       |-- MinClusterDetector
-            |               |       |-- OutlierDetector
-            |               |       |-- RegressionAD
-            |               |       |-- PcaAD
-            |               |       |-- CustomizedDetectorHD
-            |               |
-            |               |-- _TrainableMultivariateTransformer
-            |                       |-- RegressionResidual
-            |                       |-- PcaProjection
-            |                       |-- PcaReconstruction
-            |                       |-- PcaReconstructionError
-            |                       |-- CustomizedTransformerHD
-            |
-            |-- _Aggregator
-                    |-- AndAggregator
-                    |-- OrAggregator
-                    |-- CustomizedAggregator
+- Added consistency check between training and testing inputs in multivariate models
+- Improved time index check in time-dependent models
+- Turned all second-order sub-modules private, and a user now can only import from the following first-order modules
 
-- We made all second-order sub-modules private and user now can only import from first-order modules (0.6.0-dev.19-pr.79)
+    - :py:mod:`adtk.detector`
+    - :py:mod:`adtk.transformer`
+    - :py:mod:`adtk.aggregator`
+    - :py:mod:`adtk.pipe`
+    - :py:mod:`adtk.data`
+    - :py:mod:`adtk.metrics`
+    - :py:mod:`adtk.visualization`
 
-    - adtk.detector
-    - adtk.transformer
-    - adtk.aggregator
-    - adtk.pipe
-    - adtk.data
-    - adtk.metrics
-    - adtk.visualization
-
-- Improved docstrings and API documentation (0.6.0-dev.19-pr.79)
-- Fixed minor bugs and typos (0.6.0-dev.19-pr.79)
-- Turned some parameters in some models required (0.6.0-dev.19-pr.79)
-
-    - `window` in `adtk.detector.LevelShiftAD`
-    - `window` in `adtk.detector.VolatilityShiftAD`
-    - `window` in `adtk.transformer.RollingAggregate`
-    - `window` in `adtk.transformer.DoubleRollingAggregate`
-    - `model` in `adtk.detector.MinClusterDetector`
-    - `model` in `adtk.detector.OutlierDetector`
-    - `target` and `regressor` in `adtk.detector.RegressionAD`
-    - `target` and `regressor` in `adtk.transformer.RegressionResidual`
-    - `aggregate_func` in `adtk.aggregator.CustomizedAggregator`
-    - `detect_func` in `adtk.detector.CustomizedDetector1D`
-    - `detect_func` in `adtk.detector.CustomizedDetectorHD`
-    - `transform_func` in `adtk.transformer.CustomizedTransformer1D`
-    - `transform_func` in `adtk.detector.CustomizedTransformer1D`
-    - `steps` in `adtk.pipe.Pipeline`
-
-- Re-designed the API of `adtk.visualization.plot` (0.6.0-dev.20-pr.80)
-- Added `Black` and `isort` to developer requirement and CI/CD check (0.6.0-dev.21-pr.88)
-- Added consistency check between training and testing inputs in multivariate models (0.6.0-dev.23+pr.89)
-- Improved time index check in time-dependent models (0.6.0-dev.24+pr.90, 0.6.0-dev.25+pr.91)
-- Changed the output type of `adtk.data.split_train_test` from a 2-tuple of lists to a list of 2-tuples (0.6.0-dev.26+pr.92)
-- Removed `adtk.data.resample` because its functionality is highly overlapped with pandas resampler module (0.6.0-dev.27+pr.93)
-- Made `adtk.data.expand_event` accept events as pandas Series/DataFrame (0.6.0-dev.28-pr.94)
+- Refactored the inheritance structure of model components (see :ref:`inheritance`)
+- Added Python 3.8 support
+- Fixed compatibility issues with statsmodels v0.11
+- Fixed compatibility issues with pandas v1.0
+- Created an interactive demo notebook in Binder
+- Added type hints, and added type checking in CI/CD test
+- Added `Black` and `isort` to developer requirement and CI/CD check
+- Optimized release process by publishing package to PyPI through GitHub Actions
+- Improved docstrings and API documentation
+- Fixed many minor bugs and typos
 
 Version 0.5.5 (Feb 24, 2020)
 ===================================
