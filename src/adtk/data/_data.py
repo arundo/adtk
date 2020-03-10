@@ -1,8 +1,6 @@
 """Module is for data (time series and anomaly list) processing.
 """
 
-from functools import reduce
-from math import gcd
 from typing import Dict, List, Optional, Tuple, Union, overload
 
 import numpy as np
@@ -567,7 +565,7 @@ def expand_events(  # type:ignore
         lists = to_events(
             labels, freq_as_period=freq_as_period
         )  # type:List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-        expanded_lists = expand_events(
+        expanded_lists = expand_events(  # type:ignore
             events=lists, left_expand=left_expand, right_expand=right_expand
         )  # type:List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
         expanded_labels = to_labels(
