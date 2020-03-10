@@ -578,11 +578,21 @@ def expand_events(  # type:ignore
         expanded_labels.loc[
             (expanded_labels == False) & (labels.isna())
         ] = float("nan")
+        expanded_labels = expanded_labels.rename(labels.name)
         expanded_labels.index = labels.index
         return expanded_labels
     elif isinstance(events, pd.DataFrame):
         expanded_df = pd.concat(
-            [expand_events(s) for _, s in events.iteritems()], axis=1
+            [
+                expand_events(
+                    s,
+                    left_expand=left_expand,
+                    right_expand=right_expand,
+                    freq_as_period=freq_as_period,
+                )
+                for _, s in events.iteritems()
+            ],
+            axis=1,
         )  # type: pd.DataFrame
         return expanded_df
     elif isinstance(events, list):
