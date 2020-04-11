@@ -676,11 +676,11 @@ class LevelShiftAD(_TrainableUnivariateDetector):
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
             )
         self.pipe_.steps["diff_abs"]["model"].set_params(
-            window=self.window, min_periods=self.min_periods, center=center
+            window=self.window, min_periods=self.min_periods, center=self.center
         )
         self.pipe_.steps["iqr_ad"]["model"].set_params(c=(None, self.c))
         self.pipe_.steps["diff"]["model"].set_params(
-            window=self.window, min_periods=self.min_periods, center=center
+            window=self.window, min_periods=self.min_periods, center=self.center
         )
         self.pipe_.steps["sign_check"]["model"].set_params(
             high=(
@@ -1149,15 +1149,16 @@ class SeasonalAD(_TrainableUnivariateDetector):
         self.side = side
         self.c = c
         self.trend = trend
+        self.two_sided = two_sided
         self._sync_params()
 
     @property
     def _param_names(self) -> Tuple[str, ...]:
-        return ("freq", "side", "c", "trend")
+        return ("freq", "side", "c", "trend", "two_sided")
 
     def _sync_params(self) -> None:
         self.pipe_.steps["deseasonal_residual"]["model"].set_params(
-            freq=self.freq, trend=self.trend
+            freq=self.freq, trend=self.trend, two_sided=self.two_sided
         )
         self.pipe_.steps["iqr_ad"]["model"].set_params(c=(None, self.c))
         self.pipe_.steps["sign_check"]["model"].set_params(
