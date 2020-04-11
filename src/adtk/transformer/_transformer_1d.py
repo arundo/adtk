@@ -659,7 +659,7 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
 
     two_sided: bool, optional
         The moving average method used in filtering out trend.
-        If True (default), a centered moving average is computed using the filt.
+        If True (default), a centered moving average is computed.
         If False, the filter coefficients are for past values only.
 
     Attributes
@@ -810,9 +810,9 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
         # remove trend
         if self.trend:
             seasonal_decompose_results = (
-                seasonal_decompose(s, period=self.freq_)
+                seasonal_decompose(s, period=self.freq_, two_sided=self.two_sided)
                 if parse(statsmodels.__version__) >= parse("0.11")
-                else seasonal_decompose(s, freq=self.freq_)
+                else seasonal_decompose(s, freq=self.freq_, two_sided=self.two_sided)
             )
             s_trend = getattr(seasonal_decompose_results, "trend")
             s_detrended = s - s_trend

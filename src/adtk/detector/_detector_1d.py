@@ -1065,7 +1065,7 @@ class SeasonalAD(_TrainableUnivariateDetector):
 
     two_sided: bool, optional
         The moving average method used in filtering out trend.
-        If True (default), a centered moving average is computed using the filt.
+        If True (default), a centered moving average is computed.
         If False, the filter coefficients are for past values only.
 
     Attributes
