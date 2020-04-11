@@ -729,7 +729,7 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
             seasonal_decompose_results = (
                 seasonal_decompose(s, period=self.freq_, two_sided=self.two_sided)
                 if parse(statsmodels.__version__) >= parse("0.11")
-                else seasonal_decompose(s, freq=self.freq_)
+                else seasonal_decompose(s, freq=self.freq_, two_sided=self.two_sided)
             )
             self.seasonal_ = getattr(seasonal_decompose_results, "seasonal")[
                 : self.freq_
