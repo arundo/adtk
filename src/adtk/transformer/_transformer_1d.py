@@ -657,6 +657,11 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
         If False, the time series will be assumed the sum of seasonal pattern
         and residual. Default: False.
 
+    two_sided: bool, optional
+        The moving average method used in filtering out trend.
+        If True (default), a centered moving average is computed using the filt.
+        If False, the filter coefficients are for past values only.
+
     Attributes
     ----------
     freq_: int
@@ -669,11 +674,15 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
     """
 
     def __init__(
-        self, freq: Optional[int] = None, trend: bool = False
+        self,
+        freq: Optional[int] = None,
+        trend: bool = False,
+        two_sided: bool = True
     ) -> None:
         super().__init__()
         self.freq = freq
         self.trend = trend
+        self.two_sided = two_sided
 
     @property
     def _param_names(self) -> Tuple[str, ...]:
@@ -718,7 +727,7 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
         # get seasonal pattern
         if self.trend:
             seasonal_decompose_results = (
-                seasonal_decompose(s, period=self.freq_)
+                seasonal_decompose(s, period=self.freq_, two_sided=self.two_sided)
                 if parse(statsmodels.__version__) >= parse("0.11")
                 else seasonal_decompose(s, freq=self.freq_)
             )

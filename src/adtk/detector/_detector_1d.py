@@ -406,6 +406,11 @@ class PersistAD(_TrainableUnivariateDetector):
         Aggregation operation of the time window, either "mean" or "median".
         Default: "median".
 
+    center: bool, optional
+        If True, the current point is the right edge of right window;
+        Otherwise, it is the right edge of left window.
+        Default: True.
+
     Attributes
     ----------
     pipe_: adtk.pipe.Pipenet
@@ -420,6 +425,7 @@ class PersistAD(_TrainableUnivariateDetector):
         side: str = "both",
         min_periods: Optional[int] = None,
         agg: str = "median",
+        center=True
     ) -> None:
         self.pipe_ = Pipenet(
             {
@@ -427,7 +433,7 @@ class PersistAD(_TrainableUnivariateDetector):
                     "model": DoubleRollingAggregate(
                         agg=agg,
                         window=(window, 1),
-                        center=True,
+                        center=center,
                         min_periods=(min_periods, 1),
                         diff="l1",
                     ),
@@ -441,7 +447,7 @@ class PersistAD(_TrainableUnivariateDetector):
                     "model": DoubleRollingAggregate(
                         agg=agg,
                         window=(window, 1),
-                        center=True,
+                        center=center,
                         min_periods=(min_periods, 1),
                         diff="diff",
                     ),
@@ -570,6 +576,11 @@ class LevelShiftAD(_TrainableUnivariateDetector):
         for that window. If 2-tuple, it defines the left and right window
         respectively. Default: None, i.e. all observations must have values.
 
+    center: bool, optional
+        If True, the current point is the right edge of right window;
+        Otherwise, it is the right edge of left window.
+        Default: True.
+
     Attributes
     ----------
     pipe_: adtk.pipe.Pipenet
@@ -587,6 +598,7 @@ class LevelShiftAD(_TrainableUnivariateDetector):
         min_periods: Union[
             Optional[int], Tuple[Optional[int], Optional[int]]
         ] = None,
+        center: bool = True
     ) -> None:
         self.pipe_ = Pipenet(
             {
@@ -594,7 +606,7 @@ class LevelShiftAD(_TrainableUnivariateDetector):
                     "model": DoubleRollingAggregate(
                         agg="median",
                         window=window,
-                        center=True,
+                        center=center,
                         min_periods=min_periods,
                         diff="l1",
                     ),
@@ -608,7 +620,7 @@ class LevelShiftAD(_TrainableUnivariateDetector):
                     "model": DoubleRollingAggregate(
                         agg="median",
                         window=window,
-                        center=True,
+                        center=center,
                         min_periods=min_periods,
                         diff="diff",
                     ),
@@ -1051,6 +1063,11 @@ class SeasonalAD(_TrainableUnivariateDetector):
     trend: bool, optional
         Whether to extract trend during decomposition. Default: False.
 
+    two_sided: bool, optional
+        The moving average method used in filtering out trend.
+        If True (default), a centered moving average is computed using the filt.
+        If False, the filter coefficients are for past values only.
+
     Attributes
     ----------
     freq_: int
@@ -1072,12 +1089,17 @@ class SeasonalAD(_TrainableUnivariateDetector):
         side: str = "both",
         c: float = 3.0,
         trend: bool = False,
+        two_sided: bool = True
     ) -> None:
         self.pipe_ = Pipenet(
             {
                 "deseasonal_residual": {
                     "model": (
-                        ClassicSeasonalDecomposition(freq=freq, trend=trend)
+                        ClassicSeasonalDecomposition(
+                            freq=freq,
+                            trend=trend,
+                            two_sided=two_sided
+                        )
                     ),
                     "input": "original",
                 },
