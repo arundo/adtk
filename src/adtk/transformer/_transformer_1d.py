@@ -686,7 +686,7 @@ class ClassicSeasonalDecomposition(_TrainableUnivariateTransformer):
 
     @property
     def _param_names(self) -> Tuple[str, ...]:
-        return ("freq", "trend")
+        return ("freq", "trend", "two_sided")
 
     def _fit_core(self, s: pd.Series) -> None:
         if not (

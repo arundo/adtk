@@ -488,11 +488,12 @@ class PersistAD(_TrainableUnivariateDetector):
         self.window = window
         self.min_periods = min_periods
         self.agg = agg
+        self.center = center
         self._sync_params()
 
     @property
     def _param_names(self) -> Tuple[str, ...]:
-        return ("window", "c", "side", "min_periods", "agg")
+        return ("window", "c", "side", "min_periods", "agg", "center")
 
     def _sync_params(self) -> None:
         if self.agg not in ["median", "mean"]:
@@ -507,12 +508,14 @@ class PersistAD(_TrainableUnivariateDetector):
             agg=self.agg,
             window=(self.window, 1),
             min_periods=(self.min_periods, 1),
+            center=self.center,
         )
         self.pipe_.steps["iqr_ad"]["model"].set_params(c=(None, self.c))
         self.pipe_.steps["diff"]["model"].set_params(
             agg=self.agg,
             window=(self.window, 1),
             min_periods=(self.min_periods, 1),
+            center=self.center,
         )
         self.pipe_.steps["sign_check"]["model"].set_params(
             high=(
@@ -660,11 +663,12 @@ class LevelShiftAD(_TrainableUnivariateDetector):
         self.side = side
         self.window = window
         self.min_periods = min_periods
+        self.center = center
         self._sync_params()
 
     @property
     def _param_names(self) -> Tuple[str, ...]:
-        return ("window", "c", "side", "min_periods")
+        return ("window", "c", "side", "min_periods", "center")
 
     def _sync_params(self) -> None:
         if self.side not in ["both", "positive", "negative"]:
@@ -672,11 +676,11 @@ class LevelShiftAD(_TrainableUnivariateDetector):
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
             )
         self.pipe_.steps["diff_abs"]["model"].set_params(
-            window=self.window, min_periods=self.min_periods
+            window=self.window, min_periods=self.min_periods, center=center
         )
         self.pipe_.steps["iqr_ad"]["model"].set_params(c=(None, self.c))
         self.pipe_.steps["diff"]["model"].set_params(
-            window=self.window, min_periods=self.min_periods
+            window=self.window, min_periods=self.min_periods, center=center
         )
         self.pipe_.steps["sign_check"]["model"].set_params(
             high=(
