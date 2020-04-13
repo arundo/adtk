@@ -126,7 +126,7 @@ class MinClusterDetector(_TrainableMultivariateDetector):
         if df.dropna().empty:
             raise RuntimeError("Valid values are not enough for training.")
         clustering_result = self.model.fit_predict(df.dropna())
-        cluster_count = Counter(clustering_result)
+        cluster_count = Counter(clustering_result) # type: Counter
         self._anomalous_cluster_id = cluster_count.most_common()[-1][0]
 
     def _predict_core(self, df: pd.DataFrame) -> pd.Series:
