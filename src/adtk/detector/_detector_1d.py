@@ -425,7 +425,7 @@ class PersistAD(_TrainableUnivariateDetector):
         side: str = "both",
         min_periods: Optional[int] = None,
         agg: str = "median",
-        center=True
+        center: bool = True
     ) -> None:
         self.pipe_ = Pipenet(
             {
