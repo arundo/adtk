@@ -641,7 +641,7 @@ def test_pipeline():
     )
 
     assert my_pipe.get_params() == {
-        "deseasonal_residual": {"freq": 6, "trend": False},
+        "deseasonal_residual": {"freq": 6, "trend": False, "two_sided": True},
         "abs_residual": {
             "fit_func": None,
             "fit_func_params": None,

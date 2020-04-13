@@ -406,6 +406,11 @@ class PersistAD(_TrainableUnivariateDetector):
         Aggregation operation of the time window, either "mean" or "median".
         Default: "median".
 
+    center: bool, optional
+        If True, the current point is the right edge of right window;
+        Otherwise, it is the right edge of left window.
+        Default: True.
+
     Attributes
     ----------
     pipe_: adtk.pipe.Pipenet
@@ -420,6 +425,7 @@ class PersistAD(_TrainableUnivariateDetector):
         side: str = "both",
         min_periods: Optional[int] = None,
         agg: str = "median",
+        center: bool = True
     ) -> None:
         self.pipe_ = Pipenet(
             {
@@ -427,7 +433,7 @@ class PersistAD(_TrainableUnivariateDetector):
                     "model": DoubleRollingAggregate(
                         agg=agg,
                         window=(window, 1),
-                        center=True,
+                        center=center,
                         min_periods=(min_periods, 1),
                         diff="l1",
                     ),
@@ -441,7 +447,7 @@ class PersistAD(_TrainableUnivariateDetector):
                     "model": DoubleRollingAggregate(
                         agg=agg,
                         window=(window, 1),
-                        center=True,
+                        center=center,
                         min_periods=(min_periods, 1),
                         diff="diff",
                     ),
@@ -482,11 +488,12 @@ class PersistAD(_TrainableUnivariateDetector):
         self.window = window
         self.min_periods = min_periods
         self.agg = agg
+        self.center = center
         self._sync_params()
 
     @property
     def _param_names(self) -> Tuple[str, ...]:
-        return ("window", "c", "side", "min_periods", "agg")
+        return ("window", "c", "side", "min_periods", "agg", "center")
 
     def _sync_params(self) -> None:
         if self.agg not in ["median", "mean"]:
@@ -501,12 +508,14 @@ class PersistAD(_TrainableUnivariateDetector):
             agg=self.agg,
             window=(self.window, 1),
             min_periods=(self.min_periods, 1),
+            center=self.center,
         )
         self.pipe_.steps["iqr_ad"]["model"].set_params(c=(None, self.c))
         self.pipe_.steps["diff"]["model"].set_params(
             agg=self.agg,
             window=(self.window, 1),
             min_periods=(self.min_periods, 1),
+            center=self.center,
         )
         self.pipe_.steps["sign_check"]["model"].set_params(
             high=(
@@ -570,6 +579,11 @@ class LevelShiftAD(_TrainableUnivariateDetector):
         for that window. If 2-tuple, it defines the left and right window
         respectively. Default: None, i.e. all observations must have values.
 
+    center: bool, optional
+        If True, the current point is the right edge of right window;
+        Otherwise, it is the right edge of left window.
+        Default: True.
+
     Attributes
     ----------
     pipe_: adtk.pipe.Pipenet
@@ -587,6 +601,7 @@ class LevelShiftAD(_TrainableUnivariateDetector):
         min_periods: Union[
             Optional[int], Tuple[Optional[int], Optional[int]]
         ] = None,
+        center: bool = True
     ) -> None:
         self.pipe_ = Pipenet(
             {
@@ -594,7 +609,7 @@ class LevelShiftAD(_TrainableUnivariateDetector):
                     "model": DoubleRollingAggregate(
                         agg="median",
                         window=window,
-                        center=True,
+                        center=center,
                         min_periods=min_periods,
                         diff="l1",
                     ),
@@ -608,7 +623,7 @@ class LevelShiftAD(_TrainableUnivariateDetector):
                     "model": DoubleRollingAggregate(
                         agg="median",
                         window=window,
-                        center=True,
+                        center=center,
                         min_periods=min_periods,
                         diff="diff",
                     ),
@@ -648,11 +663,12 @@ class LevelShiftAD(_TrainableUnivariateDetector):
         self.side = side
         self.window = window
         self.min_periods = min_periods
+        self.center = center
         self._sync_params()
 
     @property
     def _param_names(self) -> Tuple[str, ...]:
-        return ("window", "c", "side", "min_periods")
+        return ("window", "c", "side", "min_periods", "center")
 
     def _sync_params(self) -> None:
         if self.side not in ["both", "positive", "negative"]:
@@ -660,11 +676,11 @@ class LevelShiftAD(_TrainableUnivariateDetector):
                 "Parameter `side` must be 'both', 'positive' or 'negative'."
             )
         self.pipe_.steps["diff_abs"]["model"].set_params(
-            window=self.window, min_periods=self.min_periods
+            window=self.window, min_periods=self.min_periods, center=self.center
         )
         self.pipe_.steps["iqr_ad"]["model"].set_params(c=(None, self.c))
         self.pipe_.steps["diff"]["model"].set_params(
-            window=self.window, min_periods=self.min_periods
+            window=self.window, min_periods=self.min_periods, center=self.center
         )
         self.pipe_.steps["sign_check"]["model"].set_params(
             high=(
@@ -1051,6 +1067,11 @@ class SeasonalAD(_TrainableUnivariateDetector):
     trend: bool, optional
         Whether to extract trend during decomposition. Default: False.
 
+    two_sided: bool, optional
+        The moving average method used in filtering out trend.
+        If True (default), a centered moving average is computed.
+        If False, the filter coefficients are for past values only.
+
     Attributes
     ----------
     freq_: int
@@ -1072,12 +1093,17 @@ class SeasonalAD(_TrainableUnivariateDetector):
         side: str = "both",
         c: float = 3.0,
         trend: bool = False,
+        two_sided: bool = True
     ) -> None:
         self.pipe_ = Pipenet(
             {
                 "deseasonal_residual": {
                     "model": (
-                        ClassicSeasonalDecomposition(freq=freq, trend=trend)
+                        ClassicSeasonalDecomposition(
+                            freq=freq,
+                            trend=trend,
+                            two_sided=two_sided
+                        )
                     ),
                     "input": "original",
                 },
@@ -1123,15 +1149,16 @@ class SeasonalAD(_TrainableUnivariateDetector):
         self.side = side
         self.c = c
         self.trend = trend
+        self.two_sided = two_sided
         self._sync_params()
 
     @property
     def _param_names(self) -> Tuple[str, ...]:
-        return ("freq", "side", "c", "trend")
+        return ("freq", "side", "c", "trend", "two_sided")
 
     def _sync_params(self) -> None:
         self.pipe_.steps["deseasonal_residual"]["model"].set_params(
-            freq=self.freq, trend=self.trend
+            freq=self.freq, trend=self.trend, two_sided=self.two_sided
         )
         self.pipe_.steps["iqr_ad"]["model"].set_params(c=(None, self.c))
         self.pipe_.steps["sign_check"]["model"].set_params(
