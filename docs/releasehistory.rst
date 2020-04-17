@@ -2,6 +2,10 @@
 Release History
 ***************
 
+Version 0.6.2 (Apr 16, 2020)
+===================================
+- Hot fix of wrong documentation url
+
 Version 0.6.1 (Apr 16, 2020)
 ===================================
 - Migrated the documentation to a new host

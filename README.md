@@ -1,7 +1,7 @@
 # Anomaly Detection Toolkit (ADTK)
 
 [![Build Status](https://travis-ci.com/arundo/adtk.svg?branch=master)](https://travis-ci.com/arundo/adtk)
-[![Documentation Status](https://readthedocs.org/projects/adtk/badge/?version=stable)](https://adtk.readthedocs.io/en/latest/?badge=stable)
+[![Documentation Status](https://readthedocs.org/projects/adtk/badge/?version=stable)](https://adtk.readthedocs.io/en/stable)
 [![Coverage Status](https://coveralls.io/repos/github/arundo/adtk/badge.svg?branch=master&service=github)](https://coveralls.io/github/arundo/adtk?branch=master)
 [![PyPI](https://img.shields.io/pypi/v/adtk)](https://pypi.org/project/adtk/)
 [![Downloads](https://pepy.tech/badge/adtk)](https://pepy.tech/project/adtk)
