@@ -1,7 +1,7 @@
 # Anomaly Detection Toolkit (ADTK)
 
 [![Build Status](https://travis-ci.com/arundo/adtk.svg?branch=master)](https://travis-ci.com/arundo/adtk)
-[![Docs](https://readthedocs.com/projects/arundo-adtk/badge/?version=stable)](https://arundo-adtk.readthedocs-hosted.com)
+[![Documentation Status](https://readthedocs.org/projects/adtk/badge/?version=stable)](https://adtk.readthedocs.io/en/stable)
 [![Coverage Status](https://coveralls.io/repos/github/arundo/adtk/badge.svg?branch=master&service=github)](https://coveralls.io/github/arundo/adtk?branch=master)
 [![PyPI](https://img.shields.io/pypi/v/adtk)](https://pypi.org/project/adtk/)
 [![Downloads](https://pepy.tech/badge/adtk)](https://pepy.tech/project/adtk)
@@ -22,7 +22,7 @@ with unified APIs, as well as pipe classes that connect them together into
 models. It also provides some functions to process and visualize time series
 and anomaly events.
 
-See https://arundo-adtk.readthedocs-hosted.com for complete documentation.
+See https://adtk.readthedocs.io for complete documentation.
 
 ## Installation
 
@@ -45,10 +45,10 @@ pip install ./
 
 ## Examples
 
-Please see [Quick Start](https://arundo-adtk.readthedocs-hosted.com/en/stable/quickstart.html) for a simple example.
+Please see [Quick Start](https://adtk.readthedocs.io/en/stable/quickstart.html) for a simple example.
 
 For more detailed examples of each module of ADTK, please refer to
-[Examples](https://arundo-adtk.readthedocs-hosted.com/en/stable/examples.html)
+[Examples](https://adtk.readthedocs.io/en/stable/examples.html)
 section in the documentation or [an interactive demo notebook](https://mybinder.org/v2/gh/arundo/adtk/master?filepath=docs%2Fnotebooks%2Fdemo.ipynb).
 
 ## Contributing
@@ -58,7 +58,7 @@ discuss what you would like to change.
 
 Please make sure to update unit tests as appropriate.
 
-Please see [Contributing](https://arundo-adtk.readthedocs-hosted.com/en/stable/developer.html) for more details.
+Please see [Contributing](https://adtk.readthedocs.io/en/stable/developer.html) for more details.
 
 
 ## License

@@ -2,12 +2,22 @@
 Release History
 ***************
 
+Version 0.6.2 (Apr 16, 2020)
+===================================
+- Hot fix of wrong documentation url
+
+Version 0.6.1 (Apr 16, 2020)
+===================================
+- Migrated the documentation to a new host
+- Fixed minor typos in the documentation
+- Fixed a minor type hinting bug
+
 Version 0.6.0 (Mar 10, 2020)
 ===================================
 - Re-designed the API of :py:mod:`adtk.visualization.plot`
 - Removed :py:mod:`adtk.data.resample` because its functionality is highly overlapped with pandas resampler module
-- Made :py:mod:`adtk.data.expand_event` accept events in the form of pandas Series/DataFrame
-- Made :py:mod:`adtk.data.expand_event` accept time delta in the form of `str` or `int`
+- Made :py:mod:`adtk.data.expand_events` accept events in the form of pandas Series/DataFrame
+- Made :py:mod:`adtk.data.expand_events` accept time delta in the form of `str` or `int`
 - Changed the output type of :py:mod:`adtk.data.split_train_test` from a 2-tuple of lists to a list of 2-tuples
 - Turned the following model parameters required from optional
 
