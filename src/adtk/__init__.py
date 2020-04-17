@@ -16,8 +16,8 @@ with unified APIs, as well as pipe classes that connect them together into
 models. It also provides some functions to process and visualize time series
 and anomaly events.
 
-See https://arundo-adtk.readthedocs-hosted.com for complete documentation.
+See https://adtk.readthedocs.io for complete documentation.
 
 """
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
