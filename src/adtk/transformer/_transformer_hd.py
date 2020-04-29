@@ -409,7 +409,7 @@ class RollingCrossCorrelation(_NonTrainableMultivariateTransformer):
         )
 
         if (len(pairs) == 1) and (
-            (self.pair is None) or isinstance(self.pairs, tuple)
+            (self.pairs is None) or isinstance(self.pairs, tuple)
         ):
             rolling_corr = rolling_corr.iloc[:, 0].rename(None)
 
