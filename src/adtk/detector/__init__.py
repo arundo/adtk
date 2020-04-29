@@ -22,6 +22,7 @@ from ._detector_1d import (
     VolatilityShiftAD,
 )
 from ._detector_hd import (
+    CrossCorrelationAD,
     CustomizedDetectorHD,
     MinClusterDetector,
     OutlierDetector,
@@ -67,6 +68,7 @@ __all__ = [
     "OutlierDetector",
     "RegressionAD",
     "PcaAD",
+    "CrossCorrelationAD",
     "CustomizedDetectorHD",
     "print_all_models",
 ]

@@ -24,6 +24,7 @@ from ._transformer_hd import (
     PcaReconstruction,
     PcaReconstructionError,
     RegressionResidual,
+    RollingCrossCorrelation,
     SumAll,
 )
 
@@ -64,6 +65,7 @@ __all__ = [
     "PcaReconstruction",
     "PcaReconstructionError",
     "SumAll",
+    "RollingCrossCorrelation",
     "CustomizedTransformerHD",
     "print_all_models",
 ]
