@@ -245,6 +245,67 @@ testCases = [
         ],
         "t": [0, 0, 0, 0, 0.02, 0.02, 0, 0, 0, nan, 0, 0],
     },
+    {
+        "model": transformer.RollingCrossCorrelation,
+        "params": {"window": 2},
+        "df": [
+            [0, 1, 2, 3, 4, 5, 6, 7, nan, 9, 10],
+            [0, 1, 2, 3, 2, 3, 4, 5, 6, 7, 8],
+        ],
+        "t": [nan, 1, 1, 1, -1, 1, 1, 1, nan, nan, 1],
+    },
+    {
+        "model": transformer.RollingCrossCorrelation,
+        "params": {"window": 3, "center": True},
+        "df": [
+            [0, 1, 2, 3, 4, 5, 6, 7, nan, 9, 10],
+            [0, 1, 2, 3, 2, 3, 4, 5, 6, 7, 8],
+        ],
+        "t": [nan, 1, 1, 0, 0, 1, 1, nan, nan, nan, nan],
+    },
+    {
+        "model": transformer.RollingCrossCorrelation,
+        "params": {"window": 3, "min_periods": 1},
+        "df": [
+            [0, 1, 2, 3, 4, 5, 6, 7, nan, 9, 10],
+            [0, 1, 2, 3, 2, 3, 4, 5, 6, 7, 8],
+        ],
+        "t": [nan, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1],
+    },
+    {
+        "model": transformer.RollingCrossCorrelation,
+        "params": {"window": 2},
+        "df": [
+            [0, 1, 2, 3, 4, 5, 6, 7, nan, 9, 10],
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            [0, 1, 2, 3, 2, 3, 4, 5, 6, 7, 8],
+        ],
+        "t": {
+            "0:1": [nan, 1, 1, 1, 1, 1, 1, 1, nan, nan, 1],
+            "0:2": [nan, 1, 1, 1, -1, 1, 1, 1, nan, nan, 1],
+            "1:2": [nan, 1, 1, 1, -1, 1, 1, 1, 1, 1, 1],
+        },
+    },
+    {
+        "model": transformer.RollingCrossCorrelation,
+        "params": {"window": 2, "pairs": (2, 0)},
+        "df": [
+            [0, 1, 2, 3, 4, 5, 6, 7, nan, 9, 10],
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            [0, 1, 2, 3, 2, 3, 4, 5, 6, 7, 8],
+        ],
+        "t": [nan, 1, 1, 1, -1, 1, 1, 1, nan, nan, 1],
+    },
+    {
+        "model": transformer.RollingCrossCorrelation,
+        "params": {"window": 2, "pairs": [(2, 0)]},
+        "df": [
+            [0, 1, 2, 3, 4, 5, 6, 7, nan, 9, 10],
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            [0, 1, 2, 3, 2, 3, 4, 5, 6, 7, 8],
+        ],
+        "t": {"2:0": [nan, 1, 1, 1, -1, 1, 1, 1, nan, nan, 1]},
+    },
 ]
 
 
