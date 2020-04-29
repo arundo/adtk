@@ -6,7 +6,7 @@ the original time series.
 
 """
 
-from typing import Any, Callable, Dict, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from sklearn.decomposition import PCA
@@ -308,3 +308,109 @@ class PcaReconstructionError(_TrainableMultivariateTransformer):
                 self._model.transform(df.dropna().values)
             )
         return ((results - df) ** 2).sum(axis=1, skipna=False)
+
+
+class RollingCrossCorrelation(_NonTrainableMultivariateTransformer):
+    """Transformer that rolls a sliding window along a multivariate time series
+    and returns moving cross correlation.
+
+    Parameters
+    ----------
+    window: int or str
+        Size of the rolling time window.
+
+        - If int, it is the number of time point in this time window.
+        - If str, it must be able to be converted into a pandas Timedelta
+          object.
+
+    pairs : tuple or list, optional
+        Pairs of series to calculate cross correlation.
+
+        - If 2-tuple, return the cross correlation of these two series.
+        - If list of tuples, return the cross correlation of every pair in the
+          list.
+        - If None, return the cross correlation of all possible pairs.
+
+        Default: None.
+
+    center: bool, optional
+        Whether the calculation is at the center of time window or on the right
+        edge. Default: False.
+
+    min_periods: int, optional
+        Minimum number of observations in window required to have a value.
+        Default: None, i.e. all observations must have values.
+
+    """
+
+    def __init__(
+        self,
+        window: Union[int, str],
+        pairs: Optional[Union[Tuple[str, str], List[Tuple[str, str]]]] = None,
+        center: bool = False,
+        min_periods: Optional[int] = None,
+    ):
+        super().__init__()
+        self.window = window
+        self.pairs = pairs
+        self.center = center
+        self.min_periods = min_periods
+
+    @property
+    def _param_names(self) -> Tuple[str, ...]:
+        return ("window", "pairs", "center", "min_periods")
+
+    def _predict_core(
+        self, df: pd.DataFrame
+    ) -> Union[pd.Series, pd.DataFrame]:
+        if len(df.columns) <= 1:
+            raise ValueError(
+                "The input data frame must contain at least two series."
+            )
+
+        if self.pairs is None:
+            pairs = [
+                (df.columns[i], df.columns[j])
+                for i in range(len(df.columns))
+                for j in range(i + 1, len(df.columns))
+            ]
+        elif isinstance(self.pairs, tuple):
+            pairs = [self.pairs]
+        else:
+            pairs = self.pairs
+
+        columns = list(
+            set(sum([[i, j] for (i, j) in pairs], []))
+        )  # all columns in the list of pairs
+
+        if not set(columns) <= set(df.columns):
+            raise ValueError(
+                "Parameter `pairs` contains a column that is not included in "
+                "the data frame."
+            )
+
+        rolling_corr = (
+            df.loc[:, columns]
+            .rolling(
+                window=self.window,
+                center=self.center,
+                min_periods=self.min_periods,
+            )
+            .corr()
+        )
+
+        rolling_corr = pd.DataFrame(
+            {
+                "{}:{}".format(col_0, col_1): rolling_corr.loc[:, col_0].loc[
+                    :, col_1
+                ]
+                for col_0, col_1 in pairs
+            }
+        )
+
+        if (len(pairs) == 1) and (
+            (self.pair is None) or isinstance(self.pairs, tuple)
+        ):
+            rolling_corr = rolling_corr.iloc[:, 0].rename(None)
+
+        return rolling_corr
