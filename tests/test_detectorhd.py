@@ -180,6 +180,34 @@ testCases = [
         ],
         "a": [0, 0, 0, 0, 1, 1, 0, 0, 0, nan, 0, 0],
     },
+    {
+        "model": detector.CrossCorrelationAD,
+        "params": {"window": 2},
+        "df": [
+            [0, 1, 2, 3, 4, 5, 6, 7, nan, 9, 10],
+            [0, 1, 2, 3, 2, 3, 4, 5, 6, 7, 8],
+        ],
+        "a": [nan, 0, 0, 0, 1, 0, 0, 0, nan, nan, 0],
+    },
+    {
+        "model": detector.CrossCorrelationAD,
+        "params": {"window": 3, "center": True, "min_periods": 1},
+        "df": [
+            [0, 1, 2, 3, 4, 5, 6, 7, nan, 9, 10],
+            [0, 1, 2, 3, 2, 3, 4, 5, 6, 7, 8],
+        ],
+        "a": [0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+    },
+    {
+        "model": detector.CrossCorrelationAD,
+        "params": {"window": 2},
+        "df": [
+            [0, 1, 2, 3, 4, 5, 6, 7, nan, 9, 10],
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            [0, 1, 2, 3, 2, 3, 4, 5, 6, 7, 8],
+        ],
+        "a": [nan, 0, 0, 0, 1, 0, 0, 0, nan, nan, 0],
+    },
 ]
 
 
