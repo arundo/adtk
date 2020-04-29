@@ -5,18 +5,19 @@ i.e. from pandas DataFrame.
 """
 
 from collections import Counter
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 
 from .._detector_base import _TrainableMultivariateDetector
-from ..aggregator import AndAggregator
+from ..aggregator import AndAggregator, OrAggregator
 from ..detector import InterQuartileRangeAD, ThresholdAD
 from ..pipe import Pipeline, Pipenet
 from ..transformer import (
     CustomizedTransformer1D,
     PcaReconstructionError,
     RegressionResidual,
+    RollingCrossCorrelation,
 )
 
 
@@ -372,6 +373,101 @@ class PcaAD(_TrainableMultivariateDetector):
 
     def _sync_params(self) -> None:
         self.pipe_.steps[0][1].set_params(k=self.k)
+        self.pipe_.steps[1][1].set_params(c=self.c)
+
+    def _fit_core(self, s: pd.DataFrame) -> None:
+        self._sync_params()
+        self.pipe_.fit(s)
+
+    def _predict_core(self, s: pd.DataFrame) -> pd.Series:
+        self._sync_params()
+        return self.pipe_.detect(s)
+
+
+class CrossCorrelationAD(_TrainableMultivariateDetector):
+    """Detector that detects anomalous inter-series cross correlation.
+
+    This detector tracks rolling cross correlations between series and
+    identifies periods when the cross correlations is anomalous.
+
+    This detector is internally implemented as a `Pipeline` object. Advanced
+    users may learn more details by checking attribute `pipe_`.
+
+    Parameters
+    ----------
+    window: int or str
+        Size of the rolling time window.
+
+        - If int, it is the number of time point in this time window.
+        - If str, it must be able to be converted into a pandas Timedelta
+          object.
+
+    pairs : tuple or list, optional
+        Pairs of series to calculate cross correlation.
+
+        - If 2-tuple, return the cross correlation of these two series.
+        - If list of tuples, return the cross correlation of every pair in the
+          list.
+        - If None, return the cross correlation of all possible pairs.
+
+        Default: None.
+
+    c: float, optional
+        Factor used to determine the bound of normal range based on historical
+        interquartile range. Default: 5.0.
+
+    center: bool, optional
+        Whether the calculation is at the center of time window or on the right
+        edge. Default: False.
+
+    min_periods: int, optional
+        Minimum number of observations in window required to have a value.
+        Default: None, i.e. all observations must have values.
+
+    """
+
+    def __init__(
+        self,
+        window: Union[int, str],
+        pairs: Optional[Union[Tuple[str, str], List[Tuple[str, str]]]] = None,
+        c: float = 3.0,
+        center: bool = False,
+        min_periods: Optional[int] = None,
+    ):
+        self.pipe_ = Pipeline(
+            [
+                (
+                    "rolling_cross_corr",
+                    RollingCrossCorrelation(
+                        window=window,
+                        pairs=pairs,
+                        center=center,
+                        min_periods=min_periods,
+                    ),
+                ),
+                ("ad", InterQuartileRangeAD(c=c)),
+                ("agg", OrAggregator()),
+            ]
+        )
+        super().__init__()
+        self.window = window
+        self.pairs = pairs
+        self.center = center
+        self.min_periods = min_periods
+        self.c = c
+        self._sync_params()
+
+    @property
+    def _param_names(self) -> Tuple[str, ...]:
+        return ("window", "pairs", "c", "center", "min_periods")
+
+    def _sync_params(self) -> None:
+        self.pipe_.steps[0][1].set_params(
+            window=self.window,
+            pairs=self.pairs,
+            center=self.center,
+            min_periods=self.min_periods,
+        )
         self.pipe_.steps[1][1].set_params(c=self.c)
 
     def _fit_core(self, s: pd.DataFrame) -> None:
