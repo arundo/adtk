@@ -18,6 +18,7 @@ from ._detector_1d import (
     PersistAD,
     QuantileAD,
     SeasonalAD,
+    VolatilityRangeAD,
     ThresholdAD,
     VolatilityShiftAD,
 )
@@ -56,6 +57,7 @@ __all__ = [
     "ThresholdAD",
     "QuantileAD",
     "InterQuartileRangeAD",
+    "VolatilityRangeAD",
     "GeneralizedESDTestAD",
     "PersistAD",
     "LevelShiftAD",
