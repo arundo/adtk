@@ -197,8 +197,6 @@ def plot(
         Axes where the plot(s) is drawn.
 
     """
-    # setup style
-    plt.style.use("seaborn-whitegrid")
 
     # initialize color generator
     color_generator = ColorGenerator()
