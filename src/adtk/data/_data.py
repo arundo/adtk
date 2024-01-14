@@ -161,7 +161,13 @@ def validate_events(
     merged_event_list = (
         []
     )  # type: List[Union[Tuple[pd.Timestamp, pd.Timestamp], pd.Timestamp]]
-    for t, v in time_window_end_series.iteritems():  # type: pd.Timestamp, int
+    # @modified 20240113 - earthgecko/adtk - Task #5224: Replace deprecated pandas.Series.iteritems
+    #                      earthgecko/skyline - Bug #5222: adtk - pandas error
+    # arundo/adtk - https://github.com/arundo/adtk/issues/147
+    # pandas.Series.iteritems - https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.Series.iteritems.html
+    # Deprecated since version 1.5.0: iteritems is deprecated and will be removed in a future version. Use .items instead.
+    # for t, v in time_window_end_series.iteritems():  # type: pd.Timestamp, int
+    for t, v in time_window_end_series.items():  # type: pd.Timestamp, int
         if (status == 0) and (v > 0):
             start = t  # type: pd.Timestamp
             status = 1
@@ -588,7 +594,13 @@ def expand_events(  # type:ignore
                     right_expand=right_expand,
                     freq_as_period=freq_as_period,
                 )
-                for _, s in events.iteritems()
+                # @modified 20240113 - earthgecko/adtk - Task #5224: Replace deprecated pandas.Series.iteritems
+                #                      earthgecko/skyline - Bug #5222: adtk - pandas error
+                # arundo/adtk - https://github.com/arundo/adtk/issues/147
+                # pandas.Series.iteritems - https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.Series.iteritems.html
+                # Deprecated since version 1.5.0: iteritems is deprecated and will be removed in a future version. Use .items instead.
+                # for _, s in events.iteritems()
+                for _, s in events.iter()
             ],
             axis=1,
         )  # type: pd.DataFrame
