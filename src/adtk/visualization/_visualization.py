@@ -2,6 +2,7 @@
 We don't typing the visualization module because there are a lot recursion on
 nested tree structure which would be messy if we type rigorously."""
 
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -31,6 +32,8 @@ def plot(
     axes=None,
     figsize=None,
     legend=True,
+    title="",
+    save_to_file="",
 ):
     """Plot time series and/or anomalies.
 
@@ -191,6 +194,14 @@ def plot(
     legend: bool, optional
         Whether to show legend in the plot. Default: True.
 
+    title: str, optional
+        The title add to the plot.
+        Default: "".
+
+    save_to_file: str, optional
+        The full path and filename where to save the plot as a png image.
+        Default: "".
+
     Returns
     --------
     matplotlib Axes object or array of Axes objects
@@ -328,6 +339,41 @@ def plot(
     if legend and ((ts is not None) or (anomaly is not None)):
         for ax in axes:
             ax.legend()
+
+    # title
+    if title != "":
+        try:
+            plt.suptitle(title, fontsize=12)
+        except Exception as e:
+            print("could not add title to plot - {}".format(e))
+
+    # save_to_file
+    save_to_file_path = None
+    if save_to_file != "":
+        try:
+            save_to_file_path = os.path.dirname(save_to_file)
+        except Exception as e:
+            print(
+                "{} not a valid path/filename for "
+                "save_to_file - %s".format(save_to_file, e))
+
+    save_to_file_path_exists = False
+    if save_to_file_path:
+        try:
+            if os.path.exists(save_to_file_path):
+                save_to_file_path_exists = True
+        except Exception as e:
+            print(
+                "{} is not a valid path in "
+                "save_to_file - {}".format(save_to_file, e))
+    if save_to_file_path_exists:
+        try:
+            plt.savefig(save_to_file, dpi=100)
+            os.chmod(save_to_file, mode=0o644)
+        except Exception as e:
+            print(
+                "error: failed to save plot to "
+                "%s - %s".format(save_to_file, e))
 
     return axes
 
