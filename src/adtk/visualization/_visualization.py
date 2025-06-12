@@ -2,6 +2,7 @@
 We don't typing the visualization module because there are a lot recursion on
 nested tree structure which would be messy if we type rigorously."""
 
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -31,6 +32,8 @@ def plot(
     axes=None,
     figsize=None,
     legend=True,
+    title="",
+    save_to_file="",
 ):
     """Plot time series and/or anomalies.
 
@@ -191,6 +194,14 @@ def plot(
     legend: bool, optional
         Whether to show legend in the plot. Default: True.
 
+    title: str, optional
+        The title add to the plot.
+        Default: "".
+
+    save_to_file: str, optional
+        The full path and filename where to save the plot as a png image.
+        Default: "".
+
     Returns
     --------
     matplotlib Axes object or array of Axes objects
@@ -198,7 +209,12 @@ def plot(
 
     """
     # setup style
-    plt.style.use("seaborn-whitegrid")
+
+# @modified 20250612 - Task #5631: Replace deprecated seaborn-whitegrid
+# https://github.com/arundo/adtk/issues/152
+# https://github.com/arundo/adtk/pull/156
+#    plt.style.use("seaborn-whitegrid")
+    plt.style.use('seaborn-v0_8-whitegrid')
 
     # initialize color generator
     color_generator = ColorGenerator()
@@ -328,6 +344,37 @@ def plot(
     if legend and ((ts is not None) or (anomaly is not None)):
         for ax in axes:
             ax.legend()
+
+    # title
+    if title != "":
+        try:
+            plt.suptitle(title, fontsize=10)
+        except Exception as e:
+            print("could not add title to plot - %s" % e)
+
+    # save_to_file
+    save_to_file_path = None
+    if save_to_file != "":
+        try:
+            save_to_file_path = os.path.dirname(save_to_file)
+        except Exception as e:
+            print("%s not a valid path/filename for save_to_file - %s" % (
+                str(save_to_file), e))
+    save_to_file_path_exists = False
+    if save_to_file_path:
+        try:
+            if os.path.exists(save_to_file_path):
+                save_to_file_path_exists = True
+        except Exception as e:
+            print("%s is not a valid path in save_to_file - %s" % (
+                str(save_to_file), e))
+    if save_to_file_path_exists:
+        try:
+            plt.savefig(save_to_file, dpi=100)
+            os.chmod(save_to_file, mode=0o644)
+        except Exception as e:
+            print("error: failed to save plot to %s - %s" % (
+                str(save_to_file), e))
 
     return axes
 
